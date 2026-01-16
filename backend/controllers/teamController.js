@@ -1,386 +1,299 @@
-const Team = require('../models/Team');
-const User = require('../models/User');
-const nodemailer = require('nodemailer');
-const { notifyWaitlist } = require('./waitlistController');
-const { createActivityHelper } = require('./activityController');
-const { createNotificationHelper } = require('./notificationController');
+const pool = require('../config/database');
 
-// Funkcija za slanje emaila kada se pridružiš timu
-const sendTeamJoinEmail = async (userEmail, teamName, teamDate, teamTime, teamLocation) => {
+// Get all teams
+exports.getAllTeams = async (req, res) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    const result = await pool.query(
+      'SELECT * FROM teams ORDER BY created_at DESC'
+    );
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: userEmail,
-      subject: '🏀 TeamConnect - Uspješno si se pridružio timu!',
-      html: `
-        <h1>Čestitamo! 🎉</h1>
-        <p>Uspješno si se pridružio timu:</p>
-        <h2 style="color: #667eea;">${teamName}</h2>
-        <p><strong>📅 Datum:</strong> ${new Date(teamDate).toLocaleDateString('hr-HR')}</p>
-        <p><strong>🕐 Vrijeme:</strong> ${teamTime}</p>
-        <p><strong>📍 Lokacija:</strong> ${teamLocation}</p>
-        <br>
-        <p>Vidimo se na terenu! 💪</p>
-        <p style="color: #999; font-size: 12px;">TeamConnect © 2025</p>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Team join email sent to:', userEmail);
+    res.json(result.rows || []);
   } catch (error) {
-    console.error('❌ Failed to send team join email:', error);
+    console.error('❌ Get all teams error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Funkcija za slanje emaila kada napustiš tim
-const sendTeamLeaveEmail = async (userEmail, teamName, teamDate, teamTime) => {
+// Get team by ID
+exports.getTeamById = async (req, res) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    const { id } = req.params;
+    
+    const result = await pool.query(
+      'SELECT * FROM teams WHERE id = $1',
+      [id]
+    );
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: userEmail,
-      subject: '🏀 TeamConnect - Napustio si tim',
-      html: `
-        <h1>Napustio si tim</h1>
-        <p>Potvrdujemo da si napustio tim:</p>
-        <h2 style="color: #667eea;">${teamName}</h2>
-        <p><strong>📅 Datum:</strong> ${new Date(teamDate).toLocaleDateString('hr-HR')}</p>
-        <p><strong>🕐 Vrijeme:</strong> ${teamTime}</p>
-        <br>
-        <p>Nadamo se da ćeš se pridružiti drugim timovima uskoro!</p>
-        <p style="color: #999; font-size: 12px;">TeamConnect © 2025</p>
-      `
-    };
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
 
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Team leave email sent to:', userEmail);
+    res.json(result.rows[0]);
   } catch (error) {
-    console.error('❌ Failed to send team leave email:', error);
+    console.error('❌ Get team by ID error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Kreiraj novi tim
+// Get my teams
+exports.getMyTeams = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get teams where user is creator
+    const createdTeams = await pool.query(
+      'SELECT * FROM teams WHERE creator_id = $1',
+      [userId]
+    );
+
+    // Get teams where user is member
+    const memberTeams = await pool.query(
+      `SELECT t.* FROM teams t
+       INNER JOIN team_members tm ON t.id = tm.team_id
+       WHERE tm.user_id = $1`,
+      [userId]
+    );
+
+    // Combine and remove duplicates
+    const allTeams = [...createdTeams.rows, ...memberTeams.rows];
+    const uniqueTeams = allTeams.filter((team, index, self) =>
+      index === self.findIndex((t) => t.id === team.id)
+    );
+
+    res.json(uniqueTeams);
+  } catch (error) {
+    console.error('❌ Get my teams error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Create team
 exports.createTeam = async (req, res) => {
   try {
-    const { name, sport, location, city, date, time, maxPlayers, description } = req.body;
+    const userId = req.user.id;
+    const { name, sport, location, city, country, date, time, max_players, description } = req.body;
 
-    if (!name || !sport || !location || !city || !date || !time || !maxPlayers) {
-      return res.status(400).json({ message: 'Popuni sva obavezna polja!' });
-    }
+    console.log('📝 Creating team for user:', userId);
 
-    const team = new Team({
-      name,
-      sport,
-      location,
-      city,
-      date,
-      time,
-      maxPlayers,
-      description,
-      creator: req.user._id,
-      players: [req.user._id]
-    });
+    // Insert team
+    const result = await pool.query(
+      `INSERT INTO teams (name, sport, location, city, country, date, time, max_players, description, creator_id, current_players)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1)
+       RETURNING *`,
+      [
+        name, 
+        sport, 
+        location, 
+        city || 'Zagreb', 
+        country || 'Hrvatska', 
+        date, 
+        time, 
+        max_players || 10, 
+        description || '', 
+        userId
+      ]
+    );
 
-    await team.save();
+    const team = result.rows[0];
 
-    console.log('✅ Team created:', team._id, 'by', req.user._id);
+    // Add creator as team member
+    await pool.query(
+      'INSERT INTO team_members (team_id, user_id) VALUES ($1, $2)',
+      [team.id, userId]
+    );
 
-    try {
-      await createActivityHelper(
-        req.user._id,
-        'team_created',
-        {
-          teamId: team._id,
-          teamName: team.name
-        },
-        'public'
-      );
-    } catch (activityErr) {
-      console.error('Greška pri kreiranju aktivnosti:', activityErr);
-    }
-
-    res.status(201).json({ 
-      message: 'Tim uspješno kreiran!',
-      team 
-    });
-
+    console.log('✅ Team created:', team.id);
+    res.status(201).json(team);
   } catch (error) {
     console.error('❌ Create team error:', error);
-    res.status(500).json({ message: 'Greška na serveru' });
+    console.error('Error details:', error.message);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-// Dohvati sve timove (s filterima)
-exports.getTeams = async (req, res) => {
-  try {
-    const { sport, city, location } = req.query;
-
-    let filter = {};
-    if (sport) filter.sport = sport;
-    if (city) filter.city = city;
-    if (location) filter.location = location;
-
-    const teams = await Team.find(filter)
-      .populate('creator', 'username')
-      .populate('players', 'username')
-      .sort({ createdAt: -1 });
-
-    console.log(`✅ Fetched ${teams.length} teams with filter:`, filter);
-
-    res.json(teams);
-
-  } catch (error) {
-    console.error('❌ Get teams error:', error);
-    res.status(500).json({ message: 'Greška na serveru' });
-  }
-};
-
-// Dohvati jedan tim
-exports.getTeam = async (req, res) => {
-  try {
-    const teamId = req.params.id || req.params.teamId;  // ✅ Support both
-
-    const team = await Team.findById(teamId)
-      .populate('creator', 'username email sport location')
-      .populate('players', 'username sport location');
-
-    if (!team) {
-      console.log('❌ Team not found:', teamId);
-      return res.status(404).json({ message: 'Tim ne postoji' });
-    }
-
-    console.log('✅ Team fetched:', team._id);
-
-    res.json(team);
-
-  } catch (error) {
-    console.error('❌ Get team error:', error);
-    res.status(500).json({ message: 'Greška na serveru' });
-  }
-};
-
-// Pridruži se timu
+// Join team
 exports.joinTeam = async (req, res) => {
   try {
-    const teamId = req.params.id || req.params.teamId;  // ✅ Support both
-    const userId = req.user._id;  // ✅ Use _id consistently
+    const userId = req.user.id;
+    const { id } = req.params;
 
-    console.log('🔍 Join team request:', { teamId, userId });
-
-    const team = await Team.findById(teamId);
-
-    if (!team) {
-      console.log('❌ Team not found:', teamId);
-      return res.status(404).json({ message: 'Tim ne postoji' });
-    }
-
-    console.log('✅ Team found:', team.name);
-
-    if (team.currentPlayers >= team.maxPlayers) {
-      return res.status(400).json({ message: 'Tim je pun!' });
-    }
-
-    // ✅ Check if already member (proper comparison)
-    const isAlreadyMember = team.players.some(
-      player => player.toString() === userId.toString()
+    // Check if team exists
+    const teamResult = await pool.query(
+      'SELECT * FROM teams WHERE id = $1',
+      [id]
     );
 
-    if (isAlreadyMember) {
-      console.log('⚠️ User already in team');
-      return res.status(400).json({ message: 'Već si u ovom timu!' });
+    if (teamResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Team not found' });
     }
 
-    // Dodaj igrača
-    team.players.push(userId);
-    team.currentPlayers += 1;
-    await team.save();
+    const team = teamResult.rows[0];
 
-    console.log('✅ User joined team:', userId, '→', team._id);
+    // Check if user is already in team
+    const memberCheck = await pool.query(
+      'SELECT * FROM team_members WHERE team_id = $1 AND user_id = $2',
+      [id, userId]
+    );
 
-    // Pošalji email
-    try {
-      await sendTeamJoinEmail(
-        req.user.email,
-        team.name,
-        team.date,
-        team.time,
-        `${team.city}, ${team.location}`
-      );
-    } catch (emailErr) {
-      console.error('Greška pri slanju emaila:', emailErr);
+    if (memberCheck.rows.length > 0) {
+      return res.status(400).json({ message: 'Already in team' });
     }
 
-    // Kreiraj aktivnost
-    try {
-      await createActivityHelper(
-        userId,
-        'team_joined',
-        {
-          teamId: team._id,
-          teamName: team.name
-        },
-        'public'
-      );
-    } catch (activityErr) {
-      console.error('Greška pri kreiranju aktivnosti:', activityErr);
+    // Check if team is full
+    if (team.current_players >= team.max_players) {
+      return res.status(400).json({ message: 'Team is full' });
     }
 
-    // Notifikacija za kreatora tima
-    try {
-      const user = await User.findById(userId).select('username');
-      
-      await createNotificationHelper(
-        team.creator,
-        'team_joined',
-        '🤝 Novi član tima',
-        `${user.username} se pridružio tvom timu "${team.name}"`,
-        `/teams/${team._id}`,
-        { teamId: team._id },
-        userId
-      );
-    } catch (notifErr) {
-      console.error('Greška pri kreiranju notifikacije:', notifErr);
-    }
+    // Add user to team
+    await pool.query(
+      'INSERT INTO team_members (team_id, user_id) VALUES ($1, $2)',
+      [id, userId]
+    );
 
-    res.json({ 
-      message: 'Uspješno si se pridružio timu!',
-      team 
-    });
+    // Update current_players count
+    await pool.query(
+      'UPDATE teams SET current_players = current_players + 1 WHERE id = $1',
+      [id]
+    );
 
+    // Get updated team
+    const updatedTeam = await pool.query(
+      'SELECT * FROM teams WHERE id = $1',
+      [id]
+    );
+
+    res.json(updatedTeam.rows[0]);
   } catch (error) {
     console.error('❌ Join team error:', error);
-    res.status(500).json({ message: 'Greška na serveru' });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Napusti tim
+// Leave team
 exports.leaveTeam = async (req, res) => {
   try {
-    const teamId = req.params.id || req.params.teamId;  // ✅ FIX: Support both
-    const userId = req.user._id;  // ✅ FIX: Use _id
+    const userId = req.user.id;
+    const { id } = req.params;
 
-    console.log('🔍 Leave team request:', { teamId, userId });
-
-    const team = await Team.findById(teamId);
-    
-    if (!team) {
-      console.log('❌ Team not found:', teamId);
-      return res.status(404).json({ message: 'Tim ne postoji' });
-    }
-
-    // ✅ Check if user is in team
-    const isMember = team.players.some(
-      player => player.toString() === userId.toString()
+    // Check if team exists
+    const teamResult = await pool.query(
+      'SELECT * FROM teams WHERE id = $1',
+      [id]
     );
 
-    if (!isMember) {
-      console.log('⚠️ User not in team');
-      return res.status(400).json({ message: 'Nisi u ovom timu' });
+    if (teamResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Team not found' });
     }
 
-    // ✅ Remove player
-    team.players = team.players.filter(
-      p => p.toString() !== userId.toString()
+    // Remove user from team
+    await pool.query(
+      'DELETE FROM team_members WHERE team_id = $1 AND user_id = $2',
+      [id, userId]
     );
-    team.currentPlayers = team.players.length;
-    await team.save();
 
-    console.log('✅ User left team:', userId, '←', team._id);
+    // Update current_players count
+    await pool.query(
+      'UPDATE teams SET current_players = GREATEST(0, current_players - 1) WHERE id = $1',
+      [id]
+    );
 
-    try {
-      await notifyWaitlist(teamId);
-    } catch (waitlistErr) {
-      console.error('Greška pri notifikaciji waitlista:', waitlistErr);
-    }
+    // Get updated team
+    const updatedTeam = await pool.query(
+      'SELECT * FROM teams WHERE id = $1',
+      [id]
+    );
 
-    try {
-      await sendTeamLeaveEmail(
-        req.user.email,
-        team.name,
-        team.date,
-        team.time
-      );
-    } catch (emailErr) {
-      console.error('Greška pri slanju emaila:', emailErr);
-    }
-
-    res.json({ message: 'Napustio si tim' });
+    res.json(updatedTeam.rows[0]);
   } catch (error) {
     console.error('❌ Leave team error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Obriši tim (samo kreator)
-exports.deleteTeam = async (req, res) => {
+// Update team
+exports.updateTeam = async (req, res) => {
   try {
-    const teamId = req.params.id || req.params.teamId;  // ✅ Support both
-    const userId = req.user._id;  // ✅ Use _id
+    const userId = req.user.id;
+    const { id } = req.params;
+    const { name, sport, location, city, country, date, time, max_players, description } = req.body;
 
-    console.log('🔍 Delete team request:', { teamId, userId });
+    // Check if user is the creator
+    const teamResult = await pool.query(
+      'SELECT * FROM teams WHERE id = $1',
+      [id]
+    );
 
-    const team = await Team.findById(teamId);
-
-    if (!team) {
-      console.log('❌ Team not found:', teamId);
-      return res.status(404).json({ message: 'Tim ne postoji' });
+    if (teamResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Team not found' });
     }
 
-    // ✅ Check if user is creator
-    if (team.creator.toString() !== userId.toString()) {
-      console.log('⚠️ User is not creator');
-      return res.status(403).json({ message: 'Samo kreator može obrisati tim!' });
+    if (teamResult.rows[0].creator_id !== userId) {
+      return res.status(403).json({ message: 'Not authorized' });
     }
 
-    await team.deleteOne();
+    // Update team
+    const result = await pool.query(
+      `UPDATE teams 
+       SET name = COALESCE($1, name),
+           sport = COALESCE($2, sport),
+           location = COALESCE($3, location),
+           city = COALESCE($4, city),
+           country = COALESCE($5, country),
+           date = COALESCE($6, date),
+           time = COALESCE($7, time),
+           max_players = COALESCE($8, max_players),
+           description = COALESCE($9, description)
+       WHERE id = $10
+       RETURNING *`,
+      [name, sport, location, city, country, date, time, max_players, description, id]
+    );
 
-    console.log('✅ Team deleted:', teamId);
-
-    res.json({ message: 'Tim je obrisan' });
-
+    res.json(result.rows[0]);
   } catch (error) {
-    console.error('❌ Delete team error:', error);
-    res.status(500).json({ message: 'Greška na serveru' });
+    console.error('❌ Update team error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Dohvati moje timove
-exports.getMyTeams = async (req, res) => {
+// Delete team
+exports.deleteTeam = async (req, res) => {
   try {
-    const userId = req.user._id;  // ✅ FIX: Use _id
+    const userId = req.user.id;
+    const { id } = req.params;
 
-    console.log('🔍 Get my teams request:', userId);
+    // Check if user is the creator
+    const teamResult = await pool.query(
+      'SELECT * FROM teams WHERE id = $1',
+      [id]
+    );
 
-    const teams = await Team.find({
-      $or: [
-        { creator: userId },
-        { players: userId }
-      ]
-    })
-    .populate('creator', 'username email avatar')
-    .populate('players', 'username email avatar')
-    .sort({ date: 1 });
+    if (teamResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
 
-    console.log(`✅ Found ${teams.length} teams for user:`, userId);
+    if (teamResult.rows[0].creator_id !== userId) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
 
-    res.json(teams);
+    // Delete team (CASCADE will delete team_members)
+    await pool.query('DELETE FROM teams WHERE id = $1', [id]);
+
+    res.json({ message: 'Team deleted successfully' });
   } catch (error) {
-    console.error('❌ Get my teams error:', error);
+    console.error('❌ Delete team error:', error);
     res.status(500).json({ message: 'Server error' });
   }
+};
+
+// Placeholder functions for other routes
+exports.getTeamMessages = async (req, res) => {
+  res.json([]);
+};
+
+exports.sendTeamMessage = async (req, res) => {
+  res.json({ message: 'Message sent' });
+};
+
+exports.getTeamStats = async (req, res) => {
+  res.json({ stats: 'Team stats' });
 };

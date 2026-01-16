@@ -1,8 +1,8 @@
 .tournaments-page {
   min-height: 100vh;
   background: 
-    linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%),
-    url('https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=1920&q=80') center/cover no-repeat fixed;
+    linear-gradient(135deg, rgba(232, 245, 232, 0.9) 0%, rgba(200, 230, 201, 0.9) 100%),
+    url('https://images.unsplash.com/photo-w3NniYe6vUI?w=1920&q=80') center/cover no-repeat fixed;
   background-blend-mode: overlay;
 }
 
@@ -14,7 +14,7 @@
 
 .tournaments-header {
   text-align: center;
-  color: white;
+  color: #2e7d32;
   margin-bottom: 40px;
   animation: fadeInDown 0.6s ease-out;
 }
@@ -33,15 +33,17 @@
 .tournaments-header h1 {
   font-size: 3.5rem;
   margin-bottom: 15px;
-  text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.4);
+  text-shadow: 2px 4px 8px rgba(46, 125, 50, 0.3);
   font-weight: 800;
+  color: #1b5e20;
 }
 
 .tournaments-header p {
   font-size: 1.4rem;
   margin-bottom: 25px;
   opacity: 0.95;
-  text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.3);
+  text-shadow: 2px 3px 6px rgba(46, 125, 50, 0.2);
+  color: #2e7d32;
 }
 
 .tournaments-tabs {

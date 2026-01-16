@@ -1,11 +1,9 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
 const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const morgan = require('morgan');
 const logger = require('./utils/logger');
@@ -14,21 +12,13 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 const config = require('./config/config');
 require('dotenv').config();
 
-const authRoutes = require('./routes/authRoutes');
-const teamRoutes = require('./routes/teamRoutes');
-const waitlistRoutes = require('./routes/waitlistRoutes');
-const friendsRoutes = require('./routes/friendsRoutes');
-const statsRoutes = require('./routes/statsRoutes');
-const videoRoutes = require('./routes/videoRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-const tournamentRoutes = require('./routes/tournamentRoutes');
-const fieldRoutes = require('./routes/fieldRoutes');
-const matchRoutes = require('./routes/matchRoutes');
-const ratingRoutes = require('./routes/ratingRoutes');
-const activityRoutes = require('./routes/activityRoutes');
+// Import Supabase controllers
+const authController = require('./controllers/authController');
+const teamController = require('./controllers/teamController');
+const tournamentController = require('./controllers/tournamentController');
+
+// Import routes
 const notificationRoutes = require('./routes/notificationRoutes');
-const chatRoutes = require('./routes/chatRoutes');
-const adminRoutes = require('./routes/adminRoutes'); // ✅ NOVO
 
 const app = express();
 const server = http.createServer(app);
@@ -59,7 +49,6 @@ app.use(helmet({
   }
 }));
 
-app.use(mongoSanitize()); // Prevent NoSQL injection
 app.use(hpp()); // Prevent HTTP Parameter Pollution
 
 // HTTP request logger
@@ -87,7 +76,7 @@ app.get('/health', (req, res) => {
     message: 'OK',
     timestamp: Date.now(),
     environment: config.env,
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+    database: 'Supabase Connected'
   };
   
   try {
@@ -118,33 +107,68 @@ app.get('/api', (req, res) => {
       activities: '/api/activities',
       notifications: '/api/notifications',
       chat: '/api/chat',
-      admin: '/api/admin' // ✅ NOVO
+      admin: '/api/admin'
     },
     health: '/health'
   });
 });
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/teams', teamRoutes);
-app.use('/api/waitlist', waitlistRoutes);
-app.use('/api/friends', friendsRoutes);
-app.use('/api/stats', statsRoutes);
-app.use('/api/videos', videoRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/tournaments', tournamentRoutes);
-app.use('/api/fields', fieldRoutes);
-app.use('/api/matches', matchRoutes);
-app.use('/api/ratings', ratingRoutes);
-app.use('/api/activities', activityRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/admin', adminRoutes); // ✅ NOVO - admin endpoints
+// Authentication middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-// MongoDB Connection
-mongoose.connect(config.mongoUri)
-  .then(() => console.log('✅ MongoDB spojen!'))
-  .catch(err => console.error('❌ MongoDB greška:', err));
+  if (!token) {
+    return res.status(401).json({ message: 'Access token required' });
+  }
+
+  const jwt = require('jsonwebtoken');
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+// Routes - Auth
+app.post('/api/auth/register', authController.register);
+app.post('/api/auth/verifyCode', authController.verifyCode);
+app.post('/api/auth/login', authController.login);
+app.post('/api/auth/refresh', authController.refreshToken);
+app.post('/api/auth/logout', authenticateToken, authController.logout);
+app.get('/api/auth/me', authenticateToken, authController.getCurrentUser);
+app.put('/api/auth/profile', authenticateToken, authController.updateProfile);
+app.put('/api/auth/change-password', authenticateToken, authController.changePassword);
+app.post('/api/auth/forgot-password', authController.forgotPassword);
+app.post('/api/auth/reset-password', authController.resetPassword);
+
+// Routes - Teams
+app.get('/api/teams', teamController.getAllTeams);
+app.get('/api/teams/:id', teamController.getTeamById);
+app.get('/api/teams/my', authenticateToken, teamController.getMyTeams);
+app.post('/api/teams', authenticateToken, teamController.createTeam);
+app.post('/api/teams/:id/join', authenticateToken, teamController.joinTeam);
+app.post('/api/teams/:id/leave', authenticateToken, teamController.leaveTeam);
+
+// Routes - Tournaments
+app.get('/api/tournaments', tournamentController.getTournaments);
+app.get('/api/tournaments/:id', tournamentController.getTournament);
+
+// Routes - Notifications
+app.use('/api/notifications', notificationRoutes);
+
+// Supabase Connection
+// const { supabase } = require('./config/supabase');
+
+// Test Supabase connection
+// supabase.from('users').select('id').then(data => {
+//   console.log('✅ Supabase connected successfully!');
+//   console.log('Sample data:', data);
+// }).catch(error => {
+//   console.error('❌ Supabase connection error:', error);
+// });
 
 // Socket.io event handlers
 io.on('connection', (socket) => {
@@ -167,21 +191,6 @@ io.on('connection', (socket) => {
     try {
       const { teamId, userId, text, type, location, imageUrl } = data;
       
-      const Team = require('./models/Team');
-      const team = await Team.findById(teamId);
-      
-      if (!team) {
-        socket.emit('error', { message: 'Tim ne postoji' });
-        return;
-      }
-
-      const isMember = team.players.includes(userId) || team.creator.toString() === userId;
-      
-      if (!isMember) {
-        socket.emit('error', { message: 'Nisi član tima' });
-        return;
-      }
-
       const message = {
         user: userId,
         text,
@@ -191,18 +200,13 @@ io.on('connection', (socket) => {
         createdAt: new Date()
       };
 
-      team.messages.push(message);
-      await team.save();
-
-      await team.populate('messages.user', 'username avatar');
-      const populatedMessage = team.messages[team.messages.length - 1];
-
-      io.to(`team_${teamId}`).emit('new_message', populatedMessage);
+      // Broadcast message to team room
+      io.to(`team_${teamId}`).emit('new_message', message);
       
-      console.log(`💬 Nova poruka u team ${teamId}`);
+      console.log(`💬 New message in team ${teamId}`);
     } catch (error) {
       console.error('Send message error:', error);
-      socket.emit('error', { message: 'Greška pri slanju poruke' });
+      socket.emit('error', { message: 'Failed to send message' });
     }
   });
 
@@ -244,11 +248,6 @@ function gracefulShutdown() {
   
   server.close(() => {
     console.log('🔌 HTTP server closed');
-    
-    mongoose.connection.close(false, () => {
-      console.log('💾 MongoDB connection closed');
-      process.exit(0);
-    });
   });
   
   // Force close after 10 seconds

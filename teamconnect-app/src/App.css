@@ -6,7 +6,7 @@
 }
 
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
   min-height: 100vh;
 }
 
@@ -26,34 +26,35 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #81c784, #66bb6a);
   color: white;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(129, 199, 132, 0.3);
 }
 
 .btn-secondary {
-  background: #ff9800;
-  color: white;
-  border: none;
+  background: #c8e6c9;
+  color: #2e7d32;
+  border: 1px solid #81c784;
 }
 
 .btn-secondary:hover {
-  background: #f57c00;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(245, 124, 0, 0.4);
+  background: #81c784;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(129, 199, 132, 0.2);
 }
 
 /* Cards */
 .card {
-  background: rgba(255,255,255,0.95);
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.9);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(129, 199, 132, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(129, 199, 132, 0.2);
 }
 
 /* Form inputs */
@@ -73,17 +74,19 @@ body {
 .form-group textarea {
   width: 100%;
   padding: 14px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid #c8e6c9;
   border-radius: 12px;
   font-size: 1rem;
   transition: border 0.3s;
+  background: rgba(255,255,255,0.8);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #81c784;
+  background: rgba(255,255,255,0.95);
 }
 
 /* Loading */

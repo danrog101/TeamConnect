@@ -1,6 +1,6 @@
 .navbar {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #81c784, #66bb6a);
+  box-shadow: 0 4px 20px rgba(129, 199, 132, 0.2);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -40,14 +40,14 @@
   font-size: 1.5rem;
   font-weight: 800;
   color: white;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .menu-toggle {
   display: none;
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: white;
+  color: #5d4e37;
   font-size: 1.8rem;
   padding: 8px 15px;
   border-radius: 8px;
@@ -69,9 +69,9 @@
 
 .nav-link {
   padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: none;
+  background: rgba(255, 255, 255, 0.25);
+  color: #1b5e20;
+  border: 2px solid white;
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
@@ -111,7 +111,7 @@
 }
 
 .user-name {
-  color: white;
+  color: #5d4e37;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
@@ -160,11 +160,11 @@
     top: 100%;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #81c784, #66bb6a);
     flex-direction: column;
     padding: 20px;
     gap: 10px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 25px rgba(129, 199, 132, 0.2);
     display: none;
   }
 

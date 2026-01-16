@@ -1,22 +1,25 @@
 .dashboard-page {
   min-height: 100vh;
-  background: 
-    linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%),
-    url('https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1920&q=80') center/cover no-repeat fixed;
-  background-blend-mode: overlay;
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
 }
 
 .dashboard-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 60px 30px;
 }
 
 .dashboard-header {
   text-align: center;
-  color: white;
-  margin-bottom: 40px;
+  color: #333;
+  margin-bottom: 60px;
   animation: fadeInDown 0.6s ease-out;
+  padding: 40px 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(129, 199, 132, 0.1);
+  border: 1px solid rgba(129, 199, 132, 0.2);
 }
 
 @keyframes fadeInDown {
@@ -33,18 +36,26 @@
 .dashboard-header h1 {
   font-size: 3rem;
   margin-bottom: 10px;
-  text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.4);
+  text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
   font-weight: 800;
+  color: #000;
 }
 
 .dashboard-header p {
   font-size: 1.3rem;
   opacity: 0.95;
-  text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.1);
+  color: #333;
 }
 
 .filters-card {
-  margin-bottom: 40px;
+  margin-bottom: 50px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(129, 199, 132, 0.1);
+  border: 1px solid rgba(129, 199, 132, 0.2);
   animation: fadeIn 0.8s ease-out 0.2s both;
 }
 
@@ -67,41 +78,46 @@
 .filters-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  gap: 25px;
 }
 
 .teams-count {
-  margin-bottom: 20px;
-  color: white;
+  margin-bottom: 30px;
+  color: #333;
   font-size: 1.2rem;
-  text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.8s ease-out 0.4s both;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(129, 199, 132, 0.2);
 }
 
 .teams-count strong {
   font-size: 1.4rem;
-  color: #ffd700;
+  color: #66bb6a;
 }
 
 .teams-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 25px;
+  gap: 35px;
   animation: fadeIn 0.8s ease-out 0.6s both;
 }
 
 .loading-state {
   text-align: center;
   padding: 80px 20px;
-  color: white;
+  color: #333;
 }
 
 .spinner {
   width: 60px;
   height: 60px;
   margin: 0 auto 20px;
-  border: 5px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 5px solid rgba(129, 199, 132, 0.3);
+  border-top-color: #66bb6a;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -162,12 +178,12 @@
   left: 0;
   right: 0;
   background: white;
-  border: 2px solid #667eea;
+  border: 2px solid #81c784;
   border-radius: 10px;
   max-height: 300px;
   overflow-y: auto;
   z-index: 1000;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(129, 199, 132, 0.15);
   margin-top: 5px;
 }
 
@@ -186,7 +202,7 @@
 }
 
 .city-item:hover {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #c8e6c9 0%, #81c784 100%);
 }
 
 .city-name {

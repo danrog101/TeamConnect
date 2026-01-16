@@ -1,9 +1,6 @@
 .rating-system-page {
   min-height: 100vh;
-  background: 
-    linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%),
-    url('https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1920&q=80') center/cover no-repeat fixed;
-  background-blend-mode: overlay;
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
 }
 
 .rating-container {
@@ -14,7 +11,7 @@
 
 .rating-header {
   text-align: center;
-  color: white;
+  color: #333;
   margin-bottom: 40px;
   animation: fadeInDown 0.6s ease-out;
 }
@@ -99,9 +96,9 @@
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #81c784, #66bb6a);
   color: white;
-  border-color: #667eea;
+  border-color: #66bb6a;
 }
 
 .leaderboard {

@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
-import { getAllSports } from '../data/sports';
-import { europeanCities } from '../data/cities';
+import { authAPI } from '../services/api';
 import './Profile.css';
 
 function Profile() {
   const navigate = useNavigate();
-  const { userId } = useParams(); // Za gledanje tuđih profila
+  const { userId } = useParams(); // For viewing other profiles
   const [profile, setProfile] = useState(null);
   const [isOwnProfile, setIsOwnProfile] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -35,7 +34,11 @@ function Profile() {
     facebook: '',
     profileVisibility: 'public',
     showEmail: false,
-    showPhone: false
+    showPhone: false,
+    // Enhanced player statistics
+    leagueLevel: '',
+    yearsExperience: '',
+    selfRating: 5
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -44,13 +47,67 @@ function Profile() {
     confirmPassword: ''
   });
 
-  const sportsList = getAllSports();
-  const countries = Object.keys(europeanCities).sort((a, b) => a.localeCompare(b, 'hr'));
+  const sportsList = [
+    { id: 'football', name: 'Football' },
+    { id: 'basketball', name: 'Basketball' },
+    { id: 'volleyball', name: 'Volleyball' }
+  ];
+
+  const skillLevels = [
+    { value: 'beginner', label: 'Beginner' },
+    { value: 'intermediate', label: 'Intermediate' },
+    { value: 'advanced', label: 'Advanced' },
+    { value: 'professional', label: 'Professional' }
+  ];
+
+  const positions = {
+    football: [
+      { value: 'goalkeeper', label: 'Goalkeeper' },
+      { value: 'defender', label: 'Defender' },
+      { value: 'midfielder', label: 'Midfielder' },
+      { value: 'forward', label: 'Forward' }
+    ],
+    basketball: [
+      { value: 'point_guard', label: 'Point Guard' },
+      { value: 'shooting_guard', label: 'Shooting Guard' },
+      { value: 'small_forward', label: 'Small Forward' },
+      { value: 'power_forward', label: 'Power Forward' },
+      { value: 'center', label: 'Center' }
+    ],
+    volleyball: [
+      { value: 'setter', label: 'Setter' },
+      { value: 'outside_hitter', label: 'Outside Hitter' },
+      { value: 'middle_blocker', label: 'Middle Blocker' },
+      { value: 'libero', label: 'Libero' },
+      { value: 'opposite', label: 'Opposite' }
+    ]
+  };
+
+  const countries = [
+    { id: 'hr', name: 'Croatia', cities: ['Zagreb', 'Split', 'Rijeka', 'Osijek', 'Zadar', 'Slavonski Brod', 'Pula', 'Šibenik', 'Karlovac', 'Rijeka', 'Dubrovnik', 'Varaždin'] },
+    { id: 'rs', name: 'Serbia', cities: ['Belgrade', 'Novi Sad', 'Niš', 'Kragujevac', 'Kraljevo'] },
+    { id: 'si', name: 'Slovenia', cities: ['Ljubljana', 'Maribor', 'Celje', 'Koper', 'Nova Gorica'] },
+    { id: 'ba', name: 'Bosnia', cities: ['Sarajevo', 'Banja Luka', 'Tuzla', 'Zenica', 'Mostar'] },
+    { id: 'me', name: 'Montenegro', cities: ['Podgorica', 'Nikšić', 'Budva', 'Bar'] },
+    { id: 'mk', name: 'North Macedonia', cities: ['Skopje', 'Bitola', 'Kumanovo', 'Ohrid', 'Strumica', 'Tetovo', 'Veles', 'Štip', 'Prilep', 'Gostivar'] },
+    { id: 'al', name: 'Albania', cities: ['Tirana', 'Durrës', 'Vlorë', 'Fier', 'Shkodër', 'Elbasan', 'Kavajë', 'Lezhë'] }
+  ];
+
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   const availableAvatars = [
     '👤', '😀', '😎', '🤓', '🥳', '🤩', '😺', '🦁', '🐯', '🐻',
     '🦊', '🐼', '🐨', '🐸', '🦄', '🐲', '⚽', '🏀', '🎾', '🏐'
+  ];
+
+  const europeanCities = [
+    'Zagreb', 'Split', 'Rijeka', 'Osijek', 'Zadar', 'Slavonski Brod', 'Pula', 'Šibenik', 'Karlovac', 'Rijeka', 'Dubrovnik', 'Varaždin',
+    'Belgrade', 'Novi Sad', 'Niš', 'Kragujevac', 'Kraljevo',
+    'Ljubljana', 'Maribor', 'Celje', 'Koper', 'Nova Gorica',
+    'Sarajevo', 'Banja Luka', 'Tuzla', 'Zenica', 'Mostar',
+    'Podgorica', 'Nikšić', 'Budva', 'Bar',
+    'Skopje', 'Bitola', 'Kumanovo', 'Ohrid', 'Strumica', 'Tetovo', 'Veles', 'Štip', 'Prilep', 'Gostivar',
+    'Tirana', 'Durrës', 'Vlorë', 'Fier', 'Shkodër', 'Elbasan', 'Kavajë', 'Lezhë'
   ];
 
   useEffect(() => {
@@ -60,216 +117,239 @@ function Profile() {
   const loadProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const targetUserId = userId || currentUser._id || currentUser.id;
       
-      const response = await fetch(`http://localhost:5000/api/profile/${targetUserId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setProfile(data);
-        setIsOwnProfile(!userId || userId === currentUser._id || userId === currentUser.id);
-        
-        // Popuni edit form
-        setEditForm({
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          bio: data.bio || '',
-          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString().split('T')[0] : '',
-          gender: data.gender || '',
-          sport: data.sport || '',
-          favoriteSports: data.favoriteSports || [],
-          skillLevel: data.skillLevel || '',
-          position: data.position || '',
-          country: data.country || '',
-          city: data.city || '',
-          phone: data.phone || '',
-          instagram: data.instagram || '',
-          twitter: data.twitter || '',
-          facebook: data.facebook || '',
-          profileVisibility: data.profileVisibility || 'public',
-          showEmail: data.showEmail || false,
-          showPhone: data.showPhone || false
-        });
-      } else {
-        const error = await response.json();
-        setToast({ message: error.message, type: 'error' });
+      if (!token) {
+        navigate('/login');
+        return;
       }
+      
+      const user = await authAPI.getCurrentUser();
+      if (!user) return;
+
+      const userProfile = await authAPI.getFriends(user.id);
+      const userStats = await authAPI.getUserStats(user.id, user.sport || 'football');
+      
+      setProfile({
+        ...user,
+        friends: userProfile,
+        stats: userStats
+      });
+      
+      setIsOwnProfile(!userId || userId === currentUser.id || userId === currentUser.id);
+      
+      // Populate edit form
+      setEditForm({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        bio: user.bio || '',
+        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+        gender: user.gender || '',
+        sport: user.sport || '',
+        favoriteSports: user.favoriteSports || [],
+        skillLevel: user.skillLevel || '',
+        position: user.position || '',
+        country: user.country || '',
+        city: user.city || '',
+        phone: user.phone || '',
+        instagram: user.instagram || '',
+        twitter: user.twitter || '',
+        facebook: user.facebook || '',
+        profileVisibility: user.profileVisibility || 'public',
+        showEmail: user.showEmail || false,
+        showPhone: user.showPhone || false,
+        leagueLevel: user.leagueLevel || '',
+        yearsExperience: user.yearsExperience || '',
+        selfRating: user.selfRating || 5
+      });
     } catch (error) {
       console.error('Load profile error:', error);
-      setToast({ message: 'Greška pri učitavanju profila', type: 'error' });
+      setToast({ message: 'Failed to load profile', type: 'error' });
     }
   };
 
   const handleSaveProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(editForm)
+      
+      if (!token) {
+        setToast({ message: 'Please login to save profile', type: 'error' });
+        return;
+      }
+
+      const dbUpdateData = {};
+      
+      // Map frontend field names to database field names
+      if (editForm.firstName) dbUpdateData.first_name = editForm.firstName;
+      if (editForm.lastName) dbUpdateData.last_name = editForm.lastName;
+      if (editForm.dateOfBirth) dbUpdateData.date_of_birth = editForm.dateOfBirth;
+      if (editForm.gender) dbUpdateData.gender = editForm.gender;
+      if (editForm.sport) dbUpdateData.sport = editForm.sport;
+      if (editForm.favoriteSports) dbUpdateData.favorite_sports = editForm.favoriteSports;
+      if (editForm.skillLevel) dbUpdateData.skill_level = editForm.skillLevel;
+      if (editForm.position) dbUpdateData.position = editForm.position;
+      if (editForm.country) dbUpdateData.country = editForm.country;
+      if (editForm.city) dbUpdateData.city = editForm.city;
+      if (editForm.phone) dbUpdateData.phone = editForm.phone;
+      if (editForm.instagram) dbUpdateData.instagram = editForm.instagram;
+      if (editForm.twitter) dbUpdateData.twitter = editForm.twitter;
+      if (editForm.facebook) dbUpdateData.facebook = editForm.facebook;
+      if (editForm.profileVisibility) dbUpdateData.profile_visibility = editForm.profileVisibility;
+      if (editForm.showEmail !== undefined) dbUpdateData.show_email = editForm.showEmail;
+      if (editForm.showPhone !== undefined) dbUpdateData.show_phone = editForm.showPhone;
+      
+      // Enhanced player statistics
+      if (editForm.leagueLevel) dbUpdateData.league_level = editForm.leagueLevel;
+      if (editForm.yearsExperience) dbUpdateData.years_experience = editForm.yearsExperience;
+      if (editForm.selfRating) dbUpdateData.self_rating = editForm.selfRating;
+
+      // Copy other fields directly
+      const allowedFields = ['username', 'bio', 'avatar'];
+      allowedFields.forEach(field => {
+        if (editForm[field] !== undefined) {
+          dbUpdateData[field] = editForm[field];
+        }
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setProfile(data.user);
-        setIsEditing(false);
-        setToast({ message: '✅ Profil ažuriran!', type: 'success' });
-        
-        // Ažuriraj localStorage
-        const updatedUser = { ...currentUser, ...data.user };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-      } else {
-        setToast({ message: data.message, type: 'error' });
-      }
+      const updatedUser = await authAPI.updateProfile(userId, dbUpdateData);
+      
+      setProfile(updatedUser);
+      setIsEditing(false);
+      setToast({ message: 'Profile updated successfully!', type: 'success' });
+      
+      // Update localStorage
+      const updatedCurrentUser = { ...currentUser, ...updatedUser };
+      localStorage.setItem('user', JSON.stringify(updatedCurrentUser));
     } catch (error) {
       console.error('Save profile error:', error);
-      setToast({ message: 'Greška pri spremanju profila', type: 'error' });
+      setToast({ message: 'Failed to update profile', type: 'error' });
     }
   };
 
   const handleChangePassword = async () => {
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      setToast({ message: 'Popuni sva polja!', type: 'error' });
+      setToast({ message: 'Please fill all password fields', type: 'error' });
       return;
     }
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setToast({ message: 'Nova lozinka se ne podudara!', type: 'error' });
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      setToast({ message: 'Nova lozinka mora imati barem 6 znakova!', type: 'error' });
+    if (parseInt(passwordForm.newPassword) < parseInt(passwordForm.currentPassword)) {
+      setToast({ message: 'New password must be longer than current password', type: 'error' });
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/profile/password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword
-        })
+      const response = await authAPI.changePassword(userId, {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setToast({ message: '✅ Lozinka promijenjena!', type: 'success' });
+      if (response.success) {
+        setToast({ message: 'Password changed successfully!', type: 'success' });
         setShowPasswordModal(false);
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       } else {
-        setToast({ message: data.message, type: 'error' });
+        setToast({ message: response.message || 'Failed to change password', type: 'error' });
       }
     } catch (error) {
       console.error('Change password error:', error);
-      setToast({ message: 'Greška pri promjeni lozinke', type: 'error' });
+      setToast({ message: 'Failed to change password', type: 'error' });
     }
   };
 
-  const handleChangeAvatar = async (newAvatar) => {
+  const handleChangeAvatar = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target.result;
+      
+      try {
+        const response = await authAPI.updateProfile(userId, { avatar: base64 });
+        
+        if (response.success) {
+          const updatedUser = { ...currentUser, ...response.user };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          setProfile(response.user);
+          setToast({ message: 'Avatar updated successfully!', type: 'success' });
+        } else {
+          setToast({ message: response.message || 'Failed to update avatar', type: 'error' });
+        }
+      } catch (error) {
+        console.error('Change avatar error:', error);
+        setToast({ message: 'Failed to update avatar', type: 'error' });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleToggleFavoriteSport = async (sportId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/profile/avatar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ avatar: newAvatar })
+      const response = await authAPI.updateProfile(userId, {
+        favoriteSports: profile.favoriteSports.includes(sportId)
+          ? profile.favoriteSports.filter(id => id !== sportId)
+          : [...profile.favoriteSports, sportId]
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setProfile(data.user);
-        setShowAvatarModal(false);
-        setToast({ message: '✅ Avatar ažuriran!', type: 'success' });
-        
-        // Ažuriraj localStorage
-        const updatedUser = { ...currentUser, avatar: newAvatar };
+      if (response.success) {
+        const updatedUser = { ...currentUser, ...response.user };
         localStorage.setItem('user', JSON.stringify(updatedUser));
-      } else {
-        setToast({ message: data.message, type: 'error' });
+        setProfile(response.user);
       }
     } catch (error) {
-      console.error('Change avatar error:', error);
-      setToast({ message: 'Greška pri promjeni avatara', type: 'error' });
-    }
-  };
-
-  const handleToggleFavoriteSport = (sport) => {
-    const sports = editForm.favoriteSports || [];
-    if (sports.includes(sport)) {
-      setEditForm({ ...editForm, favoriteSports: sports.filter(s => s !== sport) });
-    } else {
-      setEditForm({ ...editForm, favoriteSports: [...sports, sport] });
+      console.error('Toggle favorite sport error:', error);
+      setToast({ message: 'Failed to update favorite sports', type: 'error' });
     }
   };
 
   const getSkillLevelLabel = (level) => {
     const labels = {
-      beginner: 'Početnik',
-      intermediate: 'Srednji',
-      advanced: 'Napredan',
-      professional: 'Profesionalac'
+      beginner: 'Beginner',
+      intermediate: 'Intermediate',
+      advanced: 'Advanced',
+      professional: 'Professional'
     };
     return labels[level] || level;
   };
 
   const getGenderLabel = (gender) => {
     const labels = {
-      male: 'Muško',
-      female: 'Žensko',
-      other: 'Ostalo',
-      prefer_not_to_say: 'Ne želim reći'
+      male: 'Male',
+      female: 'Female',
+      other: 'Other'
     };
     return labels[gender] || gender;
   };
 
   if (!profile) {
     return (
-      <div className="profile-page">
+      <div>
         <Navbar />
-        <div className="loading">Učitavanje profila...</div>
+        <div className="loading">Loading profile...</div>
       </div>
     );
   }
 
   return (
-    <div className="profile-page">
-      <Navbar />
-      
-      <div className="profile-container">
-        {/* Cover Photo */}
-        <div 
-          className="profile-cover"
-          style={{ 
-            backgroundImage: profile.coverPhoto 
-              ? `url(${profile.coverPhoto})` 
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-          }}
-        >
-          {isOwnProfile && (
-            <button className="btn-edit-cover">
-              📷 Promijeni naslovnu
-            </button>
-          )}
-        </div>
+    <div className="profile-container">
+      {/* Cover Photo */}
+      <div 
+        className="profile-cover"
+        style={{ 
+          backgroundImage: profile.coverPhoto 
+            ? `url(${profile.coverPhoto})` 
+            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }}
+      >
+        {isOwnProfile && (
+          <button className="btn-edit-cover">
+            📷 Change cover photo
+          </button>
+        )}
+      </div>
 
+      <div className="profile-container">
         {/* Profile Header */}
         <div className="profile-header card">
           <div className="profile-avatar-section">
@@ -314,15 +394,15 @@ function Profile() {
               <div className="profile-stats-mini">
                 <div className="stat-mini">
                   <strong>{profile.friends?.length || 0}</strong>
-                  <span>Prijatelji</span>
+                  <span>Friends</span>
                 </div>
                 <div className="stat-mini">
                   <strong>{profile.stats?.totalMatches || 0}</strong>
-                  <span>Utakmica</span>
+                  <span>Matches</span>
                 </div>
                 <div className="stat-mini">
                   <strong>{profile.stats?.totalWins || 0}</strong>
-                  <span>Pobjeda</span>
+                  <span>Wins</span>
                 </div>
               </div>
             </div>
@@ -333,13 +413,13 @@ function Profile() {
                   className="btn btn-primary"
                   onClick={() => setIsEditing(!isEditing)}
                 >
-                  {isEditing ? 'Odustani' : '✏️ Uredi profil'}
+                  {isEditing ? 'Cancel' : '✏️ Edit Profile'}
                 </button>
                 <button 
                   className="btn btn-secondary"
                   onClick={() => setShowPasswordModal(true)}
                 >
-                  🔒 Promijeni lozinku
+                  🔒 Change Password
                 </button>
               </div>
             )}
@@ -352,26 +432,26 @@ function Profile() {
             className={`tab ${activeTab === 'about' ? 'active' : ''}`}
             onClick={() => setActiveTab('about')}
           >
-            O meni
+            About
           </button>
           <button 
             className={`tab ${activeTab === 'stats' ? 'active' : ''}`}
             onClick={() => setActiveTab('stats')}
           >
-            Statistika
+            Statistics
           </button>
           <button 
             className={`tab ${activeTab === 'activity' ? 'active' : ''}`}
             onClick={() => setActiveTab('activity')}
           >
-            Aktivnost
+            Activity
           </button>
           {isOwnProfile && (
             <button 
               className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
               onClick={() => setActiveTab('settings')}
             >
-              Postavke
+              Settings
             </button>
           )}
         </div>
@@ -382,25 +462,25 @@ function Profile() {
             <div className="about-section">
               {isEditing ? (
                 <div className="edit-profile-form card">
-                  <h2>✏️ Uredi profil</h2>
+                  <h2>✏️ Edit Profile</h2>
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Ime</label>
+                      <label>First Name</label>
                       <input
                         type="text"
                         value={editForm.firstName}
                         onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
-                        placeholder="Ime"
+                        placeholder="First Name"
                       />
                     </div>
                     <div className="form-group">
-                      <label>Prezime</label>
+                      <label>Last Name</label>
                       <input
                         type="text"
                         value={editForm.lastName}
                         onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
-                        placeholder="Prezime"
+                        placeholder="Last Name"
                       />
                     </div>
                   </div>
@@ -410,7 +490,7 @@ function Profile() {
                     <textarea
                       value={editForm.bio}
                       onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                      placeholder="Napiši nešto o sebi..."
+                      placeholder="Tell us about yourself..."
                       rows="4"
                       maxLength="500"
                     />
@@ -419,7 +499,7 @@ function Profile() {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Datum rođenja</label>
+                      <label>Date of Birth</label>
                       <input
                         type="date"
                         value={editForm.dateOfBirth}
@@ -428,27 +508,27 @@ function Profile() {
                       />
                     </div>
                     <div className="form-group">
-                      <label>Spol</label>
+                      <label>Gender</label>
                       <select
                         value={editForm.gender}
                         onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
                       >
-                        <option value="">Odaberi</option>
-                        <option value="male">Muško</option>
-                        <option value="female">Žensko</option>
-                        <option value="other">Ostalo</option>
-                        <option value="prefer_not_to_say">Ne želim reći</option>
+                        <option value="">Select</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer_not_to_say">Prefer not to say</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="form-group">
-                    <label>Glavni sport</label>
+                    <label>Main Sport</label>
                     <select
                       value={editForm.sport}
                       onChange={(e) => setEditForm({ ...editForm, sport: e.target.value })}
                     >
-                      <option value="">Odaberi</option>
+                      <option value="">Select</option>
                       {sportsList.map(sport => (
                         <option key={sport.id} value={sport.name}>{sport.name}</option>
                       ))}
@@ -456,7 +536,7 @@ function Profile() {
                   </div>
 
                   <div className="form-group">
-                    <label>Omiljeni sportovi</label>
+                    <label>Favorite Sports</label>
                     <div className="sports-checkboxes">
                       {sportsList.filter(s => s.popular).map(sport => (
                         <label key={sport.id} className="checkbox-label">
@@ -473,50 +553,49 @@ function Profile() {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Razina vještine</label>
+                      <label>Skill Level</label>
                       <select
                         value={editForm.skillLevel}
                         onChange={(e) => setEditForm({ ...editForm, skillLevel: e.target.value })}
                       >
-                        <option value="">Odaberi</option>
-                        <option value="beginner">Početnik</option>
-                        <option value="intermediate">Srednji</option>
-                        <option value="advanced">Napredan</option>
-                        <option value="professional">Profesionalac</option>
+                        <option value="">Select</option>
+                        {skillLevels.map(level => (
+                          <option key={level.value} value={level.value}>{level.label}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="form-group">
-                      <label>Pozicija</label>
+                      <label>Position</label>
                       <input
                         type="text"
                         value={editForm.position}
                         onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
-                        placeholder="npr. Napadač"
+                        placeholder="e.g. Forward"
                       />
                     </div>
                   </div>
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Država</label>
+                      <label>Country</label>
                       <select
                         value={editForm.country}
                         onChange={(e) => setEditForm({ ...editForm, country: e.target.value, city: '' })}
                       >
-                        <option value="">Odaberi</option>
+                        <option value="">Select</option>
                         {countries.map(country => (
-                          <option key={country} value={country}>{country}</option>
+                          <option key={country.id} value={country}>{country}</option>
                         ))}
                       </select>
                     </div>
                     <div className="form-group">
-                      <label>Grad</label>
+                      <label>City</label>
                       <select
                         value={editForm.city}
                         onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
                         disabled={!editForm.country}
                       >
-                        <option value="">Odaberi</option>
+                        <option value="">Select</option>
                         {editForm.country && europeanCities[editForm.country]?.map(city => (
                           <option key={city} value={city}>{city}</option>
                         ))}
@@ -525,7 +604,7 @@ function Profile() {
                   </div>
 
                   <div className="form-group">
-                    <label>Telefon</label>
+                    <label>Phone</label>
                     <input
                       type="tel"
                       value={editForm.phone}
@@ -564,16 +643,24 @@ function Profile() {
                     />
                   </div>
 
-                  <button 
-                    className="btn btn-primary btn-large"
-                    onClick={handleSaveProfile}
-                  >
-                    💾 Spremi promjene
-                  </button>
+                  <div className="form-actions">
+                    <button 
+                      className="btn btn-primary btn-large"
+                      onClick={handleSaveProfile}
+                    >
+                      💾 Save Profile
+                    </button>
+                    <button 
+                      className="btn btn-secondary"
+                      onClick={() => setIsEditing(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="about-info card">
-                  <h2>📋 Osnovne informacije</h2>
+                  <h2>📋 Profile Information</h2>
                   
                   <div className="info-grid">
                     {profile.email && (
@@ -584,27 +671,27 @@ function Profile() {
                     )}
                     {profile.phone && (
                       <div className="info-item">
-                        <span className="info-label">Telefon:</span>
+                        <span className="info-label">Phone:</span>
                         <span className="info-value">{profile.phone}</span>
                       </div>
                     )}
                     {profile.dateOfBirth && (
                       <div className="info-item">
-                        <span className="info-label">Datum rođenja:</span>
+                        <span className="info-label">Date of Birth:</span>
                         <span className="info-value">
-                          {new Date(profile.dateOfBirth).toLocaleDateString('hr-HR')}
+                          {new Date(profile.dateOfBirth).toLocaleDateString('en-US')}
                         </span>
                       </div>
                     )}
                     {profile.gender && (
                       <div className="info-item">
-                        <span className="info-label">Spol:</span>
+                        <span className="info-label">Gender:</span>
                         <span className="info-value">{getGenderLabel(profile.gender)}</span>
                       </div>
                     )}
                     {profile.position && (
                       <div className="info-item">
-                        <span className="info-label">Pozicija:</span>
+                        <span className="info-label">Position:</span>
                         <span className="info-value">{profile.position}</span>
                       </div>
                     )}
@@ -612,7 +699,7 @@ function Profile() {
 
                   {profile.favoriteSports && profile.favoriteSports.length > 0 && (
                     <>
-                      <h3 style={{ marginTop: '30px' }}>❤️ Omiljeni sportovi</h3>
+                      <h3 style={{ marginTop: '30px' }}>❤️ Favorite Sports</h3>
                       <div className="favorite-sports">
                         {profile.favoriteSports.map((sport, index) => (
                           <span key={index} className="sport-badge">{sport}</span>
@@ -650,43 +737,43 @@ function Profile() {
 
           {activeTab === 'stats' && (
             <div className="stats-tab card">
-              <h2>📊 Statistika</h2>
-              <p>Detaljnu statistiku možeš vidjeti na <button className="link-btn" onClick={() => navigate('/statistics')}>Statistici</button></p>
+              <h2>📊 Statistics</h2>
+              <p>View detailed statistics at <button className="link-btn" onClick={() => navigate('/statistics')}>Statistics</button></p>
             </div>
           )}
 
           {activeTab === 'activity' && (
             <div className="activity-tab card">
-              <h2>📰 Nedavna aktivnost</h2>
-              <p>Aktivnost dolazi uskoro...</p>
+              <h2>📰 Recent Activity</h2>
+              <p>Activity feed coming soon...</p>
             </div>
           )}
 
           {activeTab === 'settings' && isOwnProfile && (
             <div className="settings-tab card">
-              <h2>⚙️ Postavke privatnosti</h2>
+              <h2>⚙️ Privacy Settings</h2>
               
               <div className="settings-section">
-                <h3>👁️ Vidljivost profila</h3>
+                <h3>👁️ Profile Visibility</h3>
                 <select
                   value={editForm.profileVisibility}
                   onChange={(e) => setEditForm({ ...editForm, profileVisibility: e.target.value })}
                 >
-                  <option value="public">Javno - Svi mogu vidjeti</option>
-                  <option value="friends">Prijatelji - Samo prijatelji</option>
-                  <option value="private">Privatno - Samo ja</option>
+                  <option value="public">Public - Everyone can see</option>
+                  <option value="friends">Friends Only - Only friends can see</option>
+                  <option value="private">Private - Only you can see</option>
                 </select>
               </div>
 
               <div className="settings-section">
-                <h3>📧 Prikaz kontakt podataka</h3>
+                <h3>📧 Show Contact Information</h3>
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
                     checked={editForm.showEmail}
                     onChange={(e) => setEditForm({ ...editForm, showEmail: e.target.checked })}
                   />
-                  <span>Prikaži email drugim korisnicima</span>
+                  <span>Show email to other users</span>
                 </label>
                 <label className="checkbox-label">
                   <input
@@ -694,54 +781,56 @@ function Profile() {
                     checked={editForm.showPhone}
                     onChange={(e) => setEditForm({ ...editForm, showPhone: e.target.checked })}
                   />
-                  <span>Prikaži telefon drugim korisnicima</span>
+                  <span>Show phone to other users</span>
                 </label>
               </div>
 
-              <button 
-                className="btn btn-primary"
-                onClick={handleSaveProfile}
-              >
-                💾 Spremi postavke
-              </button>
+              <div className="form-actions">
+                <button 
+                  className="btn btn-primary"
+                  onClick={handleSaveProfile}
+                >
+                  💾 Save Settings
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal za promjenu lozinke */}
+      {/* Password Modal */}
       {showPasswordModal && (
         <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
           <div className="password-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>🔒 Promijeni lozinku</h2>
+            <h2>🔒 Change Password</h2>
 
             <div className="form-group">
-              <label>Trenutna lozinka</label>
+              <label>Current Password</label>
               <input
                 type="password"
                 value={passwordForm.currentPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                placeholder="Upiši trenutnu lozinku"
+                placeholder="Enter current password"
               />
             </div>
 
             <div className="form-group">
-              <label>Nova lozinka</label>
+              <label>New Password</label>
               <input
                 type="password"
                 value={passwordForm.newPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                placeholder="Upiši novu lozinku (min 6 znakova)"
+                placeholder="Enter new password (min 6 characters)"
               />
             </div>
 
             <div className="form-group">
-              <label>Potvrdi novu lozinku</label>
+              <label>Confirm New Password</label>
               <input
                 type="password"
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                placeholder="Ponovi novu lozinku"
+                placeholder="Confirm new password"
               />
             </div>
 
@@ -750,24 +839,24 @@ function Profile() {
                 className="btn btn-secondary"
                 onClick={() => setShowPasswordModal(false)}
               >
-                Odustani
+                Cancel
               </button>
               <button 
                 className="btn btn-primary"
                 onClick={handleChangePassword}
               >
-                Promijeni lozinku
+                Change Password
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal za odabir avatara */}
+      {/* Avatar Modal */}
       {showAvatarModal && (
         <div className="modal-overlay" onClick={() => setShowAvatarModal(false)}>
           <div className="avatar-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>🎭 Odaberi avatar</h2>
+            <h2>🎭 Change Avatar</h2>
             
             <div className="avatar-grid">
               {availableAvatars.map((avatar, index) => (
@@ -781,16 +870,19 @@ function Profile() {
               ))}
             </div>
 
-            <button 
-              className="btn btn-secondary"
-              onClick={() => setShowAvatarModal(false)}
-            >
-              Zatvori
-            </button>
+            <div className="modal-actions">
+              <button 
+                className="btn btn-secondary"
+                onClick={() => setShowAvatarModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );

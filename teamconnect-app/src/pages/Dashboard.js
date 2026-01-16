@@ -17,11 +17,22 @@ function Dashboard() {
     country: '',
     city: ''
   });
+  const [loading, setLoading] = useState(true);
 
   const sportsList = getAllSports();
   const countries = Object.keys(europeanCities).sort((a, b) => a.localeCompare(b, 'hr'));
 
+  // ✅ Provjeri autentifikaciju prije svega
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      console.log('❌ No token found, redirecting to login');
+      navigate('/login', { replace: true });
+      return;
+    }
+
+    console.log('✅ Token found, fetching data');
     fetchTeams();
   }, []);
 
@@ -32,18 +43,44 @@ function Dashboard() {
   const fetchTeams = async () => {
     try {
       const token = localStorage.getItem('token');
+      
+      if (!token) {
+        navigate('/login', { replace: true });
+        return;
+      }
+
+      console.log('📡 Fetching teams with token:', token.substring(0, 20) + '...');
+
       const response = await fetch('http://localhost:5000/api/teams', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
+      console.log('📡 Teams response status:', response.status);
+
+      // ✅ Handle 401 Unauthorized
+      if (response.status === 401) {
+        console.log('❌ Unauthorized - clearing tokens and redirecting');
+        localStorage.clear();
+        navigate('/login', { replace: true });
+        return;
+      }
+
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Teams loaded:', data.length);
         setTeams(data);
+      } else {
+        console.error('❌ Failed to fetch teams:', response.status);
+        setToast({ message: 'Greška pri učitavanju timova', type: 'error' });
       }
     } catch (error) {
-      console.error('Fetch teams error:', error);
+      console.error('❌ Fetch teams error:', error);
+      setToast({ message: 'Greška pri učitavanju timova', type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,12 +113,26 @@ function Dashboard() {
   const handleJoinTeam = async (teamId) => {
     try {
       const token = localStorage.getItem('token');
+      
+      if (!token) {
+        navigate('/login', { replace: true });
+        return;
+      }
+
       const response = await fetch(`http://localhost:5000/api/teams/${teamId}/join`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+
+      // ✅ Handle 401
+      if (response.status === 401) {
+        localStorage.clear();
+        navigate('/login', { replace: true });
+        return;
+      }
 
       const data = await response.json();
 
@@ -100,12 +151,26 @@ function Dashboard() {
   const handleJoinWaitlist = async (teamId) => {
     try {
       const token = localStorage.getItem('token');
+      
+      if (!token) {
+        navigate('/login', { replace: true });
+        return;
+      }
+
       const response = await fetch(`http://localhost:5000/api/waitlist/${teamId}/join`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+
+      // ✅ Handle 401
+      if (response.status === 401) {
+        localStorage.clear();
+        navigate('/login', { replace: true });
+        return;
+      }
 
       const data = await response.json();
 
@@ -120,6 +185,18 @@ function Dashboard() {
       setToast({ message: 'Greška pri dodavanju na listu čekanja', type: 'error' });
     }
   };
+
+  // ✅ Show loading state
+  if (loading) {
+    return (
+      <div className="dashboard-page">
+        <Navbar />
+        <div className="dashboard-container">
+          <div className="loading-spinner">Učitavanje...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-page">

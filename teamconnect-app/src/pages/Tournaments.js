@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { formatPrice } from '../utils/currency';
-import { getAllSports } from '../data/sports';
-import { europeanCities } from '../data/cities';
+import { tournamentsAPI } from '../services/api';
 import './Tournaments.css';
 
 function Tournaments() {
@@ -21,7 +20,7 @@ function Tournaments() {
     sport: '',
     location: '',
     city: '',
-    country: 'Hrvatska',
+    country: 'Croatia',
     startDate: '',
     endDate: '',
     maxTeams: 8,
@@ -40,8 +39,31 @@ function Tournaments() {
     players: []
   });
 
-  const sportsList = getAllSports();
-  const countries = Object.keys(europeanCities).sort((a, b) => a.localeCompare(b, 'hr'));
+  const sportsList = [
+    { id: 'football', name: 'Football' },
+    { id: 'basketball', name: 'Basketball' },
+    { id: 'volleyball', name: 'Volleyball' }
+  ];
+
+  const countries = [
+    { id: 'hr', name: 'Croatia', cities: ['Zagreb', 'Split', 'Rijeka', 'Osijek', 'Zadar', 'Slavonski Brod', 'Pula', 'Šibenik', 'Karlovac', 'Rijeka', 'Dubrovnik', 'Varaždin'] },
+    { id: 'rs', name: 'Serbia', cities: ['Belgrade', 'Novi Sad', 'Niš', 'Kragujevac', 'Kraljevo'] },
+    { id: 'si', name: 'Slovenia', cities: ['Ljubljana', 'Maribor', 'Celje', 'Koper', 'Nova Gorica'] },
+    { id: 'ba', name: 'Bosnia', cities: ['Sarajevo', 'Banja Luka', 'Tuzla', 'Zenica', 'Mostar'] },
+    { id: 'me', name: 'Montenegro', cities: ['Podgorica', 'Nikšić', 'Budva', 'Bar'] },
+    { id: 'mk', name: 'North Macedonia', cities: ['Skopje', 'Bitola', 'Kumanovo', 'Ohrid', 'Strumica', 'Tetovo', 'Veles', 'Štip', 'Prilep', 'Gostivar'] },
+    { id: 'al', name: 'Albania', cities: ['Tirana', 'Durrës', 'Vlorë', 'Fier', 'Shkodër', 'Elbasan', 'Kavajë', 'Lezhë'] }
+  ];
+
+  const europeanCities = [
+    'Zagreb', 'Split', 'Rijeka', 'Osijek', 'Zadar', 'Slavonski Brod', 'Pula', 'Šibenik', 'Karlovac', 'Rijeka', 'Dubrovnik', 'Varaždin',
+    'Belgrade', 'Novi Sad', 'Niš', 'Kragujevac', 'Kraljevo',
+    'Ljubljana', 'Maribor', 'Celje', 'Koper', 'Nova Gorica',
+    'Sarajevo', 'Banja Luka', 'Tuzla', 'Zenica', 'Mostar',
+    'Podgorica', 'Nikšić', 'Budva', 'Bar',
+    'Skopje', 'Bitola', 'Kumanovo', 'Ohrid', 'Strumica', 'Tetovo', 'Veles', 'Štip', 'Prilep', 'Gostivar',
+    'Tirana', 'Durrës', 'Vlorë', 'Fier', 'Shkodër', 'Elbasan', 'Kavajë', 'Lezhë'
+  ];
 
   useEffect(() => {
     loadTournaments();
@@ -49,22 +71,12 @@ function Tournaments() {
 
   const loadTournaments = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/tournaments', {
-        headers: token ? {
-          'Authorization': `Bearer ${token}`
-        } : {}
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTournaments(data);
-        console.log(`Fetched ${data.length} tournaments`);
-      } else {
-        console.error('Failed to load tournaments');
-      }
+      const data = await tournamentsAPI.getAllTournaments();
+      setTournaments(data);
+      console.log(`Fetched ${data.length} tournaments`);
     } catch (error) {
       console.error('Load tournaments error:', error);
+      setToast({ message: 'Failed to load tournaments', type: 'error' });
     }
   };
 
@@ -86,37 +98,27 @@ function Tournaments() {
     console.log('🚀 Creating tournament with data:', formData);
 
     if (!formData.name || !formData.sport || !formData.city || !formData.startDate || !formData.endDate || !formData.location) {
-      setToast({ message: 'Popuni sva obavezna polja!', type: 'error' });
+      setToast({ message: 'Please fill all required fields!', type: 'error' });
       return;
     }
 
-    // Validacija min/max igrača
+    // Validation min/max players
     if (parseInt(formData.maxPlayersPerTeam) < parseInt(formData.minPlayersPerTeam)) {
-      setToast({ message: 'Maksimalan broj igrača mora biti veći ili jednak minimalnom!', type: 'error' });
+      setToast({ message: 'Maximum players must be greater than or equal to minimum!', type: 'error' });
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/tournaments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
+      const response = await tournamentsAPI.createTournament(formData);
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         setShowCreateModal(false);
         setFormData({
           name: '',
           sport: '',
           location: '',
           city: '',
-          country: 'Hrvatska',
+          country: 'Croatia',
           startDate: '',
           endDate: '',
           maxTeams: 8,
@@ -129,15 +131,15 @@ function Tournaments() {
           prize: '',
           description: ''
         });
-        setToast({ message: 'Turnir uspješno kreiran! 🏆', type: 'success' });
+        setToast({ message: 'Tournament created successfully! 🏆', type: 'success' });
         loadTournaments();
       } else {
-        console.error('Create tournament error:', data);
-        setToast({ message: data.message || 'Greška pri kreiranju turnira', type: 'error' });
+        console.error('Create tournament error:', response);
+        setToast({ message: response.message || 'Failed to create tournament', type: 'error' });
       }
     } catch (error) {
       console.error('Create tournament error:', error);
-      setToast({ message: 'Greška pri kreiranju turnira', type: 'error' });
+      setToast({ message: 'Failed to create tournament', type: 'error' });
     }
   };
 
@@ -160,53 +162,43 @@ function Tournaments() {
     console.log('🚀 Registering team:', registerData);
 
     if (!registerData.teamName) {
-      setToast({ message: 'Unesi naziv tima!', type: 'error' });
+      setToast({ message: 'Please enter team name!', type: 'error' });
       return;
     }
 
-    // ✅ Provjeri min/max igrača
+    // Check min/max players
     const filledPlayers = registerData.players.filter(p => p.name.trim() !== '');
     const minPlayers = selectedTournament.minPlayersPerTeam || selectedTournament.teamSize || 5;
     const maxPlayers = selectedTournament.maxPlayersPerTeam || selectedTournament.teamSize || 5;
 
     if (filledPlayers.length < minPlayers) {
-      setToast({ message: `Minimalno igrača: ${minPlayers}`, type: 'error' });
+      setToast({ message: `Minimum players: ${minPlayers}`, type: 'error' });
       return;
     }
 
     if (filledPlayers.length > maxPlayers) {
-      setToast({ message: `Maksimalno igrača (sa zamjenama): ${maxPlayers}`, type: 'error' });
+      setToast({ message: `Maximum players (with substitutes): ${maxPlayers}`, type: 'error' });
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/tournaments/${selectedTournament._id}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          teamName: registerData.teamName,
-          players: filledPlayers
-        })
+      const response = await tournamentsAPI.registerTeam(selectedTournament.id, {
+        teamName: registerData.teamName,
+        players: filledPlayers
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         setShowRegisterModal(false);
         setRegisterData({ teamName: '', players: [] });
-        setToast({ message: 'Tim uspješno prijavljen! 🎉', type: 'success' });
+        setToast({ message: 'Team registered successfully! 🎉', type: 'success' });
         loadTournaments();
       } else {
-        console.error('Register team error:', data);
-        setToast({ message: data.message || 'Greška pri prijavi tima', type: 'error' });
+        console.error('Register team error:', response);
+        setToast({ message: response.message || 'Failed to register team', type: 'error' });
       }
     } catch (error) {
       console.error('Register team error:', error);
-      setToast({ message: 'Greška pri prijavi tima', type: 'error' });
+      setToast({ message: 'Failed to register team', type: 'error' });
     }
   };
 
@@ -222,15 +214,15 @@ function Tournaments() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      active: { text: 'U tijeku', color: '#4caf50' },
-      upcoming: { text: 'Uskoro', color: '#ff9800' },
-      finished: { text: 'Završeno', color: '#999' }
+      active: { text: 'Active', color: '#4caf50' },
+      upcoming: { text: 'Upcoming', color: '#ff9800' },
+      finished: { text: 'Finished', color: '#999' }
     };
     return badges[status] || badges.upcoming;
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('hr-HR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'long',
       year: 'numeric'

@@ -52,9 +52,11 @@ function Login() {
 
       console.log('✅ Token verified in localStorage');
 
-      // ✅ PROMJENA OVDJE - LINIJA 56
-      // Koristi window.location.href umjesto navigate
-      window.location.href = '/dashboard';
+      // ✅ IZMJENA - Koristi navigate umjesto window.location
+      // Dodaj delay da se osigura da je token spremljen
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
 
     } catch (err) {
       console.error('❌ Login error:', err);

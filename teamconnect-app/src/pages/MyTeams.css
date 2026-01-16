@@ -1,9 +1,6 @@
 .my-teams-page {
   min-height: 100vh;
-  background: 
-    linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%),
-    url('https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1920&q=80') center/cover no-repeat fixed;
-  background-blend-mode: overlay;
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
 }
 
 .my-teams-container {
@@ -14,7 +11,7 @@
 
 .my-teams-header {
   text-align: center;
-  color: white;
+  color: #2e7d32;
   margin-bottom: 40px;
   animation: fadeInDown 0.6s ease-out;
 }
@@ -33,21 +30,23 @@
 .my-teams-header h1 {
   font-size: 3rem;
   margin-bottom: 10px;
-  text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.4);
+  text-shadow: 2px 4px 8px rgba(46, 125, 50, 0.3);
   font-weight: 800;
+  color: #1b5e20;
 }
 
 .my-teams-header p {
   font-size: 1.3rem;
   opacity: 0.95;
-  text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.3);
+  text-shadow: 2px 3px 6px rgba(46, 125, 50, 0.2);
+  color: #2e7d32;
 }
 
 .teams-count {
   margin-bottom: 20px;
-  color: white;
+  color: #2e7d32;
   font-size: 1.2rem;
-  text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 2px 4px rgba(46, 125, 50, 0.15);
   animation: fadeIn 0.8s ease-out 0.2s both;
 }
 
@@ -64,7 +63,7 @@
 
 .teams-count strong {
   font-size: 1.4rem;
-  color: #ffd700;
+  color: #66bb6a;
 }
 
 .teams-grid {
@@ -77,15 +76,15 @@
 .loading-state {
   text-align: center;
   padding: 80px 20px;
-  color: white;
+  color: #2e7d32;
 }
 
 .spinner {
   width: 60px;
   height: 60px;
   margin: 0 auto 20px;
-  border: 5px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 5px solid rgba(129, 199, 132, 0.3);
+  border-top-color: #66bb6a;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -156,7 +155,7 @@
   width: 60px;
   height: 60px;
   border: 6px solid #f3f3f3;
-  border-top: 6px solid #667eea;
+  border-top: 6px solid #66bb6a;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -167,7 +166,7 @@
 }
 
 .loading-container p {
-  color: #667eea;
+  color: #66bb6a;
   font-size: 1.2rem;
   font-weight: 700;
 }
