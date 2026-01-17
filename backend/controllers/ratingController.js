@@ -1,26 +1,37 @@
-const User = require('../models/User');
-const PlayerStats = require('../models/PlayerStats');
+const { supabase } = require('../config/supabase');
 const { calculateUserRating } = require('../utils/ratingCalculator');
-const { createActivityHelper } = require('./activityController');
-const { createNotificationHelper } = require('./notificationController'); // ✅ DODANO
 
-// Dohvati leaderboard
+// Get leaderboard
 exports.getLeaderboard = async (req, res) => {
   try {
     const { sport, limit = 100, rank } = req.query;
     
-    const query = {};
-    if (rank) query.rank = rank;
-
-    const users = await User.find(query)
-      .select('username avatar rating rank sport location stats')
-      .sort({ 'rating.overall': -1 })
+    let query = supabase
+      .from('users')
+      .select('id, username, avatar, rating_overall, rating_attack, rating_defense, rating_teamwork, rating_consistency, rank, sport, location, total_matches, total_wins, total_goals')
+      .order('rating_overall', { ascending: false })
       .limit(parseInt(limit));
 
-    const leaderboard = users.map((user, index) => ({
-      ...user.toObject(),
+    if (rank) {
+      query = query.eq('rank', rank);
+    }
+
+    if (sport) {
+      query = query.eq('sport', sport);
+    }
+
+    const { data: users, error } = await query;
+
+    if (error) {
+      console.error('Get leaderboard error:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    // Add position to each user
+    const leaderboard = users?.map((user, index) => ({
+      ...user,
       position: index + 1
-    }));
+    })) || [];
 
     res.json(leaderboard);
   } catch (error) {
@@ -29,25 +40,33 @@ exports.getLeaderboard = async (req, res) => {
   }
 };
 
-// Dohvati rating korisnika
+// Get user rating
 exports.getUserRating = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const user = await User.findById(userId)
-      .select('username avatar rating rank sport location stats');
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, username, avatar, rating_overall, rating_attack, rating_defense, rating_teamwork, rating_consistency, rank, sport, location, total_matches, total_wins, total_goals, rating_last_updated')
+      .eq('id', userId)
+      .single();
 
-    if (!user) {
-      return res.status(404).json({ message: 'Korisnik ne postoji' });
+    if (error || !user) {
+      console.error('Get user rating error:', error);
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    const betterPlayers = await User.countDocuments({
-      'rating.overall': { $gt: user.rating.overall }
-    });
+    // Get leaderboard position
+    const { data: betterPlayers } = await supabase
+      .from('users')
+      .select('id')
+      .gt('rating_overall', user.rating_overall);
+
+    const leaderboardPosition = (betterPlayers?.length || 0) + 1;
 
     res.json({
-      ...user.toObject(),
-      leaderboardPosition: betterPlayers + 1
+      ...user,
+      leaderboardPosition
     });
   } catch (error) {
     console.error('Get user rating error:', error);
@@ -55,20 +74,40 @@ exports.getUserRating = async (req, res) => {
   }
 };
 
-// Ručno preračunaj rating
+// Recalculate rating manually
 exports.recalculateRating = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
-    const oldRank = user.rank;
+    // Get current user
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('rank')
+      .eq('id', userId)
+      .single();
 
-    const allStats = await PlayerStats.find({ user: userId });
-    
-    if (allStats.length === 0) {
-      return res.status(400).json({ message: 'Nemaš statistike za izračun ratinga!' });
+    if (userError || !user) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
+    const oldRank = user.rank;
+
+    // Get all player stats for this user
+    const { data: allStats, error: statsError } = await supabase
+      .from('player_stats')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (statsError) {
+      console.error('Get stats error:', statsError);
+      return res.status(500).json({ message: 'Failed to fetch stats' });
+    }
+
+    if (!allStats || allStats.length === 0) {
+      return res.status(400).json({ message: 'No statistics found to calculate rating!' });
+    }
+
+    // Aggregate stats across all sports
     const totalStats = {
       totalMatches: 0,
       totalWins: 0,
@@ -80,66 +119,57 @@ exports.recalculateRating = async (req, res) => {
     };
 
     allStats.forEach(stat => {
-      totalStats.totalMatches += stat.totalMatches || 0;
+      totalStats.totalMatches += stat.total_matches || 0;
       totalStats.totalWins += stat.wins || 0;
-      totalStats.totalGoals += stat.goalsScored || 0;
+      totalStats.totalGoals += stat.goals_scored || 0;
       totalStats.totalAssists += stat.assists || 0;
-      totalStats.totalCleanSheets += stat.cleanSheets || 0;
-      totalStats.totalYellowCards += stat.yellowCards || 0;
-      totalStats.totalRedCards += stat.redCards || 0;
+      totalStats.totalCleanSheets += stat.clean_sheets || 0;
+      totalStats.totalYellowCards += stat.yellow_cards || 0;
+      totalStats.totalRedCards += stat.red_cards || 0;
     });
 
+    // Calculate new rating
     const newRating = calculateUserRating(totalStats);
     const newRank = newRating.rank;
 
-    user.rating = newRating;
-    user.rank = newRank;
-    user.stats = {
-      totalMatches: totalStats.totalMatches,
-      totalWins: totalStats.totalWins,
-      totalGoals: totalStats.totalGoals
-    };
-    
-    await user.save();
+    // Update user rating
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({
+        rating_overall: newRating.overall,
+        rating_attack: newRating.attack,
+        rating_defense: newRating.defense,
+        rating_teamwork: newRating.teamwork,
+        rating_consistency: newRating.consistency,
+        rank: newRank,
+        total_matches: totalStats.totalMatches,
+        total_wins: totalStats.totalWins,
+        total_goals: totalStats.totalGoals,
+        rating_last_updated: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select()
+      .single();
 
-    // ✅ Provjeri je li rank up
-    if (oldRank !== newRank) {
-      // Kreiraj aktivnost
-      try {
-        await createActivityHelper(
-          userId,
-          'rank_up',
-          {
-            oldRank: oldRank,
-            newRank: newRank
-          },
-          'public'
-        );
-      } catch (activityErr) {
-        console.error('Greška pri kreiranju aktivnosti za rank up:', activityErr);
-      }
-
-      // ✅ NOVO - Notifikacija za rank up
-      try {
-        await createNotificationHelper(
-          userId,
-          'rank_up',
-          '⬆️ Rank Up!',
-          `Čestitamo! Napredovao si u ${newRank.toUpperCase()} rank!`,
-          '/ratings',
-          { oldRank, newRank }
-        );
-      } catch (notifErr) {
-        console.error('Greška pri kreiranju notifikacije za rank up:', notifErr);
-      }
+    if (updateError) {
+      console.error('Update rating error:', updateError);
+      return res.status(500).json({ message: 'Failed to update rating' });
     }
 
     res.json({ 
-      message: 'Rating preračunat!', 
-      rating: newRating,
+      message: 'Rating recalculated!', 
+      rating: {
+        overall: newRating.overall,
+        attack: newRating.attack,
+        defense: newRating.defense,
+        teamwork: newRating.teamwork,
+        consistency: newRating.consistency,
+        rank: newRank
+      },
       rankChanged: oldRank !== newRank,
       oldRank,
-      newRank
+      newRank,
+      user: updatedUser
     });
   } catch (error) {
     console.error('Recalculate rating error:', error);
@@ -147,31 +177,39 @@ exports.recalculateRating = async (req, res) => {
   }
 };
 
-// Dohvati achievements
+// Get achievements
 exports.getAchievements = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
-    const allStats = await PlayerStats.find({ user: userId });
+    // Get user
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('rank, rating_overall, total_matches, total_wins, total_goals')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Get all player stats
+    const { data: allStats } = await supabase
+      .from('player_stats')
+      .select('*')
+      .eq('user_id', userId);
 
     const totalStats = {
-      totalMatches: 0,
-      totalWins: 0,
-      totalGoals: 0
+      totalMatches: user.total_matches || 0,
+      totalWins: user.total_wins || 0,
+      totalGoals: user.total_goals || 0
     };
-
-    allStats.forEach(stat => {
-      totalStats.totalMatches += stat.totalMatches || 0;
-      totalStats.totalWins += stat.wins || 0;
-      totalStats.totalGoals += stat.goalsScored || 0;
-    });
 
     const achievements = [
       {
         id: 'first_match',
-        name: 'Prva utakmica',
-        description: 'Odigraj prvu utakmicu',
+        name: 'First Match',
+        description: 'Play your first match',
         icon: '⚽',
         unlocked: totalStats.totalMatches >= 1,
         progress: Math.min(totalStats.totalMatches, 1),
@@ -180,7 +218,7 @@ exports.getAchievements = async (req, res) => {
       {
         id: 'veteran',
         name: 'Veteran',
-        description: 'Odigraj 50 utakmica',
+        description: 'Play 50 matches',
         icon: '🎖️',
         unlocked: totalStats.totalMatches >= 50,
         progress: totalStats.totalMatches,
@@ -188,8 +226,8 @@ exports.getAchievements = async (req, res) => {
       },
       {
         id: 'legend',
-        name: 'Legenda',
-        description: 'Odigraj 100 utakmica',
+        name: 'Legend',
+        description: 'Play 100 matches',
         icon: '👑',
         unlocked: totalStats.totalMatches >= 100,
         progress: totalStats.totalMatches,
@@ -197,8 +235,8 @@ exports.getAchievements = async (req, res) => {
       },
       {
         id: 'first_win',
-        name: 'Prva pobjeda',
-        description: 'Pobijedi u prvoj utakmici',
+        name: 'First Victory',
+        description: 'Win your first match',
         icon: '🏆',
         unlocked: totalStats.totalWins >= 1,
         progress: Math.min(totalStats.totalWins, 1),
@@ -206,8 +244,8 @@ exports.getAchievements = async (req, res) => {
       },
       {
         id: 'champion',
-        name: 'Prvak',
-        description: 'Pobijedi u 25 utakmica',
+        name: 'Champion',
+        description: 'Win 25 matches',
         icon: '🥇',
         unlocked: totalStats.totalWins >= 25,
         progress: totalStats.totalWins,
@@ -215,8 +253,8 @@ exports.getAchievements = async (req, res) => {
       },
       {
         id: 'scorer',
-        name: 'Strijelac',
-        description: 'Postigni 10 golova',
+        name: 'Scorer',
+        description: 'Score 10 goals',
         icon: '⚽',
         unlocked: totalStats.totalGoals >= 10,
         progress: totalStats.totalGoals,
@@ -224,8 +262,8 @@ exports.getAchievements = async (req, res) => {
       },
       {
         id: 'top_scorer',
-        name: 'Najbolji strijelac',
-        description: 'Postigni 50 golova',
+        name: 'Top Scorer',
+        description: 'Score 50 goals',
         icon: '🔥',
         unlocked: totalStats.totalGoals >= 50,
         progress: totalStats.totalGoals,
@@ -234,19 +272,37 @@ exports.getAchievements = async (req, res) => {
       {
         id: 'gold_rank',
         name: 'Gold Rank',
-        description: 'Dosegni Gold rank',
+        description: 'Reach Gold rank',
         icon: '🥇',
-        unlocked: user.rank === 'gold' || user.rank === 'platinum' || user.rank === 'diamond' || user.rank === 'master',
-        progress: user.rating.overall,
+        unlocked: ['gold', 'platinum', 'diamond', 'master'].includes(user.rank),
+        progress: user.rating_overall,
         required: 1800
+      },
+      {
+        id: 'platinum_rank',
+        name: 'Platinum Rank',
+        description: 'Reach Platinum rank',
+        icon: '💿',
+        unlocked: ['platinum', 'diamond', 'master'].includes(user.rank),
+        progress: user.rating_overall,
+        required: 2200
       },
       {
         id: 'diamond_rank',
         name: 'Diamond Rank',
-        description: 'Dosegni Diamond rank',
+        description: 'Reach Diamond rank',
         icon: '💎',
-        unlocked: user.rank === 'diamond' || user.rank === 'master',
-        progress: user.rating.overall,
+        unlocked: ['diamond', 'master'].includes(user.rank),
+        progress: user.rating_overall,
+        required: 2600
+      },
+      {
+        id: 'master_rank',
+        name: 'Master Rank',
+        description: 'Reach the ultimate Master rank',
+        icon: '👑',
+        unlocked: user.rank === 'master',
+        progress: user.rating_overall,
         required: 2600
       }
     ];

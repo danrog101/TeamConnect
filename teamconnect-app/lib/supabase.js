@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
@@ -9,9 +9,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Helper functions for common Supabase operations
 export const supabaseHelpers = {
-  // Select data from a table
   select: async (table, options = {}) => {
     let query = supabase.from(table)
     
@@ -50,7 +48,6 @@ export const supabaseHelpers = {
     return data
   },
 
-  // Insert data into a table
   insert: async (table, data) => {
     const { data: result, error } = await supabase
       .from(table)
@@ -61,11 +58,9 @@ export const supabaseHelpers = {
     return Array.isArray(data) ? result : result[0]
   },
 
-  // Update data in a table
   update: async (table, data, filters) => {
     let query = supabase.from(table)
     
-    // Apply filters
     Object.keys(filters).forEach(key => {
       query = query.eq(key, filters[key])
     })
@@ -78,11 +73,9 @@ export const supabaseHelpers = {
     return result
   },
 
-  // Delete data from a table
   delete: async (table, filters) => {
     let query = supabase.from(table)
     
-    // Apply filters
     Object.keys(filters).forEach(key => {
       query = query.eq(key, filters[key])
     })
@@ -92,11 +85,9 @@ export const supabaseHelpers = {
     return true
   },
 
-  // Get single record
   single: async (table, filters) => {
     let query = supabase.from(table)
     
-    // Apply filters
     Object.keys(filters).forEach(key => {
       query = query.eq(key, filters[key])
     })
@@ -106,7 +97,6 @@ export const supabaseHelpers = {
     return data
   },
 
-  // Upload file to Supabase Storage
   uploadFile: async (bucket, file, path) => {
     const { data, error } = await supabase.storage
       .from(bucket)
@@ -116,14 +106,12 @@ export const supabaseHelpers = {
     return data
   },
 
-  // Get public URL for file
   getPublicUrl: (bucket, path) => {
     return supabase.storage
       .from(bucket)
       .getPublicUrl(path)
   },
 
-  // Sign up with email and password
   signUp: async (email, password, options = {}) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -137,7 +125,6 @@ export const supabaseHelpers = {
     return data
   },
 
-  // Sign in with email and password
   signIn: async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -148,28 +135,24 @@ export const supabaseHelpers = {
     return data
   },
 
-  // Sign out
   signOut: async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
     return true
   },
 
-  // Get current user
   getCurrentUser: async () => {
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error) throw error
     return user
   },
 
-  // Update user
   updateUser: async (attributes) => {
     const { data, error } = await supabase.auth.updateUser(attributes)
     if (error) throw error
     return data
   },
 
-  // Reset password
   resetPassword: async (email) => {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email)
     if (error) throw error

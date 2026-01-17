@@ -8,14 +8,21 @@ const {
   getUserActivity
 } = require('../controllers/profileController');
 const auth = require('../middleware/auth');
+const { updateProfileValidator, userIdValidator } = require('../middleware/validators');
 
-router.get('/:userId', auth, getProfile);
-router.put('/', auth, updateProfile);
+// Get user profile
+router.get('/:userId', userIdValidator, getProfile);
+
+// Get user activity
+router.get('/:userId/activity', userIdValidator, auth, getUserActivity);
+
+// Update profile
+router.put('/', auth, updateProfileValidator, updateProfile);
+
+// Change password
 router.post('/password', auth, changePassword);
-router.post('/avatar', auth, uploadAvatar);
-router.get('/:userId/activity', auth, getUserActivity);
-const { updateProfileValidator, mongoIdValidator } = require('../middleware/validators'); // NOVO
 
-router.put('/', auth, updateProfileValidator, updateProfile); // DODAJ validator
-router.get('/:userId', mongoIdValidator, getProfile); // DODAJ validator
+// Upload avatar
+router.post('/avatar', auth, uploadAvatar);
+
 module.exports = router;

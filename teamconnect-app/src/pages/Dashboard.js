@@ -22,7 +22,6 @@ function Dashboard() {
   const sportsList = getAllSports();
   const countries = Object.keys(europeanCities).sort((a, b) => a.localeCompare(b, 'hr'));
 
-  // ✅ Provjeri autentifikaciju prije svega
   useEffect(() => {
     const token = localStorage.getItem('token');
     
@@ -60,7 +59,6 @@ function Dashboard() {
 
       console.log('📡 Teams response status:', response.status);
 
-      // ✅ Handle 401 Unauthorized
       if (response.status === 401) {
         console.log('❌ Unauthorized - clearing tokens and redirecting');
         localStorage.clear();
@@ -71,6 +69,7 @@ function Dashboard() {
       if (response.ok) {
         const data = await response.json();
         console.log('✅ Teams loaded:', data.length);
+        console.log('📋 First team sample:', data[0]);
         setTeams(data);
       } else {
         console.error('❌ Failed to fetch teams:', response.status);
@@ -111,6 +110,8 @@ function Dashboard() {
   };
 
   const handleJoinTeam = async (teamId) => {
+    console.log('🔵 Dashboard - Join team called with ID:', teamId);
+    
     try {
       const token = localStorage.getItem('token');
       
@@ -118,6 +119,14 @@ function Dashboard() {
         navigate('/login', { replace: true });
         return;
       }
+
+      if (!teamId) {
+        console.error('❌ Team ID is undefined!');
+        setToast({ message: 'Greška: ID tima nije dostupan', type: 'error' });
+        return;
+      }
+
+      console.log('📡 Sending JOIN request to:', `http://localhost:5000/api/teams/${teamId}/join`);
 
       const response = await fetch(`http://localhost:5000/api/teams/${teamId}/join`, {
         method: 'POST',
@@ -127,7 +136,8 @@ function Dashboard() {
         }
       });
 
-      // ✅ Handle 401
+      console.log('📡 Join response status:', response.status);
+
       if (response.status === 401) {
         localStorage.clear();
         navigate('/login', { replace: true });
@@ -135,25 +145,34 @@ function Dashboard() {
       }
 
       const data = await response.json();
+      console.log('📡 Join response data:', data);
 
       if (response.ok) {
         setToast({ message: 'Uspješno si se pridružio timu! 🎉', type: 'success' });
         fetchTeams();
       } else {
-        setToast({ message: data.message, type: 'error' });
+        setToast({ message: data.message || 'Greška pri pridruživanju', type: 'error' });
       }
     } catch (error) {
-      console.error('Join team error:', error);
+      console.error('❌ Join team error:', error);
       setToast({ message: 'Greška pri pridruživanju timu', type: 'error' });
     }
   };
 
   const handleJoinWaitlist = async (teamId) => {
+    console.log('🔵 Dashboard - Join waitlist called with ID:', teamId);
+    
     try {
       const token = localStorage.getItem('token');
       
       if (!token) {
         navigate('/login', { replace: true });
+        return;
+      }
+
+      if (!teamId) {
+        console.error('❌ Team ID is undefined!');
+        setToast({ message: 'Greška: ID tima nije dostupan', type: 'error' });
         return;
       }
 
@@ -165,7 +184,6 @@ function Dashboard() {
         }
       });
 
-      // ✅ Handle 401
       if (response.status === 401) {
         localStorage.clear();
         navigate('/login', { replace: true });
@@ -181,12 +199,11 @@ function Dashboard() {
         setToast({ message: data.message, type: 'error' });
       }
     } catch (error) {
-      console.error('Join waitlist error:', error);
+      console.error('❌ Join waitlist error:', error);
       setToast({ message: 'Greška pri dodavanju na listu čekanja', type: 'error' });
     }
   };
 
-  // ✅ Show loading state
   if (loading) {
     return (
       <div className="dashboard-page">
@@ -289,7 +306,7 @@ function Dashboard() {
           <div className="teams-grid">
             {filteredTeams.map(team => (
               <TeamCard 
-                key={team._id} 
+                key={team.id}
                 team={team} 
                 onJoin={handleJoinTeam}
                 onJoinWaitlist={handleJoinWaitlist}

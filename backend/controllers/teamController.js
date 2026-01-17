@@ -1,61 +1,125 @@
-const pool = require('../config/database');
+const { supabase } = require('../config/supabase');
 
-// Get all teams
+// Get all teams with creator info
 exports.getAllTeams = async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM teams ORDER BY created_at DESC'
-    );
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        creator:users!teams_creator_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .order('created_at', { ascending: false });
 
-    res.json(result.rows || []);
+    if (error) {
+      console.error('❌ Get all teams error:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    res.json(data || []);
   } catch (error) {
     console.error('❌ Get all teams error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Get team by ID
+// Get team by ID with creator info
 exports.getTeamById = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await pool.query(
-      'SELECT * FROM teams WHERE id = $1',
-      [id]
-    );
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        creator:users!teams_creator_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .eq('id', id)
+      .single();
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Team not found' });
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ message: 'Team not found' });
+      }
+      console.error('❌ Get team by ID error:', error);
+      return res.status(500).json({ message: 'Server error' });
     }
 
-    res.json(result.rows[0]);
+    res.json(data);
   } catch (error) {
     console.error('❌ Get team by ID error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Get my teams
+// Get my teams with creator info
 exports.getMyTeams = async (req, res) => {
   try {
     const userId = req.user.id;
 
     // Get teams where user is creator
-    const createdTeams = await pool.query(
-      'SELECT * FROM teams WHERE creator_id = $1',
-      [userId]
-    );
+    const { data: createdTeams, error: createdError } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        creator:users!teams_creator_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .eq('creator_id', userId);
+
+    if (createdError) {
+      console.error('❌ Get created teams error:', createdError);
+      return res.status(500).json({ message: 'Server error' });
+    }
 
     // Get teams where user is member
-    const memberTeams = await pool.query(
-      `SELECT t.* FROM teams t
-       INNER JOIN team_members tm ON t.id = tm.team_id
-       WHERE tm.user_id = $1`,
-      [userId]
-    );
+    const { data: memberTeams, error: memberError } = await supabase
+      .from('team_members')
+      .select(`
+        teams:teams!team_members_team_id_fkey (
+          *,
+          creator:users!teams_creator_id_fkey (
+            id,
+            username,
+            email,
+            avatar,
+            sport,
+            location
+          )
+        )
+      `)
+      .eq('user_id', userId);
+
+    if (memberError) {
+      console.error('❌ Get member teams error:', memberError);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    // Extract team objects from member teams
+    const memberTeamsData = memberTeams.map(mt => mt.teams).filter(Boolean);
 
     // Combine and remove duplicates
-    const allTeams = [...createdTeams.rows, ...memberTeams.rows];
+    const allTeams = [...createdTeams, ...memberTeamsData];
     const uniqueTeams = allTeams.filter((team, index, self) =>
       index === self.findIndex((t) => t.id === team.id)
     );
@@ -76,31 +140,51 @@ exports.createTeam = async (req, res) => {
     console.log('📝 Creating team for user:', userId);
 
     // Insert team
-    const result = await pool.query(
-      `INSERT INTO teams (name, sport, location, city, country, date, time, max_players, description, creator_id, current_players)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1)
-       RETURNING *`,
-      [
-        name, 
-        sport, 
-        location, 
-        city || 'Zagreb', 
-        country || 'Hrvatska', 
-        date, 
-        time, 
-        max_players || 10, 
-        description || '', 
-        userId
-      ]
-    );
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .insert({
+        name,
+        sport,
+        location,
+        city: city || 'Zagreb',
+        country: country || 'Hrvatska',
+        date,
+        time,
+        max_players: max_players || 10,
+        description: description || '',
+        creator_id: userId,
+        current_players: 1
+      })
+      .select(`
+        *,
+        creator:users!teams_creator_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .single();
 
-    const team = result.rows[0];
+    if (teamError) {
+      console.error('❌ Create team error:', teamError);
+      return res.status(500).json({ message: 'Failed to create team', error: teamError.message });
+    }
 
     // Add creator as team member
-    await pool.query(
-      'INSERT INTO team_members (team_id, user_id) VALUES ($1, $2)',
-      [team.id, userId]
-    );
+    const { error: memberError } = await supabase
+      .from('team_members')
+      .insert({
+        team_id: team.id,
+        user_id: userId
+      });
+
+    if (memberError) {
+      console.error('❌ Add team member error:', memberError);
+      // Don't fail the request, just log it
+    }
 
     console.log('✅ Team created:', team.id);
     res.status(201).json(team);
@@ -117,52 +201,77 @@ exports.joinTeam = async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    // Check if team exists
-    const teamResult = await pool.query(
-      'SELECT * FROM teams WHERE id = $1',
-      [id]
-    );
+    console.log('🔵 Join team request:', { userId, teamId: id });
 
-    if (teamResult.rows.length === 0) {
+    // Check if team exists
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (teamError || !team) {
+      console.error('❌ Team not found:', id);
       return res.status(404).json({ message: 'Team not found' });
     }
 
-    const team = teamResult.rows[0];
-
     // Check if user is already in team
-    const memberCheck = await pool.query(
-      'SELECT * FROM team_members WHERE team_id = $1 AND user_id = $2',
-      [id, userId]
-    );
+    const { data: existingMember } = await supabase
+      .from('team_members')
+      .select('*')
+      .eq('team_id', id)
+      .eq('user_id', userId)
+      .single();
 
-    if (memberCheck.rows.length > 0) {
+    if (existingMember) {
+      console.log('⚠️ User already in team');
       return res.status(400).json({ message: 'Already in team' });
     }
 
     // Check if team is full
     if (team.current_players >= team.max_players) {
+      console.log('⚠️ Team is full');
       return res.status(400).json({ message: 'Team is full' });
     }
 
     // Add user to team
-    await pool.query(
-      'INSERT INTO team_members (team_id, user_id) VALUES ($1, $2)',
-      [id, userId]
-    );
+    const { error: addError } = await supabase
+      .from('team_members')
+      .insert({
+        team_id: id,
+        user_id: userId
+      });
+
+    if (addError) {
+      console.error('❌ Add team member error:', addError);
+      return res.status(500).json({ message: 'Failed to join team' });
+    }
 
     // Update current_players count
-    await pool.query(
-      'UPDATE teams SET current_players = current_players + 1 WHERE id = $1',
-      [id]
-    );
+    const { data: updatedTeam, error: updateError } = await supabase
+      .from('teams')
+      .update({ current_players: team.current_players + 1 })
+      .eq('id', id)
+      .select(`
+        *,
+        creator:users!teams_creator_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .single();
 
-    // Get updated team
-    const updatedTeam = await pool.query(
-      'SELECT * FROM teams WHERE id = $1',
-      [id]
-    );
+    if (updateError) {
+      console.error('❌ Update team error:', updateError);
+      return res.status(500).json({ message: 'Failed to update team' });
+    }
 
-    res.json(updatedTeam.rows[0]);
+    console.log('✅ User joined team successfully');
+    res.json(updatedTeam);
   } catch (error) {
     console.error('❌ Join team error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -176,34 +285,52 @@ exports.leaveTeam = async (req, res) => {
     const { id } = req.params;
 
     // Check if team exists
-    const teamResult = await pool.query(
-      'SELECT * FROM teams WHERE id = $1',
-      [id]
-    );
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-    if (teamResult.rows.length === 0) {
+    if (teamError || !team) {
       return res.status(404).json({ message: 'Team not found' });
     }
 
     // Remove user from team
-    await pool.query(
-      'DELETE FROM team_members WHERE team_id = $1 AND user_id = $2',
-      [id, userId]
-    );
+    const { error: removeError } = await supabase
+      .from('team_members')
+      .delete()
+      .eq('team_id', id)
+      .eq('user_id', userId);
+
+    if (removeError) {
+      console.error('❌ Leave team error:', removeError);
+      return res.status(500).json({ message: 'Failed to leave team' });
+    }
 
     // Update current_players count
-    await pool.query(
-      'UPDATE teams SET current_players = GREATEST(0, current_players - 1) WHERE id = $1',
-      [id]
-    );
+    const { data: updatedTeam, error: updateError } = await supabase
+      .from('teams')
+      .update({ current_players: Math.max(0, team.current_players - 1) })
+      .eq('id', id)
+      .select(`
+        *,
+        creator:users!teams_creator_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .single();
 
-    // Get updated team
-    const updatedTeam = await pool.query(
-      'SELECT * FROM teams WHERE id = $1',
-      [id]
-    );
+    if (updateError) {
+      console.error('❌ Update team error:', updateError);
+      return res.status(500).json({ message: 'Failed to update team' });
+    }
 
-    res.json(updatedTeam.rows[0]);
+    res.json(updatedTeam);
   } catch (error) {
     console.error('❌ Leave team error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -217,38 +344,55 @@ exports.updateTeam = async (req, res) => {
     const { id } = req.params;
     const { name, sport, location, city, country, date, time, max_players, description } = req.body;
 
-    // Check if user is the creator
-    const teamResult = await pool.query(
-      'SELECT * FROM teams WHERE id = $1',
-      [id]
-    );
+    // Check if user is creator
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-    if (teamResult.rows.length === 0) {
+    if (teamError || !team) {
       return res.status(404).json({ message: 'Team not found' });
     }
 
-    if (teamResult.rows[0].creator_id !== userId) {
+    if (team.creator_id !== userId) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
     // Update team
-    const result = await pool.query(
-      `UPDATE teams 
-       SET name = COALESCE($1, name),
-           sport = COALESCE($2, sport),
-           location = COALESCE($3, location),
-           city = COALESCE($4, city),
-           country = COALESCE($5, country),
-           date = COALESCE($6, date),
-           time = COALESCE($7, time),
-           max_players = COALESCE($8, max_players),
-           description = COALESCE($9, description)
-       WHERE id = $10
-       RETURNING *`,
-      [name, sport, location, city, country, date, time, max_players, description, id]
-    );
+    const { data: updatedTeam, error: updateError } = await supabase
+      .from('teams')
+      .update({
+        name: name || team.name,
+        sport: sport || team.sport,
+        location: location || team.location,
+        city: city || team.city,
+        country: country || team.country,
+        date: date || team.date,
+        time: time || team.time,
+        max_players: max_players || team.max_players,
+        description: description || team.description
+      })
+      .eq('id', id)
+      .select(`
+        *,
+        creator:users!teams_creator_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .single();
 
-    res.json(result.rows[0]);
+    if (updateError) {
+      console.error('❌ Update team error:', updateError);
+      return res.status(500).json({ message: 'Failed to update team' });
+    }
+
+    res.json(updatedTeam);
   } catch (error) {
     console.error('❌ Update team error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -261,22 +405,31 @@ exports.deleteTeam = async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    // Check if user is the creator
-    const teamResult = await pool.query(
-      'SELECT * FROM teams WHERE id = $1',
-      [id]
-    );
+    // Check if user is creator
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-    if (teamResult.rows.length === 0) {
+    if (teamError || !team) {
       return res.status(404).json({ message: 'Team not found' });
     }
 
-    if (teamResult.rows[0].creator_id !== userId) {
+    if (team.creator_id !== userId) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
     // Delete team (CASCADE will delete team_members)
-    await pool.query('DELETE FROM teams WHERE id = $1', [id]);
+    const { error: deleteError } = await supabase
+      .from('teams')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('❌ Delete team error:', deleteError);
+      return res.status(500).json({ message: 'Failed to delete team' });
+    }
 
     res.json({ message: 'Team deleted successfully' });
   } catch (error) {
@@ -285,15 +438,107 @@ exports.deleteTeam = async (req, res) => {
   }
 };
 
-// Placeholder functions for other routes
+// Get team messages
 exports.getTeamMessages = async (req, res) => {
-  res.json([]);
+  try {
+    const { id } = req.params;
+    
+    const { data, error } = await supabase
+      .from('team_messages')
+      .select('*')
+      .eq('team_id', id)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('❌ Get team messages error:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    res.json(data || []);
+  } catch (error) {
+    console.error('❌ Get team messages error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
+// Send team message
 exports.sendTeamMessage = async (req, res) => {
-  res.json({ message: 'Message sent' });
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+    const { text, type, location, imageUrl } = req.body;
+
+    const { data, error } = await supabase
+      .from('team_messages')
+      .insert({
+        team_id: id,
+        user_id: userId,
+        text,
+        type: type || 'text',
+        location,
+        image_url: imageUrl
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Send team message error:', error);
+      return res.status(500).json({ message: 'Failed to send message' });
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('❌ Send team message error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
+// Get team stats
 exports.getTeamStats = async (req, res) => {
-  res.json({ stats: 'Team stats' });
+  try {
+    const { id } = req.params;
+    
+    // Get team info
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        creator:users!teams_creator_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (teamError || !team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Get team members count
+    const { count: memberCount } = await supabase
+      .from('team_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('team_id', id);
+
+    // Get recent messages count
+    const { count: messageCount } = await supabase
+      .from('team_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('team_id', id);
+
+    res.json({
+      team,
+      memberCount: memberCount || 0,
+      messageCount: messageCount || 0,
+      createdAt: team.created_at
+    });
+  } catch (error) {
+    console.error('❌ Get team stats error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };

@@ -93,6 +93,7 @@ exports.register = async (req, res) => {
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
+        username,
         email,
         password: hashedPassword,
         sport: sport || 'Football',

@@ -1,22 +1,22 @@
-const User = require('../models/User');
-const nodemailer = require('nodemailer');
-const { createActivityHelper } = require('./activityController');
-const { createNotificationHelper } = require('./notificationController');
+const { supabase } = require('../config/supabase');
 
-// Email transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// Email transporter - moved inside function to avoid initialization errors
+const getTransporter = () => {
+  const nodemailer = require('nodemailer');
+  return nodemailer.createTransporter({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+};
 
-// Pretraži korisnike
+// Search users
 exports.searchUsers = async (req, res) => {
   try {
     const { query } = req.query;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     console.log('🔍 Search users request:', { query, userId });
 
@@ -24,37 +24,44 @@ exports.searchUsers = async (req, res) => {
       return res.json([]);
     }
 
-    const users = await User.find({
-      _id: { $ne: userId },
-      $or: [
-        { username: { $regex: query, $options: 'i' } },
-        { email: { $regex: query, $options: 'i' } }
-      ]
-    })
-    .select('username email avatar sport location friendRequests')
-    .limit(20);
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, username, email, avatar, sport, location')
+      .neq('id', userId)
+      .or(`username.ilike.%${query}%,email.ilike.%${query}%`)
+      .limit(20);
 
-    console.log(`✅ Found ${users.length} users`);
+    if (error) {
+      console.error('Search users error:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
 
-    const currentUser = await User.findById(userId).select('friends');
-    
-    // ✅ Safe access sa default values
-    const currentUserFriends = currentUser?.friends || [];
-    
-    const usersWithStatus = users.map(user => {
-      const userFriendRequests = user.friendRequests || [];
-      
-      return {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-        sport: user.sport,
-        location: user.location,
-        isFriend: currentUserFriends.some(f => f.toString() === user._id.toString()),
-        requestSent: userFriendRequests.some(req => req.from && req.from.toString() === userId.toString())
-      };
-    });
+    console.log(`✅ Found ${users?.length || 0} users`);
+
+    const { data: friendships } = await supabase
+      .from('friendships')
+      .select('user1_id, user2_id')
+      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+      .eq('status', 'accepted');
+
+    const friendIds = new Set(
+      friendships?.map(f => f.user1_id === userId ? f.user2_id : f.user1_id) || []
+    );
+
+    const { data: sentRequests } = await supabase
+      .from('friend_requests')
+      .select('to_user_id')
+      .eq('from_user_id', userId);
+
+    const requestSentIds = new Set(
+      sentRequests?.map(r => r.to_user_id) || []
+    );
+
+    const usersWithStatus = users?.map(user => ({
+      ...user,
+      isFriend: friendIds.has(user.id),
+      requestSent: requestSentIds.has(user.id)
+    })) || [];
 
     console.log('✅ Returning users with status:', usersWithStatus.length);
 
@@ -65,85 +72,88 @@ exports.searchUsers = async (req, res) => {
   }
 };
 
-// Pošalji friend request
+// Send friend request
 exports.sendFriendRequest = async (req, res) => {
   try {
     const { userId } = req.params;
-    const currentUserId = req.user._id;
+    const currentUserId = req.user.id;
     const { message } = req.body;
 
     console.log('📤 Send friend request:', { from: currentUserId, to: userId });
 
-    if (userId === currentUserId.toString()) {
-      return res.status(400).json({ message: 'Ne možeš dodati sam sebe!' });
+    if (userId === currentUserId) {
+      return res.status(400).json({ message: 'Cannot send friend request to yourself' });
     }
 
-    const targetUser = await User.findById(userId);
-    const currentUser = await User.findById(currentUserId);
+    const { data: targetUser, error: userError } = await supabase
+      .from('users')
+      .select('id, username, email, sport, location')
+      .eq('id', userId)
+      .single();
 
-    if (!targetUser) {
+    if (userError || !targetUser) {
       console.log('❌ Target user not found:', userId);
-      return res.status(404).json({ message: 'Korisnik ne postoji' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // ✅ Safe access
-    const currentUserFriends = currentUser.friends || [];
-    if (currentUserFriends.some(f => f.toString() === userId)) {
-      return res.status(400).json({ message: 'Već ste prijatelji!' });
+    const { data: existingFriendship } = await supabase
+      .from('friendships')
+      .select('id')
+      .or(`(user1_id.eq.${currentUserId} AND user2_id.eq.${userId}), (user1_id.eq.${userId} AND user2_id.eq.${currentUserId})`)
+      .eq('status', 'accepted')
+      .single();
+
+    if (existingFriendship) {
+      return res.status(400).json({ message: 'You are already friends!' });
     }
 
-    const targetUserRequests = targetUser.friendRequests || [];
-    const alreadySent = targetUserRequests.some(
-      req => req.from && req.from.toString() === currentUserId.toString()
-    );
+    const { data: existingRequest } = await supabase
+      .from('friend_requests')
+      .select('id')
+      .eq('from_user_id', currentUserId)
+      .eq('to_user_id', userId)
+      .single();
 
-    if (alreadySent) {
-      return res.status(400).json({ message: 'Zahtjev već poslan!' });
+    if (existingRequest) {
+      return res.status(400).json({ message: 'Friend request already sent!' });
     }
 
-    // Initialize friendRequests if undefined
-    if (!targetUser.friendRequests) {
-      targetUser.friendRequests = [];
+    const { data: currentUser } = await supabase
+      .from('users')
+      .select('username, sport, location')
+      .eq('id', currentUserId)
+      .single();
+
+    const { error: insertError } = await supabase
+      .from('friend_requests')
+      .insert({
+        from_user_id: currentUserId,
+        to_user_id: userId,
+        message: message || '',
+        sent_at: new Date().toISOString()
+      });
+
+    if (insertError) {
+      console.error('Insert friend request error:', insertError);
+      return res.status(500).json({ message: 'Failed to send friend request' });
     }
-
-    targetUser.friendRequests.push({
-      from: currentUserId,
-      message: message || '',
-      sentAt: new Date()
-    });
-
-    await targetUser.save();
 
     console.log('✅ Friend request sent');
 
-    // Kreiraj notifikaciju
+    // Send email notification
     try {
-      await createNotificationHelper(
-        userId,
-        'friend_request',
-        '👋 Novi zahtjev za prijateljstvo',
-        `${currentUser.username} želi biti tvoj prijatelj`,
-        '/friends',
-        { friendRequestId: targetUser._id.toString() },
-        currentUserId
-      );
-    } catch (notifErr) {
-      console.error('Greška pri kreiranju notifikacije:', notifErr);
-    }
-
-    // Pošalji email notifikaciju
-    try {
+      const transporter = getTransporter();
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: targetUser.email,
-        subject: `👋 ${currentUser.username} želi biti tvoj prijatelj na TeamConnect`,
+        subject: `👋 ${currentUser?.username || 'Someone'} wants to be your friend on TeamConnect`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #667eea; text-align: center;">👋 Novi zahtjev za prijateljstvo!</h1>
+            <h1 style="color: #667eea; text-align: center;">👋 New Friend Request!</h1>
             
             <div style="background: #f5f7fa; padding: 30px; border-radius: 15px; margin: 20px 0;">
               <p style="font-size: 18px; color: #333;">
-                <strong>${currentUser.username}</strong> želi biti tvoj prijatelj na TeamConnect!
+                <strong>${currentUser?.username || 'Someone'}</strong> wants to be your friend on TeamConnect!
               </p>
               
               ${message ? `
@@ -153,13 +163,13 @@ exports.sendFriendRequest = async (req, res) => {
               ` : ''}
               
               <p style="margin-top: 20px;">
-                <strong>Sport:</strong> ${currentUser.sport || 'Nije navedeno'}<br>
-                <strong>Lokacija:</strong> ${currentUser.location || 'Nije navedeno'}
+                <strong>Sport:</strong> ${currentUser?.sport || 'Not specified'}<br>
+                <strong>Location:</strong> ${currentUser?.location || 'Not specified'}
               </p>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="http://localhost:3000/friends" 
+              <a href="${process.env.FRONTEND_URL}/friends" 
                  style="background: linear-gradient(135deg, #667eea, #764ba2); 
                         color: white; 
                         padding: 15px 40px; 
@@ -167,150 +177,150 @@ exports.sendFriendRequest = async (req, res) => {
                         border-radius: 25px; 
                         font-weight: bold;
                         display: inline-block;">
-                Vidi zahtjev
+                View Request
               </a>
             </div>
             
             <p style="color: #999; text-align: center; font-size: 14px;">
-              TeamConnect - Povežite se s igračima 🏆
+              TeamConnect - Connect with players 🏆
             </p>
           </div>
         `
       };
 
       await transporter.sendMail(mailOptions);
+      console.log('✅ Email notification sent');
     } catch (emailErr) {
-      console.error('Greška pri slanju emaila:', emailErr);
+      console.error('Email send error:', emailErr);
     }
 
-    res.json({ message: 'Zahtjev poslan!' });
+    res.json({ message: 'Friend request sent!' });
   } catch (error) {
     console.error('❌ Send friend request error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Dohvati friend requests
+// Get friend requests
 exports.getFriendRequests = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
     
     console.log('📥 Get friend requests for:', userId);
 
-    const user = await User.findById(userId)
-      .populate('friendRequests.from', 'username email avatar sport location');
+    const { data: requests, error } = await supabase
+      .from('friend_requests')
+      .select(`
+        id,
+        message,
+        sent_at,
+        from_user:users!friend_requests_from_user_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .eq('to_user_id', userId)
+      .order('sent_at', { ascending: false });
 
-    const requests = user.friendRequests || [];
+    if (error) {
+      console.error('Get friend requests error:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
 
-    console.log(`✅ Found ${requests.length} requests`);
+    console.log(`✅ Found ${requests?.length || 0} requests`);
 
-    res.json(requests);
+    res.json(requests || []);
   } catch (error) {
     console.error('❌ Get friend requests error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Prihvati friend request
+// Accept friend request
 exports.acceptFriendRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     console.log('✅ Accept friend request:', { requestId, userId });
 
-    const user = await User.findById(userId);
-    const request = user.friendRequests.id(requestId);
+    const { data: request, error: fetchError } = await supabase
+      .from('friend_requests')
+      .select('from_user_id, to_user_id')
+      .eq('id', requestId)
+      .eq('to_user_id', userId)
+      .single();
 
-    if (!request) {
+    if (fetchError || !request) {
       console.log('❌ Request not found:', requestId);
-      return res.status(404).json({ message: 'Zahtjev ne postoji' });
+      return res.status(404).json({ message: 'Friend request not found' });
     }
 
-    const friendId = request.from;
+    const friendId = request.from_user_id;
 
-    // Initialize friends array if undefined
-    if (!user.friends) {
-      user.friends = [];
+    const { error: friendshipError } = await supabase
+      .from('friendships')
+      .insert({
+        user1_id: userId,
+        user2_id: friendId,
+        status: 'accepted',
+        created_at: new Date().toISOString()
+      });
+
+    if (friendshipError) {
+      console.error('Create friendship error:', friendshipError);
+      return res.status(500).json({ message: 'Failed to create friendship' });
     }
 
-    // Dodaj jedan drugome u prijatelje
-    user.friends.push(friendId);
-    user.friendRequests.pull(requestId);
-    await user.save();
+    const { error: deleteError } = await supabase
+      .from('friend_requests')
+      .delete()
+      .eq('id', requestId);
 
-    const friend = await User.findById(friendId);
-    
-    if (!friend.friends) {
-      friend.friends = [];
+    if (deleteError) {
+      console.error('Delete request error:', deleteError);
     }
-    
-    friend.friends.push(userId);
-    await friend.save();
 
-    console.log('✅ Friends added to each other');
+    console.log('✅ Friendship created');
 
-    // Kreiraj aktivnosti za oba korisnika
+    const { data: currentUser } = await supabase
+      .from('users')
+      .select('username, email')
+      .eq('id', userId)
+      .single();
+
+    const { data: friend } = await supabase
+      .from('users')
+      .select('username, email')
+      .eq('id', friendId)
+      .single();
+
+    // Send email notification
     try {
-      await createActivityHelper(
-        userId,
-        'friend_added',
-        {
-          friendId: friendId,
-          friendName: friend.username
-        },
-        'friends'
-      );
-
-      await createActivityHelper(
-        friendId,
-        'friend_added',
-        {
-          friendId: userId,
-          friendName: user.username
-        },
-        'friends'
-      );
-    } catch (activityErr) {
-      console.error('Greška pri kreiranju aktivnosti:', activityErr);
-    }
-
-    // Kreiraj notifikaciju
-    try {
-      await createNotificationHelper(
-        friendId,
-        'friend_accepted',
-        '🎉 Zahtjev prihvaćen',
-        `${user.username} je prihvatio tvoj zahtjev za prijateljstvo`,
-        '/friends',
-        {},
-        userId
-      );
-    } catch (notifErr) {
-      console.error('Greška pri kreiranju notifikacije:', notifErr);
-    }
-
-    // Pošalji email notifikaciju
-    try {
+      const transporter = getTransporter();
       const mailOptions = {
         from: process.env.EMAIL_USER,
-        to: friend.email,
-        subject: `🎉 ${user.username} je prihvatio tvoj zahtjev za prijateljstvo!`,
+        to: friend?.email,
+        subject: `🎉 ${currentUser?.username || 'Someone'} accepted your friend request!`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #4caf50; text-align: center;">🎉 Sada ste prijatelji!</h1>
+            <h1 style="color: #4caf50; text-align: center;">🎉 You're now friends!</h1>
             
             <div style="background: #f5f7fa; padding: 30px; border-radius: 15px; margin: 20px 0; text-align: center;">
               <p style="font-size: 18px; color: #333;">
-                <strong>${user.username}</strong> je prihvatio tvoj zahtjev za prijateljstvo!
+                <strong>${currentUser?.username || 'Someone'}</strong> accepted your friend request!
               </p>
               <p style="font-size: 16px; color: #666;">
-                Sada možete zajedno igrati i pratiti jedni druge na TeamConnect.
+                You can now play together and follow each other on TeamConnect.
               </p>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="http://localhost:3000/friends" 
+              <a href="${process.env.FRONTEND_URL}/friends" 
                  style="background: linear-gradient(135deg, #4caf50, #66bb6a); 
                         color: white; 
                         padding: 15px 40px; 
@@ -318,7 +328,7 @@ exports.acceptFriendRequest = async (req, res) => {
                         border-radius: 25px; 
                         font-weight: bold;
                         display: inline-block;">
-                Vidi prijatelje
+                View Friends
               </a>
             </div>
           </div>
@@ -327,48 +337,89 @@ exports.acceptFriendRequest = async (req, res) => {
 
       await transporter.sendMail(mailOptions);
     } catch (emailErr) {
-      console.error('Greška pri slanju emaila:', emailErr);
+      console.error('Email send error:', emailErr);
     }
 
-    res.json({ message: 'Zahtjev prihvaćen!' });
+    res.json({ message: 'Friend request accepted!' });
   } catch (error) {
     console.error('❌ Accept friend request error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Odbij friend request
+// Reject friend request
 exports.rejectFriendRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     console.log('❌ Reject friend request:', { requestId, userId });
 
-    const user = await User.findById(userId);
-    user.friendRequests.pull(requestId);
-    await user.save();
+    const { error } = await supabase
+      .from('friend_requests')
+      .delete()
+      .eq('id', requestId)
+      .eq('to_user_id', userId);
+
+    if (error) {
+      console.error('Reject request error:', error);
+      return res.status(500).json({ message: 'Failed to reject request' });
+    }
 
     console.log('✅ Request rejected');
 
-    res.json({ message: 'Zahtjev odbijen' });
+    res.json({ message: 'Friend request rejected' });
   } catch (error) {
     console.error('❌ Reject friend request error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Dohvati prijatelje
+// Get friends
 exports.getFriends = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
     
     console.log('👥 Get friends for:', userId);
 
-    const user = await User.findById(userId)
-      .populate('friends', 'username email avatar sport location');
+    const { data: friendships, error } = await supabase
+      .from('friendships')
+      .select(`
+        user1_id,
+        user2_id,
+        created_at,
+        user1:users!friendships_user1_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        ),
+        user2:users!friendships_user2_id_fkey (
+          id,
+          username,
+          email,
+          avatar,
+          sport,
+          location
+        )
+      `)
+      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+      .eq('status', 'accepted');
 
-    const friends = user.friends || [];
+    if (error) {
+      console.error('Get friends error:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    const friends = friendships?.map(friendship => {
+      if (friendship.user1_id === userId) {
+        return friendship.user2;
+      } else {
+        return friendship.user1;
+      }
+    }) || [];
 
     console.log(`✅ Found ${friends.length} friends`);
 
@@ -379,30 +430,27 @@ exports.getFriends = async (req, res) => {
   }
 };
 
-// Ukloni prijatelja
+// Remove friend
 exports.removeFriend = async (req, res) => {
   try {
     const { friendId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     console.log('🗑️ Remove friend:', { userId, friendId });
 
-    const user = await User.findById(userId);
-    
-    if (user.friends) {
-      user.friends.pull(friendId);
-      await user.save();
-    }
+    const { error } = await supabase
+      .from('friendships')
+      .delete()
+      .or(`(user1_id.eq.${userId} AND user2_id.eq.${friendId}), (user1_id.eq.${friendId} AND user2_id.eq.${userId})`);
 
-    const friend = await User.findById(friendId);
-    if (friend && friend.friends) {
-      friend.friends.pull(userId);
-      await friend.save();
+    if (error) {
+      console.error('Remove friend error:', error);
+      return res.status(500).json({ message: 'Failed to remove friend' });
     }
 
     console.log('✅ Friend removed');
 
-    res.json({ message: 'Prijatelj uklonjen' });
+    res.json({ message: 'Friend removed' });
   } catch (error) {
     console.error('❌ Remove friend error:', error);
     res.status(500).json({ message: 'Server error' });

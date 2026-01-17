@@ -5,10 +5,8 @@ const {
   getTournaments,
   getTournament,
   createTournament,
-  registerTeam,
-  unregisterTeam,
-  generateBracket,
-  updateMatch,
+  registerForTournament,
+  updateTournament,
   deleteTournament
 } = require('../controllers/tournamentController');
 
@@ -18,10 +16,8 @@ router.get('/:id', getTournament);
 
 // Protected routes
 router.post('/', auth, createTournament);
-router.post('/:tournamentId/register', auth, registerTeam);
-router.post('/:tournamentId/unregister', auth, unregisterTeam);
-router.post('/:tournamentId/generate-bracket', auth, generateBracket);
-router.put('/:tournamentId/match/:matchId', auth, updateMatch);
-router.delete('/:tournamentId', auth, deleteTournament);
+router.post('/:id/register', auth, registerForTournament);
+router.put('/:id', auth, updateTournament);
+router.delete('/:id', auth, deleteTournament);
 
 module.exports = router;

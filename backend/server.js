@@ -6,19 +6,13 @@ const socketIo = require('socket.io');
 const helmet = require('helmet');
 const hpp = require('hpp');
 const morgan = require('morgan');
+require('dotenv').config();
+
+// Import config and middleware
+const config = require('./config/config');
 const logger = require('./utils/logger');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
-const config = require('./config/config');
-require('dotenv').config();
-
-// Import Supabase controllers
-const authController = require('./controllers/authController');
-const teamController = require('./controllers/teamController');
-const tournamentController = require('./controllers/tournamentController');
-
-// Import routes
-const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -26,15 +20,19 @@ const server = http.createServer(app);
 // Socket.io setup
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: config.frontendUrl,
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
-// Middleware
-app.use(cors());
+// Basic Middleware
+app.use(cors({
+  origin: config.frontendUrl,
+  credentials: true
+}));
 app.use(express.json());
+app.use(hpp());
 
 // Security Middleware
 app.use(helmet({
@@ -44,15 +42,13 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "http://localhost:5000", "ws://localhost:5000"]
+      connectSrc: ["'self'", config.backendUrl, `ws://${config.backendUrl.replace('http://', '')}`]
     }
   }
 }));
 
-app.use(hpp()); // Prevent HTTP Parameter Pollution
-
 // HTTP request logger
-if (process.env.NODE_ENV === 'development') {
+if (config.env === 'development') {
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined', {
@@ -60,13 +56,13 @@ if (process.env.NODE_ENV === 'development') {
   }));
 }
 
-// Serviraj uploads folder
+// Serve uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Make io accessible to routes
 app.set('io', io);
 
-// Rate limiting - primijeni na sve API rute
+// Rate limiting - apply to all API routes
 app.use('/api/', apiLimiter);
 
 // Health Check Endpoint
@@ -76,7 +72,8 @@ app.get('/health', (req, res) => {
     message: 'OK',
     timestamp: Date.now(),
     environment: config.env,
-    database: 'Supabase Connected'
+    database: 'Supabase Connected',
+    supabaseConfigured: !!config.supabase.url
   };
   
   try {
@@ -93,6 +90,7 @@ app.get('/api', (req, res) => {
     name: 'TeamConnect API',
     version: '1.0.0',
     description: 'API za organizaciju sportskih timova',
+    environment: config.env,
     endpoints: {
       auth: '/api/auth',
       teams: '/api/teams',
@@ -113,80 +111,52 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Authentication middleware
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+// ✅ IMPORT ALL 14 ROUTE FILES
+const activityRoutes = require('./routes/activityRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const authRoutes = require('./routes/authRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const fieldRoutes = require('./routes/fieldRoutes');
+const friendsRoutes = require('./routes/friendsRoutes');
+const matchRoutes = require('./routes/matchRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const profileRoutes = require('./routes/profileRoutes');
+const ratingRoutes = require('./routes/ratingRoutes');
+const statsRoutes = require('./routes/statsRoutes');
+const teamRoutes = require('./routes/teamRoutes');
+const tournamentRoutes = require('./routes/tournamentRoutes');
+const videoRoutes = require('./routes/videoRoutes');
 
-  if (!token) {
-    return res.status(401).json({ message: 'Access token required' });
-  }
-
-  const jwt = require('jsonwebtoken');
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid or expired token' });
-    }
-    req.user = user;
-    next();
-  });
-};
-
-// Routes - Auth
-app.post('/api/auth/register', authController.register);
-app.post('/api/auth/verifyCode', authController.verifyCode);
-app.post('/api/auth/login', authController.login);
-app.post('/api/auth/refresh', authController.refreshToken);
-app.post('/api/auth/logout', authenticateToken, authController.logout);
-app.get('/api/auth/me', authenticateToken, authController.getCurrentUser);
-app.put('/api/auth/profile', authenticateToken, authController.updateProfile);
-app.put('/api/auth/change-password', authenticateToken, authController.changePassword);
-app.post('/api/auth/forgot-password', authController.forgotPassword);
-app.post('/api/auth/reset-password', authController.resetPassword);
-
-// Routes - Teams
-app.get('/api/teams', teamController.getAllTeams);
-app.get('/api/teams/:id', teamController.getTeamById);
-app.get('/api/teams/my', authenticateToken, teamController.getMyTeams);
-app.post('/api/teams', authenticateToken, teamController.createTeam);
-app.post('/api/teams/:id/join', authenticateToken, teamController.joinTeam);
-app.post('/api/teams/:id/leave', authenticateToken, teamController.leaveTeam);
-
-// Routes - Tournaments
-app.get('/api/tournaments', tournamentController.getTournaments);
-app.get('/api/tournaments/:id', tournamentController.getTournament);
-
-// Routes - Notifications
+// ✅ USE ALL 14 ROUTES
+app.use('/api/activities', activityRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/fields', fieldRoutes);
+app.use('/api/friends', friendsRoutes);
+app.use('/api/matches', matchRoutes);
 app.use('/api/notifications', notificationRoutes);
-
-// Supabase Connection
-// const { supabase } = require('./config/supabase');
-
-// Test Supabase connection
-// supabase.from('users').select('id').then(data => {
-//   console.log('✅ Supabase connected successfully!');
-//   console.log('Sample data:', data);
-// }).catch(error => {
-//   console.error('❌ Supabase connection error:', error);
-// });
+app.use('/api/profile', profileRoutes);
+app.use('/api/ratings', ratingRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/tournaments', tournamentRoutes);
+app.use('/api/videos', videoRoutes);
 
 // Socket.io event handlers
 io.on('connection', (socket) => {
   console.log('🔌 Novi korisnik spojen:', socket.id);
 
-  // Join team chat room
   socket.on('join_team', (teamId) => {
     socket.join(`team_${teamId}`);
     console.log(`👤 Korisnik ${socket.id} joined team ${teamId}`);
   });
 
-  // Leave team chat room
   socket.on('leave_team', (teamId) => {
     socket.leave(`team_${teamId}`);
     console.log(`👤 Korisnik ${socket.id} left team ${teamId}`);
   });
 
-  // Send message
   socket.on('send_message', async (data) => {
     try {
       const { teamId, userId, text, type, location, imageUrl } = data;
@@ -200,9 +170,7 @@ io.on('connection', (socket) => {
         createdAt: new Date()
       };
 
-      // Broadcast message to team room
       io.to(`team_${teamId}`).emit('new_message', message);
-      
       console.log(`💬 New message in team ${teamId}`);
     } catch (error) {
       console.error('Send message error:', error);
@@ -210,7 +178,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Typing indicator
   socket.on('typing', (data) => {
     socket.to(`team_${data.teamId}`).emit('user_typing', {
       userId: data.userId,
@@ -224,19 +191,42 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Disconnect
   socket.on('disconnect', () => {
     console.log('🔌 Korisnik odspojen:', socket.id);
   });
 });
 
-// Error Handling Middleware (MORA biti zadnje!)
+// Error Handling Middleware (must be last!)
 app.use(notFound);
 app.use(errorHandler);
 
 const PORT = config.port;
 server.listen(PORT, () => {
-  console.log(`🚀 Server radi na portu ${PORT}`);
+  console.log('═══════════════════════════════════════════');
+  console.log(`🚀 TeamConnect Server Started`);
+  console.log('═══════════════════════════════════════════');
+  console.log(`📍 Environment: ${config.env}`);
+  console.log(`🌐 Port: ${PORT}`);
+  console.log(`🔗 Backend URL: ${config.backendUrl}`);
+  console.log(`🌍 Frontend URL: ${config.frontendUrl}`);
+  console.log(`🗄️  Database: Supabase (${config.supabase.url ? '✅' : '❌'})`);
+  console.log('');
+  console.log('📋 Available Routes (14):');
+  console.log('   ✅ /api/activities');
+  console.log('   ✅ /api/admin');
+  console.log('   ✅ /api/auth');
+  console.log('   ✅ /api/chat');
+  console.log('   ✅ /api/fields');
+  console.log('   ✅ /api/friends');
+  console.log('   ✅ /api/matches');
+  console.log('   ✅ /api/notifications');
+  console.log('   ✅ /api/profile');
+  console.log('   ✅ /api/ratings');
+  console.log('   ✅ /api/stats');
+  console.log('   ✅ /api/teams');
+  console.log('   ✅ /api/tournaments');
+  console.log('   ✅ /api/videos');
+  console.log('═══════════════════════════════════════════');
 });
 
 // Graceful Shutdown
@@ -244,27 +234,31 @@ process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
 function gracefulShutdown() {
-  console.log('📭 Graceful shutdown initiated...');
+  console.log('\n📭 Graceful shutdown initiated...');
   
   server.close(() => {
     console.log('🔌 HTTP server closed');
+    logger.info('Server shut down gracefully');
+    process.exit(0);
   });
   
-  // Force close after 10 seconds
   setTimeout(() => {
     console.error('⏰ Forced shutdown after timeout');
+    logger.error('Server forced shutdown after timeout');
     process.exit(1);
   }, 10000);
 }
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
   logger.error('Uncaught Exception:', error);
   gracefulShutdown();
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection:', { reason, promise });
   gracefulShutdown();
 });

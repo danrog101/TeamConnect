@@ -5,7 +5,9 @@ import './TeamCard.css';
 function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, showActions = true }) {
   const navigate = useNavigate();
   
-  // ✅ SAFE: Dohvati user iz localStorage
+  console.log('🔵 TeamCard received team:', team);
+  console.log('🔵 Team ID:', team.id);
+  
   const getUserFromStorage = () => {
     try {
       const userStr = localStorage.getItem('user');
@@ -19,46 +21,43 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, showActions
 
   const user = getUserFromStorage();
   
-  // ✅ SAFE: Dohvati userId
   const getUserId = () => {
     if (!user) return null;
-    return user._id || user.id || null;
+    return user.id || user._id || null;
   };
 
   const userId = getUserId();
 
-  // ✅ SAFE: Provjeri je li korisnik kreator tima
   const isTeamCreator = () => {
     if (!userId) return false;
     if (!team || !team.creator) return false;
     
-    const creatorId = team.creator._id || team.creator.id || team.creator;
+    const creatorId = team.creator.id || team.creator._id || team.creator;
     return creatorId === userId;
   };
 
-  // ✅ SAFE: Provjeri je li korisnik član tima
   const isJoined = () => {
     if (!userId) return false;
     if (!team || !team.players) return false;
     
     return team.players.some(player => {
-      const playerId = player._id || player.id || player;
+      const playerId = player.id || player._id || player;
       return playerId === userId;
     });
   };
 
-  // ✅ SAFE: Provjeri je li korisnik na waitlistu
   const isOnWaitlist = () => {
     if (!userId) return false;
     if (!team || !team.waitlist) return false;
     
     return team.waitlist.some(w => {
-      const waitlistUserId = w.user?._id || w.user?.id || w.user;
+      const waitlistUserId = w.user?.id || w.user?._id || w.user;
       return waitlistUserId === userId;
     });
   };
 
-  const isFull = team.currentPlayers >= team.maxPlayers;
+  // ✅ FIXED: Use snake_case for Supabase fields
+  const isFull = (team.current_players || 0) >= (team.max_players || 0);
   const creator = isTeamCreator();
   const joined = isJoined();
   const onWaitlist = isOnWaitlist();
@@ -78,17 +77,26 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, showActions
   };
 
   const getProgressColor = () => {
-    const percentage = (team.currentPlayers / team.maxPlayers) * 100;
+    const currentPlayers = team.current_players || 0;
+    const maxPlayers = team.max_players || 1;
+    const percentage = (currentPlayers / maxPlayers) * 100;
     if (percentage >= 90) return '#f44336';
     if (percentage >= 70) return '#ff9800';
     return '#4caf50';
   };
 
-  // ✅ SAFE: Handle akcije samo ako je user logiran
   const handleAction = (action, teamId) => {
+    console.log('🔵 HandleAction called with teamId:', teamId);
+    
     if (!userId) {
       alert('Molimo prijavite se kako biste pristupili ovoj funkciji!');
       navigate('/login');
+      return;
+    }
+    
+    if (!teamId) {
+      console.error('❌ Team ID is undefined!');
+      alert('Greška: ID tima nije dostupan');
       return;
     }
     
@@ -120,13 +128,13 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, showActions
 
       <div className="team-players">
         <div className="players-count">
-          Igrači: {team.currentPlayers}/{team.maxPlayers}
+          Igrači: {team.current_players || 0}/{team.max_players || 0}
         </div>
         <div className="progress-bar">
           <div 
             className="progress-fill" 
             style={{ 
-              width: `${(team.currentPlayers / team.maxPlayers) * 100}%`,
+              width: `${((team.current_players || 0) / (team.max_players || 1)) * 100}%`,
               background: getProgressColor()
             }}
           />
@@ -156,7 +164,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, showActions
               {onDelete && (
                 <button 
                   className="btn btn-danger" 
-                  onClick={() => handleAction(onDelete, team._id)}
+                  onClick={() => handleAction(onDelete, team.id)}
                 >
                   Obriši
                 </button>
@@ -166,7 +174,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, showActions
             onLeave && (
               <button 
                 className="btn btn-secondary" 
-                onClick={() => handleAction(onLeave, team._id)}
+                onClick={() => handleAction(onLeave, team.id)}
               >
                 Napusti tim
               </button>
@@ -180,7 +188,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, showActions
               onJoinWaitlist && (
                 <button 
                   className="btn btn-secondary" 
-                  onClick={() => handleAction(onJoinWaitlist, team._id)}
+                  onClick={() => handleAction(onJoinWaitlist, team.id)}
                 >
                   📧 Dodaj me na listu čekanja
                 </button>
@@ -190,7 +198,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, showActions
             onJoin && (
               <button 
                 className="btn btn-primary" 
-                onClick={() => handleAction(onJoin, team._id)}
+                onClick={() => handleAction(onJoin, team.id)}
               >
                 Pridruži se
               </button>

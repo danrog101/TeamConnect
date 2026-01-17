@@ -1,48 +1,89 @@
-const Match = require('../models/Match');
-const User = require('../models/User');
-const { createActivityHelper } = require('./activityController');
+const { supabase } = require('../config/supabase');
 
-// Dohvati sve utakmice
+// Get all matches
 exports.getMatches = async (req, res) => {
   try {
     const { status, sport, upcoming } = req.query;
     
-    const query = {};
-    if (status) query.status = status;
-    if (sport) query.sport = sport;
+    let query = supabase
+      .from('matches')
+      .select(`
+        *,
+        users!matches_created_by_fkey (username, avatar)
+      `);
     
-    // Filtriraj samo nadolazeće
+    if (status) query = query.eq('status', status);
+    if (sport) query = query.eq('sport', sport);
+    
+    // Filter only upcoming matches
     if (upcoming === 'true') {
-      query.scheduledDate = { $gte: new Date() };
-      query.status = { $in: ['scheduled', 'live'] };
+      query = query
+        .gte('scheduled_date', new Date().toISOString())
+        .in('status', ['scheduled', 'live']);
     }
 
-    const matches = await Match.find(query)
-      .populate('createdBy', 'username avatar')
-      .populate('team1.players', 'username avatar')
-      .populate('team2.players', 'username avatar')
-      .sort({ scheduledDate: 1 });
+    const { data: matches, error } = await query.order('scheduled_date', { ascending: true });
 
-    res.json(matches);
+    if (error) {
+      console.error('Get matches error:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    res.json(matches || []);
   } catch (error) {
     console.error('Get matches error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Dohvati jednu utakmicu
+// Get single match
 exports.getMatch = async (req, res) => {
   try {
     const { matchId } = req.params;
 
-    const match = await Match.findById(matchId)
-      .populate('createdBy', 'username avatar')
-      .populate('team1.players', 'username avatar')
-      .populate('team2.players', 'username avatar')
-      .populate('moderators', 'username avatar');
+    const { data: match, error } = await supabase
+      .from('matches')
+      .select(`
+        *,
+        users!matches_created_by_fkey (username, avatar),
+        match_participants (
+          user_id,
+          team_side,
+          users (id, username, avatar)
+        ),
+        match_events (
+          id,
+          type,
+          team_side,
+          player_name,
+          minute,
+          description,
+          created_at
+        ),
+        match_commentary (
+          id,
+          minute,
+          text,
+          created_at
+        ),
+        match_statistics (
+          id,
+          team_side,
+          possession,
+          shots,
+          shots_on_target,
+          corners,
+          fouls,
+          yellow_cards,
+          red_cards
+        )
+      `)
+      .eq('id', matchId)
+      .single();
 
-    if (!match) {
-      return res.status(404).json({ message: 'Utakmica ne postoji' });
+    if (error || !match) {
+      console.error('Get match error:', error);
+      return res.status(404).json({ message: 'Match not found' });
     }
 
     res.json(match);
@@ -52,28 +93,61 @@ exports.getMatch = async (req, res) => {
   }
 };
 
-// Kreiraj utakmicu
+// Create match
 exports.createMatch = async (req, res) => {
   try {
     const userId = req.user.id;
     const matchData = req.body;
 
-    // Validacija
-    if (!matchData.team1?.name || !matchData.team2?.name || !matchData.scheduledDate) {
-      return res.status(400).json({ message: 'Popuni sva obavezna polja!' });
+    // Validation
+    if (!matchData.team1_name || !matchData.team2_name || !matchData.scheduled_date) {
+      return res.status(400).json({ message: 'Fill all required fields!' });
     }
 
-    const match = new Match({
-      ...matchData,
-      createdBy: userId,
-      moderators: [userId] // Kreator je automatski moderator
-    });
+    const { data: match, error } = await supabase
+      .from('matches')
+      .insert({
+        team1_name: matchData.team1_name,
+        team1_logo: matchData.team1_logo,
+        team2_name: matchData.team2_name,
+        team2_logo: matchData.team2_logo,
+        sport: matchData.sport || 'Football',
+        venue: matchData.venue || 'TBA',
+        city: matchData.city,
+        country: matchData.country,
+        scheduled_date: matchData.scheduled_date,
+        status: 'scheduled',
+        score_team1: 0,
+        score_team2: 0,
+        tournament_id: matchData.tournament_id,
+        created_by: userId
+      })
+      .select(`
+        *,
+        users!matches_created_by_fkey (username, avatar)
+      `)
+      .single();
 
-    await match.save();
-    await match.populate('createdBy', 'username avatar');
+    if (error) {
+      console.error('Create match error:', error);
+      return res.status(500).json({ message: 'Failed to create match' });
+    }
+
+    // Add creator as moderator
+    const { error: modError } = await supabase
+      .from('match_moderators')
+      .insert({
+        match_id: match.id,
+        user_id: userId
+      });
+
+    if (modError) {
+      console.error('Add moderator error:', modError);
+      // Don't fail the request
+    }
 
     res.status(201).json({ 
-      message: 'Utakmica kreirana!', 
+      message: 'Match created!', 
       match 
     });
   } catch (error) {
@@ -82,31 +156,55 @@ exports.createMatch = async (req, res) => {
   }
 };
 
-// Ažuriraj rezultat
+// Update score
 exports.updateScore = async (req, res) => {
   try {
     const { matchId } = req.params;
     const { team1Score, team2Score } = req.body;
     const userId = req.user.id;
 
-    const match = await Match.findById(matchId);
-    
+    // Check if user is moderator or creator
+    const { data: match } = await supabase
+      .from('matches')
+      .select('created_by')
+      .eq('id', matchId)
+      .single();
+
     if (!match) {
-      return res.status(404).json({ message: 'Utakmica ne postoji' });
+      return res.status(404).json({ message: 'Match not found' });
     }
 
-    // Provjeri je li moderator
-    if (!match.moderators.includes(userId) && match.createdBy.toString() !== userId) {
-      return res.status(403).json({ message: 'Nemaš pravo ažurirati rezultat!' });
+    const { data: moderator } = await supabase
+      .from('match_moderators')
+      .select('user_id')
+      .eq('match_id', matchId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!moderator && match.created_by !== userId) {
+      return res.status(403).json({ message: 'Not authorized to update score!' });
     }
 
-    match.score.team1 = team1Score;
-    match.score.team2 = team2Score;
-    await match.save();
+    // Update score
+    const { data: updatedMatch, error } = await supabase
+      .from('matches')
+      .update({
+        score_team1: team1Score,
+        score_team2: team2Score,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', matchId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update score error:', error);
+      return res.status(500).json({ message: 'Failed to update score' });
+    }
 
     res.json({ 
-      message: 'Rezultat ažuriran!', 
-      match 
+      message: 'Score updated!', 
+      match: updatedMatch 
     });
   } catch (error) {
     console.error('Update score error:', error);
@@ -114,52 +212,80 @@ exports.updateScore = async (req, res) => {
   }
 };
 
-// Dodaj event (gol, karton, itd.)
+// Add event (goal, card, etc.)
 exports.addEvent = async (req, res) => {
   try {
     const { matchId } = req.params;
-    const { type, team, player, minute, description } = req.body;
+    const { type, team_side, player_name, minute, description } = req.body;
     const userId = req.user.id;
 
-    if (!type || !team || !minute) {
-      return res.status(400).json({ message: 'Popuni obavezna polja!' });
+    if (!type || !team_side || !minute) {
+      return res.status(400).json({ message: 'Fill required fields!' });
     }
 
-    const match = await Match.findById(matchId);
-    
+    if (!['team1', 'team2'].includes(team_side)) {
+      return res.status(400).json({ message: 'Team side must be team1 or team2' });
+    }
+
+    // Check authorization
+    const { data: match } = await supabase
+      .from('matches')
+      .select('created_by, score_team1, score_team2')
+      .eq('id', matchId)
+      .single();
+
     if (!match) {
-      return res.status(404).json({ message: 'Utakmica ne postoji' });
+      return res.status(404).json({ message: 'Match not found' });
     }
 
-    // Provjeri je li moderator
-    if (!match.moderators.includes(userId) && match.createdBy.toString() !== userId) {
-      return res.status(403).json({ message: 'Nemaš pravo dodavati evente!' });
+    const { data: moderator } = await supabase
+      .from('match_moderators')
+      .select('user_id')
+      .eq('match_id', matchId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!moderator && match.created_by !== userId) {
+      return res.status(403).json({ message: 'Not authorized to add events!' });
     }
 
-    // Dodaj event
-    match.events.push({
-      type,
-      team,
-      player,
-      minute,
-      description,
-      timestamp: new Date()
-    });
+    // Add event
+    const { data: event, error } = await supabase
+      .from('match_events')
+      .insert({
+        match_id: matchId,
+        type,
+        team_side,
+        player_name,
+        minute,
+        description
+      })
+      .select()
+      .single();
 
-    // Ako je gol, ažuriraj rezultat
+    if (error) {
+      console.error('Add event error:', error);
+      return res.status(500).json({ message: 'Failed to add event' });
+    }
+
+    // If it's a goal, update score
     if (type === 'goal') {
-      if (team === 'team1') {
-        match.score.team1 += 1;
+      const updates = {};
+      if (team_side === 'team1') {
+        updates.score_team1 = match.score_team1 + 1;
       } else {
-        match.score.team2 += 1;
+        updates.score_team2 = match.score_team2 + 1;
       }
-    }
 
-    await match.save();
+      await supabase
+        .from('matches')
+        .update(updates)
+        .eq('id', matchId);
+    }
 
     res.json({ 
-      message: 'Event dodan!', 
-      match 
+      message: 'Event added!', 
+      event 
     });
   } catch (error) {
     console.error('Add event error:', error);
@@ -167,38 +293,87 @@ exports.addEvent = async (req, res) => {
   }
 };
 
-// Ažuriraj statistiku
+// Update statistics
 exports.updateStats = async (req, res) => {
   try {
     const { matchId } = req.params;
     const { stats } = req.body;
     const userId = req.user.id;
 
-    const match = await Match.findById(matchId);
-    
+    if (!stats || !stats.team_side) {
+      return res.status(400).json({ message: 'Stats and team_side are required' });
+    }
+
+    // Check authorization
+    const { data: match } = await supabase
+      .from('matches')
+      .select('created_by')
+      .eq('id', matchId)
+      .single();
+
     if (!match) {
-      return res.status(404).json({ message: 'Utakmica ne postoji' });
+      return res.status(404).json({ message: 'Match not found' });
     }
 
-    // Provjeri je li moderator
-    if (!match.moderators.includes(userId) && match.createdBy.toString() !== userId) {
-      return res.status(403).json({ message: 'Nemaš pravo ažurirati statistiku!' });
+    const { data: moderator } = await supabase
+      .from('match_moderators')
+      .select('user_id')
+      .eq('match_id', matchId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!moderator && match.created_by !== userId) {
+      return res.status(403).json({ message: 'Not authorized to update stats!' });
     }
 
-    match.stats = stats;
-    await match.save();
+    // Check if stats exist for this team
+    const { data: existingStats } = await supabase
+      .from('match_statistics')
+      .select('id')
+      .eq('match_id', matchId)
+      .eq('team_side', stats.team_side)
+      .single();
 
-    res.json({ 
-      message: 'Statistika ažurirana!', 
-      match 
-    });
+    if (existingStats) {
+      // Update existing
+      const { data: updatedStats, error } = await supabase
+        .from('match_statistics')
+        .update(stats)
+        .eq('id', existingStats.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Update stats error:', error);
+        return res.status(500).json({ message: 'Failed to update stats' });
+      }
+
+      return res.json({ message: 'Stats updated!', stats: updatedStats });
+    } else {
+      // Create new
+      const { data: newStats, error } = await supabase
+        .from('match_statistics')
+        .insert({
+          match_id: matchId,
+          ...stats
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Create stats error:', error);
+        return res.status(500).json({ message: 'Failed to create stats' });
+      }
+
+      return res.json({ message: 'Stats created!', stats: newStats });
+    }
   } catch (error) {
     console.error('Update stats error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Promijeni status utakmice
+// Update status
 exports.updateStatus = async (req, res) => {
   try {
     const { matchId } = req.params;
@@ -206,61 +381,61 @@ exports.updateStatus = async (req, res) => {
     const userId = req.user.id;
 
     if (!['scheduled', 'live', 'finished', 'cancelled'].includes(status)) {
-      return res.status(400).json({ message: 'Nevažeći status!' });
+      return res.status(400).json({ message: 'Invalid status!' });
     }
 
-    const match = await Match.findById(matchId);
-    
+    // Check authorization
+    const { data: match } = await supabase
+      .from('matches')
+      .select('created_by, start_time, end_time')
+      .eq('id', matchId)
+      .single();
+
     if (!match) {
-      return res.status(404).json({ message: 'Utakmica ne postoji' });
+      return res.status(404).json({ message: 'Match not found' });
     }
 
-    // Provjeri je li moderator
-    if (!match.moderators.includes(userId) && match.createdBy.toString() !== userId) {
-      return res.status(403).json({ message: 'Nemaš pravo mijenjati status!' });
+    const { data: moderator } = await supabase
+      .from('match_moderators')
+      .select('user_id')
+      .eq('match_id', matchId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!moderator && match.created_by !== userId) {
+      return res.status(403).json({ message: 'Not authorized to change status!' });
     }
 
-    match.status = status;
-    
-    if (status === 'live' && !match.startTime) {
-      match.startTime = new Date();
-    }
-    
-    // ✅ NOVO - Kreiraj aktivnosti kada utakmica završi
-    if (status === 'finished' && !match.endTime) {
-      match.endTime = new Date();
-      
-      // Kreiraj aktivnosti za sve igrače
-      const winner = match.score.team1 > match.score.team2 ? 'team1' : 'team2';
-      const winningTeam = winner === 'team1' ? match.team1 : match.team2;
-      
-      // Aktivnosti za winning team
-      if (winningTeam.players && winningTeam.players.length > 0) {
-        for (const playerId of winningTeam.players) {
-          try {
-            await createActivityHelper(
-              playerId,
-              'match_won',
-              {
-                matchId: match._id,
-                opponent: winner === 'team1' ? match.team2.name : match.team1.name,
-                score: `${match.score.team1}-${match.score.team2}`
-              },
-              'public'
-            );
-          } catch (activityErr) {
-            console.error('Greška pri kreiranju aktivnosti za igrača:', activityErr);
-            // Nastavi sa sljedećim igračem
-          }
-        }
-      }
+    // Prepare updates
+    const updates = { 
+      status,
+      updated_at: new Date().toISOString()
+    };
+
+    if (status === 'live' && !match.start_time) {
+      updates.start_time = new Date().toISOString();
     }
 
-    await match.save();
+    if (status === 'finished' && !match.end_time) {
+      updates.end_time = new Date().toISOString();
+    }
+
+    // Update match
+    const { data: updatedMatch, error } = await supabase
+      .from('matches')
+      .update(updates)
+      .eq('id', matchId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update status error:', error);
+      return res.status(500).json({ message: 'Failed to update status' });
+    }
 
     res.json({ 
-      message: 'Status ažuriran!', 
-      match 
+      message: 'Status updated!', 
+      match: updatedMatch 
     });
   } catch (error) {
     console.error('Update status error:', error);
@@ -268,7 +443,7 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
-// Dodaj live komentar
+// Add live commentary
 exports.addCommentary = async (req, res) => {
   try {
     const { matchId } = req.params;
@@ -276,31 +451,50 @@ exports.addCommentary = async (req, res) => {
     const userId = req.user.id;
 
     if (!minute || !text) {
-      return res.status(400).json({ message: 'Popuni obavezna polja!' });
+      return res.status(400).json({ message: 'Fill required fields!' });
     }
 
-    const match = await Match.findById(matchId);
-    
+    // Check authorization
+    const { data: match } = await supabase
+      .from('matches')
+      .select('created_by')
+      .eq('id', matchId)
+      .single();
+
     if (!match) {
-      return res.status(404).json({ message: 'Utakmica ne postoji' });
+      return res.status(404).json({ message: 'Match not found' });
     }
 
-    // Provjeri je li moderator
-    if (!match.moderators.includes(userId) && match.createdBy.toString() !== userId) {
-      return res.status(403).json({ message: 'Nemaš pravo dodavati komentare!' });
+    const { data: moderator } = await supabase
+      .from('match_moderators')
+      .select('user_id')
+      .eq('match_id', matchId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!moderator && match.created_by !== userId) {
+      return res.status(403).json({ message: 'Not authorized to add commentary!' });
     }
 
-    match.liveCommentary.push({
-      minute,
-      text,
-      timestamp: new Date()
-    });
+    // Add commentary
+    const { data: commentary, error } = await supabase
+      .from('match_commentary')
+      .insert({
+        match_id: matchId,
+        minute,
+        text
+      })
+      .select()
+      .single();
 
-    await match.save();
+    if (error) {
+      console.error('Add commentary error:', error);
+      return res.status(500).json({ message: 'Failed to add commentary' });
+    }
 
     res.json({ 
-      message: 'Komentar dodan!', 
-      match 
+      message: 'Commentary added!', 
+      commentary 
     });
   } catch (error) {
     console.error('Add commentary error:', error);
@@ -308,26 +502,39 @@ exports.addCommentary = async (req, res) => {
   }
 };
 
-// Obriši utakmicu
+// Delete match
 exports.deleteMatch = async (req, res) => {
   try {
     const { matchId } = req.params;
     const userId = req.user.id;
 
-    const match = await Match.findById(matchId);
-    
+    const { data: match } = await supabase
+      .from('matches')
+      .select('created_by')
+      .eq('id', matchId)
+      .single();
+
     if (!match) {
-      return res.status(404).json({ message: 'Utakmica ne postoji' });
+      return res.status(404).json({ message: 'Match not found' });
     }
 
-    // Samo kreator može obrisati
-    if (match.createdBy.toString() !== userId) {
-      return res.status(403).json({ message: 'Nemaš pravo obrisati ovu utakmicu!' });
+    // Only creator can delete
+    if (match.created_by !== userId) {
+      return res.status(403).json({ message: 'Not authorized to delete this match!' });
     }
 
-    await Match.findByIdAndDelete(matchId);
+    // Delete match (CASCADE will delete related data)
+    const { error } = await supabase
+      .from('matches')
+      .delete()
+      .eq('id', matchId);
 
-    res.json({ message: 'Utakmica obrisana!' });
+    if (error) {
+      console.error('Delete match error:', error);
+      return res.status(500).json({ message: 'Failed to delete match' });
+    }
+
+    res.json({ message: 'Match deleted!' });
   } catch (error) {
     console.error('Delete match error:', error);
     res.status(500).json({ message: 'Server error' });

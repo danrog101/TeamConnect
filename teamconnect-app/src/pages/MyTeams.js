@@ -21,10 +21,10 @@ function MyTeams() {
   const fetchMyTeams = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const data = await teamsAPI.getMyTeams();
-
-      setTeams(data);
+      const response = await teamsAPI.getMy();
+      
+      // ✅ FIXED: Changed from setTeams(data) to setTeams(response.data)
+      setTeams(response.data || []);
     } catch (error) {
       console.error('Fetch teams error:', error);
       setToast({ message: 'Failed to load teams', type: 'error' });
@@ -39,15 +39,9 @@ function MyTeams() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await teamsAPI.leaveTeam(teamId);
-
-      if (response.success) {
-        setToast({ message: 'You left the team', type: 'info' });
-        fetchMyTeams(); // Refresh
-      } else {
-        setToast({ message: response.message || 'Failed to leave team', type: 'error' });
-      }
+      await teamsAPI.leave(teamId);
+      setToast({ message: 'You left the team', type: 'info' });
+      fetchMyTeams();
     } catch (error) {
       console.error('Leave team error:', error);
       setToast({ message: 'Failed to leave team', type: 'error' });
@@ -60,15 +54,9 @@ function MyTeams() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await teamsAPI.deleteTeam(teamId);
-
-      if (response.success) {
-        setToast({ message: 'Team deleted', type: 'success' });
-        fetchMyTeams(); // Refresh
-      } else {
-        setToast({ message: response.message || 'Failed to delete team', type: 'error' });
-      }
+      await teamsAPI.delete(teamId);
+      setToast({ message: 'Team deleted', type: 'success' });
+      fetchMyTeams();
     } catch (error) {
       console.error('Delete team error:', error);
       setToast({ message: 'Failed to delete team', type: 'error' });
@@ -76,11 +64,11 @@ function MyTeams() {
   };
 
   const myCreatedTeams = teams.filter(t => 
-    t.creator.id === currentUser.id
+    t.creator?.id === currentUser.id || t.creator_id === currentUser.id
   );
   
   const myJoinedTeams = teams.filter(t => 
-    t.creator.id !== currentUser.id
+    t.creator?.id !== currentUser.id && t.creator_id !== currentUser.id
   );
 
   if (loading) {
@@ -124,7 +112,6 @@ function MyTeams() {
           </div>
         ) : (
           <>
-            {/* Teams I Created */}
             {myCreatedTeams.length > 0 && (
               <div className="teams-section">
                 <h2 className="section-title">🎯 Teams I Created ({myCreatedTeams.length})</h2>
@@ -141,7 +128,6 @@ function MyTeams() {
               </div>
             )}
 
-            {/* Teams I Joined */}
             {myJoinedTeams.length > 0 && (
               <div className="teams-section">
                 <h2 className="section-title">🤝 Teams I Joined ({myJoinedTeams.length})</h2>
