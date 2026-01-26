@@ -6,23 +6,91 @@ import './RatingSystem.css';
 
 function RatingSystem() {
   const navigate = useNavigate();
-  
+
   // ============ STATE ============
   const [players, setPlayers] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
-  const [activeTab, setActiveTab] = useState('leaderboard'); // leaderboard, achievements
+  const [activeTab, setActiveTab] = useState('leaderboard'); // leaderboard, achievements, self-rating
   const [toast, setToast] = useState(null);
+
+  // Self-rating state
+  const [hasSelfRated, setHasSelfRated] = useState(false);
+  const [selfRatingForm, setSelfRatingForm] = useState({
+    attack: 50,
+    defense: 50,
+    teamwork: 50,
+    consistency: 50
+  });
+  const [submittingSelfRating, setSubmittingSelfRating] = useState(false);
 
   // ============ EFFECTS ============
   useEffect(() => {
     loadRatings();
+    checkSelfRatingStatus();
     if (activeTab === 'achievements') {
       loadAchievements();
     }
   }, [activeTab]);
+
+  // Check if user has self-rated
+  const checkSelfRatingStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch('http://localhost:5000/api/ratings/self-rating/status', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setHasSelfRated(data.hasSelfRated);
+        if (data.selfRatings) {
+          setSelfRatingForm(data.selfRatings);
+        }
+      }
+    } catch (error) {
+      console.error('Check self-rating status error:', error);
+    }
+  };
+
+  // Submit self-rating
+  const handleSubmitSelfRating = async () => {
+    try {
+      setSubmittingSelfRating(true);
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('http://localhost:5000/api/ratings/self-rating', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(selfRatingForm)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setToast({ message: 'Self-rating submitted successfully!', type: 'success' });
+        setHasSelfRated(true);
+        loadRatings(); // Reload to show updated ratings
+        setActiveTab('leaderboard');
+      } else {
+        setToast({ message: data.message || 'Failed to submit self-rating', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Submit self-rating error:', error);
+      setToast({ message: 'Failed to submit self-rating', type: 'error' });
+    } finally {
+      setSubmittingSelfRating(false);
+    }
+  };
 
   // ============ API FUNCTIONS ============
   const loadRatings = async () => {
@@ -93,50 +161,21 @@ function RatingSystem() {
   // ============ DEMO DATA FUNCTIONS ============
   const loadDemoPlayers = () => {
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    // Show current user with empty ratings if they haven't been rated yet
     const demo = [
       {
-        _id: '1',
-        username: currentUser.username || 'danana',
+        _id: currentUser.id || '1',
+        username: currentUser.username || 'You',
         avatar: currentUser.avatar || '👤',
-        location: 'Zagreb, HR',
-        position: 1,
-        rank: 'pro',
+        location: currentUser.location || null,
+        position: null,
+        rank: null,
         rating: {
-          overall: 85,
-          attack: 88,
-          defense: 82,
-          teamwork: 90,
-          consistency: 85
-        }
-      },
-      {
-        _id: '2',
-        username: 'marko123',
-        avatar: '🧑',
-        location: 'Split, HR',
-        position: 2,
-        rank: 'advanced',
-        rating: {
-          overall: 78,
-          attack: 80,
-          defense: 75,
-          teamwork: 82,
-          consistency: 76
-        }
-      },
-      {
-        _id: '3',
-        username: 'ana_kos',
-        avatar: '👩',
-        location: 'Rijeka, HR',
-        position: 3,
-        rank: 'pro',
-        rating: {
-          overall: 82,
-          attack: 85,
-          defense: 80,
-          teamwork: 83,
-          consistency: 81
+          overall: null,
+          attack: null,
+          defense: null,
+          teamwork: null,
+          consistency: null
         }
       }
     ];
@@ -268,13 +307,19 @@ function RatingSystem() {
 
         {/* TABS */}
         <div className="rating-tabs">
-          <button 
+          <button
             className={`tab ${activeTab === 'leaderboard' ? 'active' : ''}`}
             onClick={() => setActiveTab('leaderboard')}
           >
             🏆 Leaderboard
           </button>
-          <button 
+          <button
+            className={`tab ${activeTab === 'self-rating' ? 'active' : ''}`}
+            onClick={() => setActiveTab('self-rating')}
+          >
+            ⭐ {hasSelfRated ? 'My Rating' : 'Rate Yourself'}
+          </button>
+          <button
             className={`tab ${activeTab === 'achievements' ? 'active' : ''}`}
             onClick={() => setActiveTab('achievements')}
           >
@@ -352,10 +397,16 @@ function RatingSystem() {
               ) : (
                 filteredPlayers.map((player, index) => (
                   <div key={player._id} className="player-rating-card card">
-                    <div className="rank-badge" style={{ background: getRankColor(player.rank) }}>
-                      #{player.position}
-                    </div>
-                    
+                    {player.position ? (
+                      <div className="rank-badge" style={{ background: getRankColor(player.rank) }}>
+                        #{player.position}
+                      </div>
+                    ) : (
+                      <div className="rank-badge" style={{ background: '#9e9e9e' }}>
+                        -
+                      </div>
+                    )}
+
                     <div className="player-rating-info">
                       <div className="player-rating-header">
                         <div className="player-rating-avatar">{player.avatar}</div>
@@ -365,66 +416,190 @@ function RatingSystem() {
                         </div>
                       </div>
 
-                      <div className="rating-overall">
-                        <span className="rating-label">Overall Rating</span>
-                        <span className="rating-value">{player.rating?.overall || 0}</span>
-                      </div>
-
-                      <div className="rating-breakdown">
-                        <div className="rating-stat">
-                          <span className="stat-name">Attack</span>
-                          <div className="stat-bar">
-                            <div 
-                              className="stat-fill"
-                              style={{ width: `${player.rating?.attack || 0}%`, background: '#4caf50' }}
-                            />
+                      {player.rating?.overall != null ? (
+                        <>
+                          <div className="rating-overall">
+                            <span className="rating-label">Overall Rating</span>
+                            <span className="rating-value">{player.rating.overall}</span>
                           </div>
-                          <span className="stat-value">{player.rating?.attack || 0}</span>
-                        </div>
 
-                        <div className="rating-stat">
-                          <span className="stat-name">Defense</span>
-                          <div className="stat-bar">
-                            <div 
-                              className="stat-fill"
-                              style={{ width: `${player.rating?.defense || 0}%`, background: '#2196f3' }}
-                            />
+                          <div className="rating-breakdown">
+                            <div className="rating-stat">
+                              <span className="stat-name">Attack</span>
+                              <div className="stat-bar">
+                                <div
+                                  className="stat-fill"
+                                  style={{ width: `${player.rating?.attack || 0}%`, background: '#4caf50' }}
+                                />
+                              </div>
+                              <span className="stat-value">{player.rating?.attack ?? '-'}</span>
+                            </div>
+
+                            <div className="rating-stat">
+                              <span className="stat-name">Defense</span>
+                              <div className="stat-bar">
+                                <div
+                                  className="stat-fill"
+                                  style={{ width: `${player.rating?.defense || 0}%`, background: '#2196f3' }}
+                                />
+                              </div>
+                              <span className="stat-value">{player.rating?.defense ?? '-'}</span>
+                            </div>
+
+                            <div className="rating-stat">
+                              <span className="stat-name">Teamwork</span>
+                              <div className="stat-bar">
+                                <div
+                                  className="stat-fill"
+                                  style={{ width: `${player.rating?.teamwork || 0}%`, background: '#ff9800' }}
+                                />
+                              </div>
+                              <span className="stat-value">{player.rating?.teamwork ?? '-'}</span>
+                            </div>
+
+                            <div className="rating-stat">
+                              <span className="stat-name">Consistency</span>
+                              <div className="stat-bar">
+                                <div
+                                  className="stat-fill"
+                                  style={{ width: `${player.rating?.consistency || 0}%`, background: '#9c27b0' }}
+                                />
+                              </div>
+                              <span className="stat-value">{player.rating?.consistency ?? '-'}</span>
+                            </div>
                           </div>
-                          <span className="stat-value">{player.rating?.defense || 0}</span>
-                        </div>
 
-                        <div className="rating-stat">
-                          <span className="stat-name">Teamwork</span>
-                          <div className="stat-bar">
-                            <div 
-                              className="stat-fill"
-                              style={{ width: `${player.rating?.teamwork || 0}%`, background: '#ff9800' }}
-                            />
+                          <div className="player-rank-badge" style={{ background: getRankColor(player.rank) }}>
+                            {getRankIcon(player.rank)} {player.rank?.toUpperCase() || 'UNRANKED'}
                           </div>
-                          <span className="stat-value">{player.rating?.teamwork || 0}</span>
+                        </>
+                      ) : (
+                        <div className="not-rated-message">
+                          <span className="not-rated-icon">⭐</span>
+                          <p>Not rated yet</p>
+                          <small>Rate yourself or play matches to get rated!</small>
                         </div>
-
-                        <div className="rating-stat">
-                          <span className="stat-name">Consistency</span>
-                          <div className="stat-bar">
-                            <div 
-                              className="stat-fill"
-                              style={{ width: `${player.rating?.consistency || 0}%`, background: '#9c27b0' }}
-                            />
-                          </div>
-                          <span className="stat-value">{player.rating?.consistency || 0}</span>
-                        </div>
-                      </div>
-
-                      <div className="player-rank-badge" style={{ background: getRankColor(player.rank) }}>
-                        {getRankIcon(player.rank)} {player.rank?.toUpperCase() || 'BEGINNER'}
-                      </div>
+                      )}
                     </div>
                   </div>
                 ))
               )}
             </div>
           </>
+        )}
+
+        {/* SELF-RATING TAB */}
+        {activeTab === 'self-rating' && (
+          <div className="self-rating-section">
+            <div className="self-rating-card card">
+              <h2>{hasSelfRated ? '✅ Your Self-Rating' : '⭐ Rate Yourself'}</h2>
+              <p className="self-rating-description">
+                {hasSelfRated
+                  ? 'You have already submitted your self-rating. Other players can now rate you based on your performance.'
+                  : 'Before others can rate you, you need to rate yourself first. Be honest about your skills - this helps create accurate team matchups!'
+                }
+              </p>
+
+              <div className="self-rating-form">
+                <div className="rating-slider-group">
+                  <label>
+                    <span className="rating-icon">⚔️</span> Attack
+                    <span className="rating-value-display">{selfRatingForm.attack}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={selfRatingForm.attack}
+                    onChange={(e) => setSelfRatingForm({ ...selfRatingForm, attack: parseInt(e.target.value) })}
+                    disabled={hasSelfRated}
+                    className="rating-slider"
+                  />
+                  <div className="rating-labels">
+                    <span>Beginner</span>
+                    <span>Pro</span>
+                  </div>
+                </div>
+
+                <div className="rating-slider-group">
+                  <label>
+                    <span className="rating-icon">🛡️</span> Defense
+                    <span className="rating-value-display">{selfRatingForm.defense}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={selfRatingForm.defense}
+                    onChange={(e) => setSelfRatingForm({ ...selfRatingForm, defense: parseInt(e.target.value) })}
+                    disabled={hasSelfRated}
+                    className="rating-slider"
+                  />
+                  <div className="rating-labels">
+                    <span>Beginner</span>
+                    <span>Pro</span>
+                  </div>
+                </div>
+
+                <div className="rating-slider-group">
+                  <label>
+                    <span className="rating-icon">🤝</span> Teamwork
+                    <span className="rating-value-display">{selfRatingForm.teamwork}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={selfRatingForm.teamwork}
+                    onChange={(e) => setSelfRatingForm({ ...selfRatingForm, teamwork: parseInt(e.target.value) })}
+                    disabled={hasSelfRated}
+                    className="rating-slider"
+                  />
+                  <div className="rating-labels">
+                    <span>Beginner</span>
+                    <span>Pro</span>
+                  </div>
+                </div>
+
+                <div className="rating-slider-group">
+                  <label>
+                    <span className="rating-icon">📊</span> Consistency
+                    <span className="rating-value-display">{selfRatingForm.consistency}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={selfRatingForm.consistency}
+                    onChange={(e) => setSelfRatingForm({ ...selfRatingForm, consistency: parseInt(e.target.value) })}
+                    disabled={hasSelfRated}
+                    className="rating-slider"
+                  />
+                  <div className="rating-labels">
+                    <span>Beginner</span>
+                    <span>Pro</span>
+                  </div>
+                </div>
+
+                <div className="overall-preview">
+                  <span>Overall Rating Preview:</span>
+                  <strong>
+                    {Math.round((selfRatingForm.attack + selfRatingForm.defense + selfRatingForm.teamwork + selfRatingForm.consistency) / 4)}
+                  </strong>
+                </div>
+
+                {!hasSelfRated && (
+                  <button
+                    className="btn btn-primary btn-large"
+                    onClick={handleSubmitSelfRating}
+                    disabled={submittingSelfRating}
+                  >
+                    {submittingSelfRating ? 'Submitting...' : '✅ Submit Self-Rating'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* ACHIEVEMENTS TAB */}

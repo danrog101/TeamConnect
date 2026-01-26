@@ -4,6 +4,8 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { formatPrice } from '../utils/currency';
 import { tournamentsAPI } from '../services/api';
+import { getAllSports } from '../data/sports';
+import { europeanCities } from '../data/cities';
 import './Tournaments.css';
 
 function Tournaments() {
@@ -20,7 +22,7 @@ function Tournaments() {
     sport: '',
     location: '',
     city: '',
-    country: 'Croatia',
+    country: 'Hrvatska',
     startDate: '',
     endDate: '',
     maxTeams: 8,
@@ -31,39 +33,33 @@ function Tournaments() {
     format: 'knockout',
     entryFee: 0,
     prize: '',
-    description: ''
+    description: '',
+    gender_category: 'mix',
+    gender_preference: 'mix',
+    min_skill_level: '',
+    max_skill_level: '',
+    amateur_only: false
   });
+
+  const [showTeamsModal, setShowTeamsModal] = useState(false);
+  const [selectedTeamsList, setSelectedTeamsList] = useState([]);
+
+  const positionOptions = [
+    { value: '', label: 'Odaberi poziciju' },
+    { value: 'GK', label: 'Golman (GK)' },
+    { value: 'DEF', label: 'Branič (DEF)' },
+    { value: 'MID', label: 'Vezni (MID)' },
+    { value: 'FWD', label: 'Napadač (FWD)' },
+    { value: 'SUB', label: 'Zamjena (SUB)' }
+  ];
 
   const [registerData, setRegisterData] = useState({
     teamName: '',
     players: []
   });
 
-  const sportsList = [
-    { id: 'football', name: 'Football' },
-    { id: 'basketball', name: 'Basketball' },
-    { id: 'volleyball', name: 'Volleyball' }
-  ];
-
-  const countries = [
-    { id: 'hr', name: 'Croatia', cities: ['Zagreb', 'Split', 'Rijeka', 'Osijek', 'Zadar', 'Slavonski Brod', 'Pula', 'Šibenik', 'Karlovac', 'Rijeka', 'Dubrovnik', 'Varaždin'] },
-    { id: 'rs', name: 'Serbia', cities: ['Belgrade', 'Novi Sad', 'Niš', 'Kragujevac', 'Kraljevo'] },
-    { id: 'si', name: 'Slovenia', cities: ['Ljubljana', 'Maribor', 'Celje', 'Koper', 'Nova Gorica'] },
-    { id: 'ba', name: 'Bosnia', cities: ['Sarajevo', 'Banja Luka', 'Tuzla', 'Zenica', 'Mostar'] },
-    { id: 'me', name: 'Montenegro', cities: ['Podgorica', 'Nikšić', 'Budva', 'Bar'] },
-    { id: 'mk', name: 'North Macedonia', cities: ['Skopje', 'Bitola', 'Kumanovo', 'Ohrid', 'Strumica', 'Tetovo', 'Veles', 'Štip', 'Prilep', 'Gostivar'] },
-    { id: 'al', name: 'Albania', cities: ['Tirana', 'Durrës', 'Vlorë', 'Fier', 'Shkodër', 'Elbasan', 'Kavajë', 'Lezhë'] }
-  ];
-
-  const europeanCities = [
-    'Zagreb', 'Split', 'Rijeka', 'Osijek', 'Zadar', 'Slavonski Brod', 'Pula', 'Šibenik', 'Karlovac', 'Rijeka', 'Dubrovnik', 'Varaždin',
-    'Belgrade', 'Novi Sad', 'Niš', 'Kragujevac', 'Kraljevo',
-    'Ljubljana', 'Maribor', 'Celje', 'Koper', 'Nova Gorica',
-    'Sarajevo', 'Banja Luka', 'Tuzla', 'Zenica', 'Mostar',
-    'Podgorica', 'Nikšić', 'Budva', 'Bar',
-    'Skopje', 'Bitola', 'Kumanovo', 'Ohrid', 'Strumica', 'Tetovo', 'Veles', 'Štip', 'Prilep', 'Gostivar',
-    'Tirana', 'Durrës', 'Vlorë', 'Fier', 'Shkodër', 'Elbasan', 'Kavajë', 'Lezhë'
-  ];
+  const sportsList = getAllSports();
+  const countries = Object.keys(europeanCities).sort((a, b) => a.localeCompare(b, 'hr'));
 
   useEffect(() => {
     loadTournaments();
@@ -71,12 +67,17 @@ function Tournaments() {
 
   const loadTournaments = async () => {
     try {
-      const data = await tournamentsAPI.getAllTournaments();
+      const response = await tournamentsAPI.getAllTournaments();
+      
+      // ✅ Handle axios response format
+      const data = response.data || response || [];
+      
+      console.log('✅ Fetched tournaments:', data.length);
       setTournaments(data);
-      console.log(`Fetched ${data.length} tournaments`);
     } catch (error) {
-      console.error('Load tournaments error:', error);
+      console.error('❌ Load tournaments error:', error);
       setToast({ message: 'Failed to load tournaments', type: 'error' });
+      setTournaments([]); // Set empty array on error
     }
   };
 
@@ -88,10 +89,20 @@ function Tournaments() {
     setRegisterData({ ...registerData, [e.target.name]: e.target.value });
   };
 
-  const handlePlayerChange = (index, value) => {
+  const handlePlayerChange = (index, field, value) => {
     const newPlayers = [...registerData.players];
-    newPlayers[index] = { name: value, position: '' };
+    newPlayers[index] = { ...newPlayers[index], [field]: value };
     setRegisterData({ ...registerData, players: newPlayers });
+  };
+
+  const handleViewTeams = (tournament) => {
+    setSelectedTeamsList(tournament.registered_teams_list || []);
+    setShowTeamsModal(true);
+  };
+
+  const getGenderCategoryLabel = (category) => {
+    const labels = { male: 'Muški', female: 'Ženski', mix: 'Mješoviti' };
+    return labels[category] || 'Mješoviti';
   };
 
   const handleCreateTournament = async () => {
@@ -111,14 +122,14 @@ function Tournaments() {
     try {
       const response = await tournamentsAPI.createTournament(formData);
 
-      if (response.success) {
+      if (response.data) {
         setShowCreateModal(false);
         setFormData({
           name: '',
           sport: '',
           location: '',
           city: '',
-          country: 'Croatia',
+          country: 'Hrvatska',
           startDate: '',
           endDate: '',
           maxTeams: 8,
@@ -129,7 +140,12 @@ function Tournaments() {
           format: 'knockout',
           entryFee: 0,
           prize: '',
-          description: ''
+          description: '',
+          gender_category: 'mix',
+          gender_preference: 'mix',
+          min_skill_level: '',
+          max_skill_level: '',
+          amateur_only: false
         });
         setToast({ message: 'Tournament created successfully! 🏆', type: 'success' });
         loadTournaments();
@@ -146,8 +162,7 @@ function Tournaments() {
   const handleOpenRegister = (tournament) => {
     setSelectedTournament(tournament);
     
-    // ✅ Inicijaliziraj sa maxPlayersPerTeam umjesto teamSize
-    const maxPlayers = tournament.maxPlayersPerTeam || tournament.teamSize || 5;
+    const maxPlayers = tournament.max_players_per_team || tournament.maxPlayersPerTeam || tournament.teamSize || 5;
     const emptyPlayers = Array(maxPlayers).fill('').map(() => ({ name: '', position: '' }));
     
     setRegisterData({
@@ -166,10 +181,9 @@ function Tournaments() {
       return;
     }
 
-    // Check min/max players
     const filledPlayers = registerData.players.filter(p => p.name.trim() !== '');
-    const minPlayers = selectedTournament.minPlayersPerTeam || selectedTournament.teamSize || 5;
-    const maxPlayers = selectedTournament.maxPlayersPerTeam || selectedTournament.teamSize || 5;
+    const minPlayers = selectedTournament.min_players_per_team || selectedTournament.minPlayersPerTeam || selectedTournament.teamSize || 5;
+    const maxPlayers = selectedTournament.max_players_per_team || selectedTournament.maxPlayersPerTeam || selectedTournament.teamSize || 5;
 
     if (filledPlayers.length < minPlayers) {
       setToast({ message: `Minimum players: ${minPlayers}`, type: 'error' });
@@ -187,7 +201,7 @@ function Tournaments() {
         players: filledPlayers
       });
 
-      if (response.success) {
+      if (response.data) {
         setShowRegisterModal(false);
         setRegisterData({ teamName: '', players: [] });
         setToast({ message: 'Team registered successfully! 🎉', type: 'success' });
@@ -222,7 +236,7 @@ function Tournaments() {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('hr-HR', {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
@@ -280,75 +294,109 @@ function Tournaments() {
               </button>
             </div>
           ) : (
-            filteredTournaments.map(tournament => (
-              <div key={tournament._id} className="tournament-card card">
-                <div className="tournament-header-card">
-                  <div className="tournament-sport">{tournament.sport}</div>
-                  <div 
-                    className="tournament-status"
-                    style={{ background: getStatusBadge(tournament.status).color }}
-                  >
-                    {getStatusBadge(tournament.status).text}
-                  </div>
-                </div>
+            filteredTournaments.map(tournament => {
+              const registeredCount = tournament.registered_teams || 0;
+              const maxTeams = tournament.max_teams || tournament.maxTeams || 8;
+              const isFull = registeredCount >= maxTeams;
+              const waitlistCount = tournament.waitlist_count || 0;
 
-                <h3>{tournament.name}</h3>
-                
-                <div className="tournament-info">
-                  <p>📍 {tournament.city}, {tournament.country || 'Hrvatska'}</p>
-                  <p>🏟️ {tournament.location}</p>
-                  <p>📅 {formatDate(tournament.startDate)} - {formatDate(tournament.endDate)}</p>
-                  <p>👥 Format: {tournament.format === 'knockout' ? 'Knockout' : 'Liga'}</p>
-                  <p>🎯 Timovi: {tournament.registeredTeams?.length || 0}/{tournament.maxTeams}</p>
-                  {/* ✅ NOVO - Prikaz min/max igrača */}
-                  <p>👤 Igrači po timu: {tournament.minPlayersPerTeam || tournament.teamSize || 5} - {tournament.maxPlayersPerTeam || tournament.teamSize || 5}</p>
-                  {tournament.prize && <p>🏆 Nagrada: {tournament.prize}</p>}
-                  {tournament.entryFee > 0 && (
-                    <p>💰 Kotizacija: {formatPrice(tournament.entryFee * 7.5345)}</p>
+              return (
+                <div key={tournament.id} className="tournament-card card">
+                  <div className="tournament-header-card">
+                    <div className="tournament-sport">{tournament.sport}</div>
+                    <div className="tournament-badges">
+                      {tournament.gender_category && tournament.gender_category !== 'mix' && (
+                        <div className="gender-badge" style={{ background: tournament.gender_category === 'male' ? '#2196f3' : '#e91e63' }}>
+                          {getGenderCategoryLabel(tournament.gender_category)}
+                        </div>
+                      )}
+                      <div
+                        className="tournament-status"
+                        style={{ background: getStatusBadge(tournament.status).color }}
+                      >
+                        {getStatusBadge(tournament.status).text}
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3>{tournament.name}</h3>
+
+                  <div className="tournament-info">
+                    <p>📍 {tournament.city}, {tournament.country || 'Hrvatska'}</p>
+                    <p>🏟️ {tournament.location}</p>
+                    <p>📅 {formatDate(tournament.start_date || tournament.startDate)} - {formatDate(tournament.end_date || tournament.endDate)}</p>
+                    <p>👥 Format: {tournament.format === 'knockout' ? 'Knockout' : 'Liga'}</p>
+                    <p>
+                      🎯 Timovi: <strong>{registeredCount}/{maxTeams}</strong>
+                      {waitlistCount > 0 && <span className="waitlist-badge"> (+{waitlistCount} na listi čekanja)</span>}
+                    </p>
+                    <p>👤 Igrači po timu: {tournament.min_players_per_team || 5} - {tournament.max_players_per_team || 7}</p>
+                    {tournament.prize && <p>🏆 Nagrada: {tournament.prize}</p>}
+                    {(tournament.entry_fee || 0) > 0 && (
+                      <p>💰 Kotizacija: {formatPrice(tournament.entry_fee * 7.5345)}</p>
+                    )}
+                  </div>
+
+                  {tournament.description && (
+                    <p className="tournament-description">{tournament.description}</p>
                   )}
-                </div>
 
-                {tournament.description && (
-                  <p className="tournament-description">{tournament.description}</p>
-                )}
+                  {/* Registered Teams Preview */}
+                  {tournament.registered_teams_list && tournament.registered_teams_list.length > 0 && (
+                    <div className="registered-teams-preview">
+                      <p><strong>Prijavljeni timovi:</strong></p>
+                      <div className="teams-chips">
+                        {tournament.registered_teams_list.slice(0, 3).map((team, idx) => (
+                          <span key={idx} className="team-chip">{team.team_name}</span>
+                        ))}
+                        {tournament.registered_teams_list.length > 3 && (
+                          <span className="team-chip more" onClick={() => handleViewTeams(tournament)}>
+                            +{tournament.registered_teams_list.length - 3} više
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-                <div className="tournament-progress">
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill"
-                      style={{ 
-                        width: `${((tournament.registeredTeams?.length || 0) / tournament.maxTeams) * 100}%` 
-                      }}
-                    />
+                  <div className="tournament-progress">
+                    <div className="progress-bar">
+                      <div
+                        className="progress-fill"
+                        style={{ width: `${(registeredCount / maxTeams) * 100}%` }}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="tournament-actions">
-                  {(tournament.registeredTeams?.length || 0) < tournament.maxTeams ? (
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => handleOpenRegister(tournament)}
+                  <div className="tournament-actions">
+                    {!isFull ? (
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => handleOpenRegister(tournament)}
+                      >
+                        Prijavi tim
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-warning"
+                        onClick={() => handleOpenRegister(tournament)}
+                      >
+                        Lista čekanja
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => navigate(`/tournament/${tournament.id}`)}
                     >
-                      Prijavi tim
+                      Detalji
                     </button>
-                  ) : (
-                    <button className="btn btn-disabled" disabled>
-                      Popunjeno
-                    </button>
-                  )}
-                  <button 
-                    className="btn btn-secondary"
-                    onClick={() => navigate(`/tournament/${tournament._id}`)}
-                  >
-                    Detalji
-                  </button>
-                </div>
+                  </div>
 
-                <div className="tournament-creator">
-                  Organizator: {tournament.creator?.username || 'Unknown'}
+                  <div className="tournament-creator">
+                    Organizator: {tournament.creator?.username || 'Unknown'}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -360,7 +408,6 @@ function Tournaments() {
             <h2>🏆 Kreiraj novi turnir</h2>
             
             <div className="modal-form">
-              {/* Naziv turnira */}
               <div className="form-group">
                 <label>Naziv turnira *</label>
                 <input
@@ -373,7 +420,6 @@ function Tournaments() {
                 />
               </div>
 
-              {/* Sport i Država */}
               <div className="form-row">
                 <div className="form-group">
                   <label>Sport *</label>
@@ -402,7 +448,6 @@ function Tournaments() {
                 </div>
               </div>
 
-              {/* Grad */}
               <div className="form-group">
                 <label>Grad *</label>
                 <select name="city" value={formData.city} onChange={handleChange}>
@@ -413,7 +458,6 @@ function Tournaments() {
                 </select>
               </div>
 
-              {/* Lokacija/Teren */}
               <div className="form-group">
                 <label>Lokacija/Teren *</label>
                 <input
@@ -425,7 +469,6 @@ function Tournaments() {
                 />
               </div>
 
-              {/* Datumi */}
               <div className="form-row">
                 <div className="form-group">
                   <label>Početak *</label>
@@ -450,7 +493,6 @@ function Tournaments() {
                 </div>
               </div>
 
-              {/* Broj timova */}
               <div className="form-group">
                 <label>Broj timova *</label>
                 <select 
@@ -478,7 +520,6 @@ function Tournaments() {
                 )}
               </div>
 
-              {/* ✅ NOVO - Min i Max igrača po timu */}
               <div className="form-row">
                 <div className="form-group">
                   <label>Min igrača (osnova) *</label>
@@ -513,7 +554,6 @@ function Tournaments() {
                 </div>
               </div>
 
-              {/* Format i Kotizacija */}
               <div className="form-row">
                 <div className="form-group">
                   <label>Format</label>
@@ -537,7 +577,6 @@ function Tournaments() {
                 </div>
               </div>
 
-              {/* Nagrada */}
               <div className="form-group">
                 <label>Nagrada (opcionalno)</label>
                 <input
@@ -549,7 +588,6 @@ function Tournaments() {
                 />
               </div>
 
-              {/* Opis */}
               <div className="form-group">
                 <label>Opis (opcionalno)</label>
                 <textarea
@@ -561,7 +599,91 @@ function Tournaments() {
                 />
               </div>
 
-              {/* Buttons */}
+              {/* Tournament Category */}
+              <div className="form-group">
+                <label>Kategorija turnira *</label>
+                <select
+                  name="gender_category"
+                  value={formData.gender_category}
+                  onChange={handleChange}
+                >
+                  <option value="mix">Mješoviti turnir</option>
+                  <option value="male">Muški turnir</option>
+                  <option value="female">Ženski turnir</option>
+                </select>
+                <small style={{ color: '#666', fontSize: '12px' }}>
+                  Tip turnira - muški, ženski ili mješoviti
+                </small>
+              </div>
+
+              {/* Player Filtering Options */}
+              <div className="filter-section">
+                <h4>🎯 Filteri za igrače/timove</h4>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Spol igrača</label>
+                    <select
+                      name="gender_preference"
+                      value={formData.gender_preference}
+                      onChange={handleChange}
+                    >
+                      <option value="mix">Mješovito (svi)</option>
+                      <option value="male">Samo muškarci</option>
+                      <option value="female">Samo žene</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
+                        name="amateur_only"
+                        checked={formData.amateur_only}
+                        onChange={(e) => setFormData({ ...formData, amateur_only: e.target.checked })}
+                        style={{ width: '18px', height: '18px' }}
+                      />
+                      Samo amateri
+                    </label>
+                    <small style={{ color: '#666', fontSize: '12px' }}>Igrači s ratingom manjim od 60%</small>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Min. razina vještine</label>
+                    <select
+                      name="min_skill_level"
+                      value={formData.min_skill_level}
+                      onChange={handleChange}
+                    >
+                      <option value="">Bez ograničenja</option>
+                      <option value="1">1 - Početnik</option>
+                      <option value="2">2 - Srednji</option>
+                      <option value="3">3 - Napredni</option>
+                      <option value="4">4 - Ekspert</option>
+                      <option value="5">5 - Pro</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Max. razina vještine</label>
+                    <select
+                      name="max_skill_level"
+                      value={formData.max_skill_level}
+                      onChange={handleChange}
+                    >
+                      <option value="">Bez ograničenja</option>
+                      <option value="1">1 - Početnik</option>
+                      <option value="2">2 - Srednji</option>
+                      <option value="3">3 - Napredni</option>
+                      <option value="4">4 - Ekspert</option>
+                      <option value="5">5 - Pro</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <div className="modal-actions">
                 <button className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>
                   Odustani
@@ -594,19 +716,28 @@ function Tournaments() {
                 />
               </div>
 
-              {/* ✅ NOVO - Prikaz raspona igrača */}
               <p style={{ marginBottom: '10px', fontWeight: 'bold' }}>
-                Igrači (min {selectedTournament.minPlayersPerTeam || selectedTournament.teamSize || 5}, max {selectedTournament.maxPlayersPerTeam || selectedTournament.teamSize || 5}):
+                Igrači (min {selectedTournament.min_players_per_team || 5}, max {selectedTournament.max_players_per_team || 7}):
               </p>
 
               {registerData.players.map((player, index) => (
-                <div key={index} className="form-group">
+                <div key={index} className="player-input-row">
                   <input
                     type="text"
                     value={player.name}
-                    onChange={(e) => handlePlayerChange(index, e.target.value)}
-                    placeholder={`Igrač ${index + 1}${index < (selectedTournament.minPlayersPerTeam || selectedTournament.teamSize || 5) ? ' *' : ' (zamjena)'}`}
+                    onChange={(e) => handlePlayerChange(index, 'name', e.target.value)}
+                    placeholder={`Igrač ${index + 1}${index < (selectedTournament.min_players_per_team || 5) ? ' *' : ' (zamjena)'}`}
+                    className="player-name-input"
                   />
+                  <select
+                    value={player.position}
+                    onChange={(e) => handlePlayerChange(index, 'position', e.target.value)}
+                    className="player-position-select"
+                  >
+                    {positionOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
                 </div>
               ))}
 
@@ -624,6 +755,49 @@ function Tournaments() {
                   Prijavi tim
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal za prikaz svih timova */}
+      {showTeamsModal && (
+        <div className="modal-overlay" onClick={() => setShowTeamsModal(false)}>
+          <div className="teams-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>👥 Prijavljeni timovi</h2>
+
+            {selectedTeamsList.length === 0 ? (
+              <p className="no-teams">Nema prijavljenih timova.</p>
+            ) : (
+              <div className="teams-list">
+                {selectedTeamsList.map((team, idx) => (
+                  <div key={team.id || idx} className={`team-card-item ${team.is_waitlist ? 'waitlist' : ''}`}>
+                    <div className="team-card-header">
+                      <h4>{team.team_name}</h4>
+                      {team.is_waitlist && <span className="waitlist-tag">Lista čekanja</span>}
+                    </div>
+                    <div className="team-players">
+                      {(team.players || []).map((player, pIdx) => (
+                        <div key={pIdx} className="player-item">
+                          <span className="player-name">{player.name || player}</span>
+                          {player.position && (
+                            <span className="player-position-tag">{player.position}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="team-meta">
+                      Prijavljeno: {new Date(team.registered_at).toLocaleDateString('hr-HR')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={() => setShowTeamsModal(false)}>
+                Zatvori
+              </button>
             </div>
           </div>
         </div>

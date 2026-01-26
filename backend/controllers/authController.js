@@ -63,7 +63,7 @@ exports.register = async (req, res) => {
   try {
     console.log('📥 Register request:', req.body);
 
-    const { username, email, password, sport, location } = req.body;
+    const { username, email, password, sport, location, gender } = req.body;
 
     console.log('🔍 Extracted email from request:', email);
 
@@ -96,8 +96,9 @@ exports.register = async (req, res) => {
         username,
         email,
         password: hashedPassword,
-        sport: sport || 'Football',
-        location: location || 'Zagreb',
+        gender: gender || null,
+        sport: sport || null,
+        location: location || null,
         verification_code: verificationCode,
         is_verified: false
       })

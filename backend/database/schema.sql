@@ -6,6 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create custom types
 CREATE TYPE gender_enum AS ENUM ('male', 'female', 'other', 'prefer_not_to_say');
+CREATE TYPE team_gender_preference_enum AS ENUM ('male', 'female', 'mix');
 CREATE TYPE skill_level_enum AS ENUM ('beginner', 'intermediate', 'advanced', 'professional');
 CREATE TYPE profile_visibility_enum AS ENUM ('public', 'friends', 'private');
 CREATE TYPE rank_enum AS ENUM ('bronze', 'silver', 'gold', 'platinum', 'diamond', 'master');
@@ -51,7 +52,14 @@ CREATE TABLE users (
   -- Enhanced player statistics (NEW FEATURES)
   league_level VARCHAR(100),
   years_experience INTEGER DEFAULT 0,
-  self_rating INTEGER CHECK (self_rating >= 1 AND self_rating <= 10),
+
+  -- Self-rating system (users must rate themselves first)
+  has_self_rated BOOLEAN DEFAULT FALSE,
+  self_rating_attack INTEGER DEFAULT NULL CHECK (self_rating_attack IS NULL OR (self_rating_attack >= 0 AND self_rating_attack <= 100)),
+  self_rating_defense INTEGER DEFAULT NULL CHECK (self_rating_defense IS NULL OR (self_rating_defense >= 0 AND self_rating_defense <= 100)),
+  self_rating_teamwork INTEGER DEFAULT NULL CHECK (self_rating_teamwork IS NULL OR (self_rating_teamwork >= 0 AND self_rating_teamwork <= 100)),
+  self_rating_consistency INTEGER DEFAULT NULL CHECK (self_rating_consistency IS NULL OR (self_rating_consistency >= 0 AND self_rating_consistency <= 100)),
+  self_rated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
   
   -- Location
   location VARCHAR(255),
@@ -85,16 +93,23 @@ CREATE TABLE users (
   total_wins INTEGER DEFAULT 0,
   total_goals INTEGER DEFAULT 0,
   
-  -- Rating system
-  rating_overall INTEGER DEFAULT 1000 CHECK (rating_overall >= 0 AND rating_overall <= 3000),
-  rating_attack INTEGER DEFAULT 50 CHECK (rating_attack >= 0 AND rating_attack <= 100),
-  rating_defense INTEGER DEFAULT 50 CHECK (rating_defense >= 0 AND rating_defense <= 100),
-  rating_teamwork INTEGER DEFAULT 50 CHECK (rating_teamwork >= 0 AND rating_teamwork <= 100),
-  rating_consistency INTEGER DEFAULT 50 CHECK (rating_consistency >= 0 AND rating_consistency <= 100),
-  rating_last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  
-  -- Ranking
-  rank rank_enum DEFAULT 'bronze',
+  -- Rating system (NULL means not rated yet)
+  rating_overall INTEGER DEFAULT NULL CHECK (rating_overall IS NULL OR (rating_overall >= 0 AND rating_overall <= 3000)),
+  rating_attack INTEGER DEFAULT NULL CHECK (rating_attack IS NULL OR (rating_attack >= 0 AND rating_attack <= 100)),
+  rating_defense INTEGER DEFAULT NULL CHECK (rating_defense IS NULL OR (rating_defense >= 0 AND rating_defense <= 100)),
+  rating_teamwork INTEGER DEFAULT NULL CHECK (rating_teamwork IS NULL OR (rating_teamwork >= 0 AND rating_teamwork <= 100)),
+  rating_consistency INTEGER DEFAULT NULL CHECK (rating_consistency IS NULL OR (rating_consistency >= 0 AND rating_consistency <= 100)),
+  rating_last_updated TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+
+  -- Ranking (NULL means not ranked yet)
+  rank rank_enum DEFAULT NULL,
+
+  -- Skill level (1-5, calculated from self-rating or overall rating)
+  -- 1 = Beginner (0-20), 2 = Intermediate (21-40), 3 = Advanced (41-60), 4 = Expert (61-80), 5 = Pro (81-100)
+  skill_level_numeric INTEGER DEFAULT NULL CHECK (skill_level_numeric IS NULL OR (skill_level_numeric >= 1 AND skill_level_numeric <= 5)),
+
+  -- Amateur classification (calculated: amateur if overall rating < 60 OR no rating yet)
+  is_amateur BOOLEAN DEFAULT TRUE,
   
   -- JWT tokens
   refresh_token VARCHAR(500),
@@ -119,6 +134,13 @@ CREATE TABLE teams (
   current_players INTEGER DEFAULT 1,
   description TEXT,
   creator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+  -- Team filtering options
+  gender_preference team_gender_preference_enum DEFAULT 'mix', -- male, female, mix
+  min_skill_level INTEGER DEFAULT NULL CHECK (min_skill_level IS NULL OR (min_skill_level >= 1 AND min_skill_level <= 5)),
+  max_skill_level INTEGER DEFAULT NULL CHECK (max_skill_level IS NULL OR (max_skill_level >= 1 AND max_skill_level <= 5)),
+  amateur_only BOOLEAN DEFAULT FALSE,
+
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -173,23 +195,32 @@ CREATE TABLE tournaments (
   prize VARCHAR(255),
   description TEXT,
   status tournament_status_enum DEFAULT 'upcoming',
-  
-  -- NEW: Gender filter for tournaments
-  gender_filter gender_enum, -- male, female, mixed, or null for all
-  
+
+  -- Tournament category (type of tournament - not player filter)
+  gender_category team_gender_preference_enum DEFAULT 'mix', -- male, female, mix tournament
+
+  -- Team/player filtering options
+  gender_preference team_gender_preference_enum DEFAULT 'mix', -- male, female, mix
+  min_skill_level INTEGER DEFAULT NULL CHECK (min_skill_level IS NULL OR (min_skill_level >= 1 AND min_skill_level <= 5)),
+  max_skill_level INTEGER DEFAULT NULL CHECK (max_skill_level IS NULL OR (max_skill_level >= 1 AND max_skill_level <= 5)),
+  amateur_only BOOLEAN DEFAULT FALSE,
+
   creator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Tournament waitlist (NEW - Max 5 people)
-CREATE TABLE tournament_waitlist (
+CREATE TABLE tournament_registrations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   tournament_id UUID NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  email VARCHAR(255),
-  added_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(tournament_id, user_id)
+  team_name VARCHAR(255) NOT NULL,
+  players JSONB NOT NULL DEFAULT '[]', -- Array of {name, position}
+  status VARCHAR(50) DEFAULT 'registered', -- registered, waitlist, confirmed, rejected
+  is_waitlist BOOLEAN DEFAULT FALSE,
+  registered_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  -- Note: No UNIQUE constraint - one user can register multiple teams
 );
 
 -- Registered tournament teams

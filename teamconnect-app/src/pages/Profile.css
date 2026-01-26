@@ -446,6 +446,53 @@
   transform: scale(1.1);
 }
 
+.avatar-upload-section {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 15px;
+}
+
+.avatar-upload-section p {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.avatar-upload-section small {
+  display: block;
+  margin-top: 10px;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.upload-btn {
+  cursor: pointer;
+}
+
+.avatar-divider {
+  display: flex;
+  align-items: center;
+  margin: 25px 0;
+}
+
+.avatar-divider::before,
+.avatar-divider::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ccc, transparent);
+}
+
+.avatar-divider span {
+  padding: 0 20px;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
 .loading {
   text-align: center;
   padding: 100px 20px;

@@ -23,7 +23,11 @@ function CreateTeam() {
     date: '',
     time: '',
     maxPlayers: 10,
-    description: ''
+    description: '',
+    gender_preference: 'mix',
+    min_skill_level: '',
+    max_skill_level: '',
+    amateur_only: false
   });
 
   const sportsList = getAllSports();
@@ -72,6 +76,23 @@ function CreateTeam() {
       return;
     }
 
+    // Prepare data for backend
+    const submitData = {
+      name: formData.name,
+      sport: formData.sport,
+      country: formData.country,
+      city: formData.city,
+      location: formData.location,
+      date: formData.date,
+      time: formData.time,
+      max_players: formData.maxPlayers,
+      description: formData.description,
+      gender_preference: formData.gender_preference,
+      min_skill_level: formData.min_skill_level ? parseInt(formData.min_skill_level) : null,
+      max_skill_level: formData.max_skill_level ? parseInt(formData.max_skill_level) : null,
+      amateur_only: formData.amateur_only
+    };
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/teams', {
@@ -80,7 +101,7 @@ function CreateTeam() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(submitData)
       });
 
       const data = await response.json();
@@ -281,6 +302,74 @@ const handleAddCustomCity = () => {
                 max="50"
               />
               <small>Uključujući tebe</small>
+            </div>
+
+            {/* Player Filtering Options */}
+            <div className="filter-section">
+              <h3>🎯 Filteri za igrače</h3>
+              <p className="filter-description">Postavi uvjete tko se može pridružiti timu</p>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Spol igrača</label>
+                  <select
+                    name="gender_preference"
+                    value={formData.gender_preference}
+                    onChange={handleChange}
+                  >
+                    <option value="mix">Mješovito (svi)</option>
+                    <option value="male">Samo muškarci</option>
+                    <option value="female">Samo žene</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="amateur_only"
+                      checked={formData.amateur_only}
+                      onChange={(e) => setFormData({ ...formData, amateur_only: e.target.checked })}
+                    />
+                    {' '}Samo amateri
+                  </label>
+                  <small>Igrači s ratingom manjim od 60%</small>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Min. razina vještine</label>
+                  <select
+                    name="min_skill_level"
+                    value={formData.min_skill_level}
+                    onChange={handleChange}
+                  >
+                    <option value="">Bez ograničenja</option>
+                    <option value="1">1 - Početnik</option>
+                    <option value="2">2 - Srednji</option>
+                    <option value="3">3 - Napredni</option>
+                    <option value="4">4 - Ekspert</option>
+                    <option value="5">5 - Pro</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Max. razina vještine</label>
+                  <select
+                    name="max_skill_level"
+                    value={formData.max_skill_level}
+                    onChange={handleChange}
+                  >
+                    <option value="">Bez ograničenja</option>
+                    <option value="1">1 - Početnik</option>
+                    <option value="2">2 - Srednji</option>
+                    <option value="3">3 - Napredni</option>
+                    <option value="4">4 - Ekspert</option>
+                    <option value="5">5 - Pro</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div className="form-group">

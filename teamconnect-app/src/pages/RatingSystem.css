@@ -240,6 +240,358 @@
   padding: 80px 40px;
 }
 
+/* Player Rating Card Styles */
+.player-rating-card {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 25px;
+  transition: all 0.3s;
+}
+
+.player-rating-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.rank-badge {
+  min-width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.player-rating-info {
+  flex: 1;
+}
+
+.player-rating-header {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.player-rating-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.player-rating-details h4 {
+  margin: 0 0 5px 0;
+  font-size: 1.3rem;
+  color: #333;
+}
+
+.player-rating-location {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.rating-overall {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 15px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+}
+
+.rating-label {
+  font-weight: 600;
+  color: #333;
+}
+
+.rating-overall .rating-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #667eea;
+}
+
+.rating-breakdown {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.rating-stat {
+  display: grid;
+  grid-template-columns: 100px 1fr 50px;
+  gap: 10px;
+  align-items: center;
+}
+
+.stat-name {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.stat-bar {
+  height: 10px;
+  background: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+
+.rating-stat .stat-value {
+  font-weight: 700;
+  color: #333;
+  text-align: right;
+  font-size: 0.95rem;
+}
+
+.player-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* Not Rated State */
+.not-rated-message {
+  text-align: center;
+  padding: 30px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8eaed 100%);
+  border-radius: 15px;
+  border: 2px dashed #ccc;
+}
+
+.not-rated-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 15px;
+}
+
+.not-rated-message p {
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #666;
+}
+
+.not-rated-message small {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+/* Self-Rating Section */
+.self-rating-section {
+  max-width: 700px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.self-rating-card {
+  padding: 40px;
+}
+
+.self-rating-card h2 {
+  margin: 0 0 15px 0;
+  font-size: 2rem;
+  color: #333;
+  text-align: center;
+}
+
+.self-rating-description {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.self-rating-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.rating-slider-group {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8eaed 100%);
+  border-radius: 15px;
+}
+
+.rating-slider-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.rating-icon {
+  font-size: 1.5rem;
+}
+
+.rating-value-display {
+  margin-left: auto;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.rating-slider {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: #ddd;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.rating-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+  transition: transform 0.2s;
+}
+
+.rating-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.rating-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+}
+
+.rating-slider:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rating-slider:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+  background: #999;
+}
+
+.rating-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.overall-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  padding: 25px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 15px;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.overall-preview strong {
+  font-size: 2.5rem;
+  font-weight: 800;
+}
+
+.btn-large {
+  padding: 18px 40px;
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+/* Rating Tabs */
+.rating-tabs {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.rating-tabs .tab {
+  padding: 12px 24px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.rating-tabs .tab:hover {
+  background: #f5f5f5;
+  transform: translateY(-2px);
+}
+
+.rating-tabs .tab.active {
+  background: linear-gradient(135deg, #81c784, #66bb6a);
+  color: white;
+  border-color: #66bb6a;
+}
+
+/* Rating Controls */
+.rating-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .self-rating-card {
+    padding: 25px;
+  }
+
+  .self-rating-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .rating-slider-group {
+    padding: 15px;
+  }
+
+  .overall-preview strong {
+    font-size: 2rem;
+  }
+}
+
 .achievement-list {
   padding: 40px;
   animation: fadeIn 1s ease-out 0.6s both;

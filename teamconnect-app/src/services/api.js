@@ -42,7 +42,12 @@ export const teamsAPI = {
   create: (data) => api.post('/teams', data),
   join: (id) => api.post(`/teams/${id}/join`),
   leave: (id) => api.post(`/teams/${id}/leave`),
-  delete: (id) => api.delete(`/teams/${id}`)
+  delete: (id) => api.delete(`/teams/${id}`),
+  
+  // Aliases for backward compatibility
+  getMyTeams: () => api.get('/teams/my'),
+  getAllTeams: (params) => api.get('/teams', { params }),
+  getOneTeam: (id) => api.get(`/teams/${id}`)
 };
 
 // Tournaments API
@@ -50,14 +55,26 @@ export const tournamentsAPI = {
   getAll: (params) => api.get('/tournaments', { params }),
   getOne: (id) => api.get(`/tournaments/${id}`),
   create: (data) => api.post('/tournaments', data),
-  register: (id) => api.post(`/tournaments/${id}/register`)
+  register: (id, data) => api.post(`/tournaments/${id}/register`, data),
+  
+  // ✅ Aliases for backward compatibility
+  getAllTournaments: (params) => api.get('/tournaments', { params }),
+  getOneTournament: (id) => api.get(`/tournaments/${id}`),
+  createTournament: (data) => api.post('/tournaments', data),
+  registerTeam: (id, data) => api.post(`/tournaments/${id}/register`, data),
+  updateTournament: (id, data) => api.put(`/tournaments/${id}`, data),
+  deleteTournament: (id) => api.delete(`/tournaments/${id}`)
 };
 
 // Fields API
 export const fieldsAPI = {
   getAll: (params) => api.get('/fields', { params }),
   getOne: (id) => api.get(`/fields/${id}`),
-  create: (data) => api.post('/fields', data)
+  create: (data) => api.post('/fields', data),
+  
+  // Aliases
+  getAllFields: (params) => api.get('/fields', { params }),
+  getOneField: (id) => api.get(`/fields/${id}`)
 };
 
 // Profile API
@@ -95,7 +112,20 @@ export const ratingsAPI = {
   getAll: () => api.get('/ratings'),
   add: (data) => api.post('/ratings', data),
   update: (id, data) => api.put(`/ratings/${id}`, data),
-  delete: (id) => api.delete(`/ratings/${id}`)
+  delete: (id) => api.delete(`/ratings/${id}`),
+
+  // Self-rating
+  getSelfRatingStatus: () => api.get('/ratings/self-rating/status'),
+  submitSelfRating: (data) => api.post('/ratings/self-rating', data),
+
+  // Rate another player
+  ratePlayer: (data) => api.post('/ratings/rate-player', data),
+
+  // Leaderboard
+  getLeaderboard: (params) => api.get('/ratings/leaderboard', { params }),
+  getUserRating: (userId) => api.get(`/ratings/user/${userId}`),
+  recalculateRating: () => api.post('/ratings/recalculate'),
+  getAchievements: () => api.get('/ratings/achievements')
 };
 
 // Activities API

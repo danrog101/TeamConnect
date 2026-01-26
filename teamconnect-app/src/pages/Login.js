@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import Toast from '../components/Toast';
 import './Auth.css';
 
 function Login() {
@@ -11,6 +12,7 @@ function Login() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -60,11 +62,10 @@ function Login() {
 
     } catch (err) {
       console.error('❌ Login error:', err);
-      
+
       const errorMessage = err.response?.data?.message || err.message || 'Greška pri prijavi';
       setError(errorMessage);
-      
-      alert('❌ Login greška: ' + errorMessage);
+      setToast({ message: errorMessage, type: 'error' });
     } finally {
       setLoading(false);
     }

@@ -131,11 +131,44 @@ exports.getMyTeams = async (req, res) => {
   }
 };
 
+// Helper function to calculate skill level from rating
+const calculateSkillLevel = (rating) => {
+  if (rating === null || rating === undefined) return null;
+  if (rating <= 20) return 1; // Beginner
+  if (rating <= 40) return 2; // Intermediate
+  if (rating <= 60) return 3; // Advanced
+  if (rating <= 80) return 4; // Expert
+  return 5; // Pro
+};
+
+// Helper function to determine if user is amateur
+const isUserAmateur = (overallRating) => {
+  // Amateur if no rating or overall rating equivalent to less than 60%
+  if (overallRating === null || overallRating === undefined) return true;
+  // Convert overall rating (0-3000) to percentage
+  const percentage = (overallRating / 3000) * 100;
+  return percentage < 60;
+};
+
 // Create team
 exports.createTeam = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { name, sport, location, city, country, date, time, max_players, description } = req.body;
+    const {
+      name,
+      sport,
+      location,
+      city,
+      country,
+      date,
+      time,
+      max_players,
+      description,
+      gender_preference,
+      min_skill_level,
+      max_skill_level,
+      amateur_only
+    } = req.body;
 
     console.log('📝 Creating team for user:', userId);
 
@@ -153,7 +186,11 @@ exports.createTeam = async (req, res) => {
         max_players: max_players || 10,
         description: description || '',
         creator_id: userId,
-        current_players: 1
+        current_players: 1,
+        gender_preference: gender_preference || 'mix',
+        min_skill_level: min_skill_level || null,
+        max_skill_level: max_skill_level || null,
+        amateur_only: amateur_only || false
       })
       .select(`
         *,
@@ -213,6 +250,65 @@ exports.joinTeam = async (req, res) => {
     if (teamError || !team) {
       console.error('❌ Team not found:', id);
       return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Get user info for validation
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('gender, rating_overall, skill_level_numeric, is_amateur, has_self_rated, self_rating_attack, self_rating_defense, self_rating_teamwork, self_rating_consistency')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Calculate user's skill level if not set
+    let userSkillLevel = user.skill_level_numeric;
+    if (!userSkillLevel && user.has_self_rated) {
+      const avgSelfRating = (user.self_rating_attack + user.self_rating_defense + user.self_rating_teamwork + user.self_rating_consistency) / 4;
+      userSkillLevel = calculateSkillLevel(avgSelfRating);
+    }
+
+    // Validate gender preference
+    if (team.gender_preference && team.gender_preference !== 'mix') {
+      if (user.gender !== team.gender_preference) {
+        console.log('⚠️ Gender mismatch');
+        return res.status(400).json({
+          message: `This team is for ${team.gender_preference} players only`
+        });
+      }
+    }
+
+    // Validate skill level
+    if (team.min_skill_level || team.max_skill_level) {
+      if (!userSkillLevel && !user.has_self_rated) {
+        return res.status(400).json({
+          message: 'Please complete your self-rating first to join skill-restricted teams'
+        });
+      }
+
+      if (team.min_skill_level && userSkillLevel < team.min_skill_level) {
+        return res.status(400).json({
+          message: `Minimum skill level ${team.min_skill_level} required (you have level ${userSkillLevel})`
+        });
+      }
+
+      if (team.max_skill_level && userSkillLevel > team.max_skill_level) {
+        return res.status(400).json({
+          message: `Maximum skill level ${team.max_skill_level} allowed (you have level ${userSkillLevel})`
+        });
+      }
+    }
+
+    // Validate amateur only
+    if (team.amateur_only) {
+      const userIsAmateur = isUserAmateur(user.rating_overall);
+      if (!userIsAmateur) {
+        return res.status(400).json({
+          message: 'This team is for amateur players only'
+        });
+      }
     }
 
     // Check if user is already in team
@@ -342,7 +438,21 @@ exports.updateTeam = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    const { name, sport, location, city, country, date, time, max_players, description } = req.body;
+    const {
+      name,
+      sport,
+      location,
+      city,
+      country,
+      date,
+      time,
+      max_players,
+      description,
+      gender_preference,
+      min_skill_level,
+      max_skill_level,
+      amateur_only
+    } = req.body;
 
     // Check if user is creator
     const { data: team, error: teamError } = await supabase
@@ -371,7 +481,11 @@ exports.updateTeam = async (req, res) => {
         date: date || team.date,
         time: time || team.time,
         max_players: max_players || team.max_players,
-        description: description || team.description
+        description: description || team.description,
+        gender_preference: gender_preference !== undefined ? gender_preference : team.gender_preference,
+        min_skill_level: min_skill_level !== undefined ? min_skill_level : team.min_skill_level,
+        max_skill_level: max_skill_level !== undefined ? max_skill_level : team.max_skill_level,
+        amateur_only: amateur_only !== undefined ? amateur_only : team.amateur_only
       })
       .eq('id', id)
       .select(`

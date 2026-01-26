@@ -148,7 +148,7 @@ function Friends() {
 
       console.log('📤 Sending friend request to:', selectedUser.username);
 
-      const res = await fetch(`http://localhost:5000/api/friends/request/${selectedUser._id}`, {
+      const res = await fetch(`http://localhost:5000/api/friends/request/${selectedUser.id}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -368,7 +368,7 @@ function Friends() {
               ) : (
                 <div className="friends-grid">
                   {friends.map(friend => (
-                    <div key={friend._id} className="friend-card card">
+                    <div key={friend.id} className="friend-card card">
                       <div className="friend-header">
                         <div className="friend-avatar-wrapper">
                           <div className="friend-avatar">{friend.avatar || '👤'}</div>
@@ -384,13 +384,13 @@ function Friends() {
                       <div className="friend-actions">
                         <button
                           className="btn btn-secondary btn-small"
-                          onClick={() => navigate(`/profile/${friend._id}`)}
+                          onClick={() => navigate(`/profile/${friend.id}`)}
                         >
                           Vidi profil
                         </button>
                         <button
                           className="btn btn-danger btn-small"
-                          onClick={() => handleRemoveFriend(friend._id)}
+                          onClick={() => handleRemoveFriend(friend.id)}
                         >
                           Ukloni
                         </button>
@@ -414,30 +414,30 @@ function Friends() {
               ) : (
                 <div className="requests-grid">
                   {requests.map(request => (
-                    <div key={request._id} className="request-card card">
+                    <div key={request.id} className="request-card card">
                       <div className="request-header">
-                        <div className="request-avatar">{request.from?.avatar || '👤'}</div>
+                        <div className="request-avatar">{request.from_user?.avatar || '👤'}</div>
                         <div className="request-info">
-                          <h4>{request.from?.username || 'Unknown'}</h4>
-                          <p className="request-email">{request.from?.email || ''}</p>
-                          {request.from?.sport && <p className="request-sport">⚽ {request.from.sport}</p>}
+                          <h4>{request.from_user?.username || 'Unknown'}</h4>
+                          <p className="request-email">{request.from_user?.email || ''}</p>
+                          {request.from_user?.sport && <p className="request-sport">⚽ {request.from_user.sport}</p>}
                         </div>
                       </div>
 
                       {request.message && <p className="request-message">"{request.message}"</p>}
 
-                      <p className="request-time">{formatDate(request.sentAt || request.createdAt)}</p>
+                      <p className="request-time">{formatDate(request.sent_at || request.created_at)}</p>
 
                       <div className="request-actions">
                         <button
                           className="btn btn-primary"
-                          onClick={() => handleAcceptRequest(request._id)}
+                          onClick={() => handleAcceptRequest(request.id)}
                         >
                           ✓ Prihvati
                         </button>
                         <button
                           className="btn btn-secondary"
-                          onClick={() => handleRejectRequest(request._id)}
+                          onClick={() => handleRejectRequest(request.id)}
                         >
                           ✕ Odbij
                         </button>
@@ -461,7 +461,7 @@ function Friends() {
               ) : (
                 <div className="search-results-grid">
                   {searchResults.map(user => (
-                    <div key={user._id} className="search-result-card card">
+                    <div key={user.id} className="search-result-card card">
                       <div className="result-header">
                         <div className="result-avatar">{user.avatar || '👤'}</div>
                         <div className="result-info">
@@ -481,7 +481,7 @@ function Friends() {
                           <button className="btn btn-disabled" disabled>
                             ✉️ Zahtjev poslan
                           </button>
-                        ) : user._id === currentUser.id ? (
+                        ) : user.id === currentUser.id ? (
                           <button className="btn btn-disabled" disabled>
                             👤 To si ti
                           </button>

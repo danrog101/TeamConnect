@@ -256,28 +256,60 @@ function Profile() {
     }
   };
 
-  const handleChangeAvatar = async (e) => {
+  const handleChangeAvatar = async (avatar) => {
+    try {
+      const response = await authAPI.updateProfile({ avatar });
+
+      if (response.data) {
+        const updatedUser = { ...currentUser, avatar };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setProfile(prev => ({ ...prev, avatar }));
+        setShowAvatarModal(false);
+        setToast({ message: 'Avatar updated successfully!', type: 'success' });
+      } else {
+        setToast({ message: 'Failed to update avatar', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Change avatar error:', error);
+      setToast({ message: 'Failed to update avatar', type: 'error' });
+    }
+  };
+
+  const handleUploadProfilePicture = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setToast({ message: 'Please select an image file', type: 'error' });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setToast({ message: 'Image must be smaller than 2MB', type: 'error' });
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = async (event) => {
       const base64 = event.target.result;
-      
+
       try {
-        const response = await authAPI.updateProfile(userId, { avatar: base64 });
-        
-        if (response.success) {
-          const updatedUser = { ...currentUser, ...response.user };
+        const response = await authAPI.updateProfile({ avatar: base64 });
+
+        if (response.data) {
+          const updatedUser = { ...currentUser, avatar: base64 };
           localStorage.setItem('user', JSON.stringify(updatedUser));
-          setProfile(response.user);
-          setToast({ message: 'Avatar updated successfully!', type: 'success' });
+          setProfile(prev => ({ ...prev, avatar: base64 }));
+          setShowAvatarModal(false);
+          setToast({ message: 'Profile picture updated successfully!', type: 'success' });
         } else {
-          setToast({ message: response.message || 'Failed to update avatar', type: 'error' });
+          setToast({ message: 'Failed to update profile picture', type: 'error' });
         }
       } catch (error) {
-        console.error('Change avatar error:', error);
-        setToast({ message: 'Failed to update avatar', type: 'error' });
+        console.error('Upload profile picture error:', error);
+        setToast({ message: 'Failed to update profile picture', type: 'error' });
       }
     };
     reader.readAsDataURL(file);
@@ -317,6 +349,7 @@ function Profile() {
     const labels = {
       male: 'Male',
       female: 'Female',
+      prefer_not_to_say: 'I don\'t want to say',
       other: 'Other'
     };
     return labels[gender] || gender;
@@ -353,12 +386,17 @@ function Profile() {
         {/* Profile Header */}
         <div className="profile-header card">
           <div className="profile-avatar-section">
-            <div 
+            <div
               className="profile-avatar-large"
               onClick={() => isOwnProfile && setShowAvatarModal(true)}
-              style={{ cursor: isOwnProfile ? 'pointer' : 'default' }}
+              style={{
+                cursor: isOwnProfile ? 'pointer' : 'default',
+                backgroundImage: profile.avatar?.startsWith('data:image') ? `url(${profile.avatar})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
             >
-              {profile.avatar}
+              {!profile.avatar?.startsWith('data:image') && (profile.avatar || '👤')}
               {isOwnProfile && (
                 <div className="avatar-edit-overlay">
                   <span>✏️</span>
@@ -516,8 +554,8 @@ function Profile() {
                         <option value="">Select</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
+                        <option value="prefer_not_to_say">I don't want to say</option>
                         <option value="other">Other</option>
-                        <option value="prefer_not_to_say">Prefer not to say</option>
                       </select>
                     </div>
                   </div>
@@ -857,7 +895,25 @@ function Profile() {
         <div className="modal-overlay" onClick={() => setShowAvatarModal(false)}>
           <div className="avatar-modal" onClick={(e) => e.stopPropagation()}>
             <h2>🎭 Change Avatar</h2>
-            
+
+            <div className="avatar-upload-section">
+              <p>Upload a custom profile picture:</p>
+              <label className="btn btn-primary upload-btn">
+                📷 Upload Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadProfilePicture}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              <small>Max 2MB, JPG/PNG/GIF</small>
+            </div>
+
+            <div className="avatar-divider">
+              <span>or choose an emoji</span>
+            </div>
+
             <div className="avatar-grid">
               {availableAvatars.map((avatar, index) => (
                 <button
@@ -871,7 +927,7 @@ function Profile() {
             </div>
 
             <div className="modal-actions">
-              <button 
+              <button
                 className="btn btn-secondary"
                 onClick={() => setShowAvatarModal(false)}
               >

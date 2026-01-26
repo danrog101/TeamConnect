@@ -9,8 +9,16 @@ function Register() {
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    gender: ''
   });
+
+  const genderOptions = [
+    { value: 'male', label: 'Male' },
+    { value: 'female', label: 'Female' },
+    { value: 'prefer_not_to_say', label: 'I don\'t want to say' },
+    { value: 'other', label: 'Other' }
+  ];
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -35,13 +43,11 @@ function Register() {
     setLoading(true);
 
     try {
-      // ✅ PROMJENA: Dodao sport i location (backend sada ih prihvaća)
       const response = await authAPI.register({
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        sport: 'Football', // Možeš promijeniti ili dodati dropdown
-        location: 'Zagreb'  // Možeš promijeniti ili dodati input
+        gender: formData.gender
       });
 
       // ✅ Spremi userId i accessToken
@@ -120,6 +126,21 @@ function Register() {
               placeholder="Ponovno upiši lozinku"
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label>Spol</label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              required
+            >
+              <option value="">-- Odaberi spol --</option>
+              {genderOptions.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={loading}>

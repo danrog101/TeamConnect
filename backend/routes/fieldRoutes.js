@@ -8,18 +8,19 @@ const {
   deleteField
 } = require('../controllers/fieldController');
 const auth = require('../middleware/auth');
-const { uploadFieldImages, compressImage } = require('../middleware/upload'); // AŽURIRAJ
+const { uploadFieldImages, compressImage } = require('../middleware/upload');
 
-router.post('/', 
-  auth, 
-  uploadFieldImages.array('images', 5), 
-  compressImage, // NOVO - compress images
-  createField
-);
-
+// Public routes
 router.get('/', getFields);
 router.get('/:fieldId', getField);
-router.post('/', auth, uploadFieldImages.array('images', 5), createField); // Max 5 slika
+
+// Protected routes
+router.post('/',
+  auth,
+  uploadFieldImages.array('images', 5),
+  compressImage,
+  createField
+);
 router.post('/:fieldId/review', auth, addReview);
 router.delete('/:fieldId', auth, deleteField);
 
