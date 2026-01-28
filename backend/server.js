@@ -17,18 +17,24 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io setup
+// Socket.io setup - FIXED CORS
 const io = socketIo(server, {
   cors: {
-    origin: config.frontendUrl,
+    origin: [
+      'https://teamconnect-frontendte.onrender.com',
+      'http://localhost:3000'
+    ],
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
-// Basic Middleware
+// Basic Middleware - FIXED CORS
 app.use(cors({
-  origin: config.frontendUrl,
+  origin: [
+    'https://teamconnect-frontendte.onrender.com',
+    'http://localhost:3000'
+  ],
   credentials: true
 }));
 app.use(express.json());
