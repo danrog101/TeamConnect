@@ -7,6 +7,8 @@ import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
 import './Dashboard.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 function Dashboard() {
   const navigate = useNavigate();
   const [teams, setTeams] = useState([]);
@@ -50,7 +52,7 @@ function Dashboard() {
 
       console.log('📡 Fetching teams with token:', token.substring(0, 20) + '...');
 
-      const response = await fetch('http://localhost:5000/api/teams', {
+      const response = await fetch(`${API_URL}/teams`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -126,9 +128,9 @@ function Dashboard() {
         return;
       }
 
-      console.log('📡 Sending JOIN request to:', `http://localhost:5000/api/teams/${teamId}/join`);
+      console.log('📡 Sending JOIN request to:', `${API_URL}/teams/${teamId}/join`);
 
-      const response = await fetch(`http://localhost:5000/api/teams/${teamId}/join`, {
+      const response = await fetch(`${API_URL}/teams/${teamId}/join`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -177,7 +179,7 @@ function Dashboard() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/waitlist/${teamId}/join`, {
+      const response = await fetch(`${API_URL}/waitlist/${teamId}/join`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

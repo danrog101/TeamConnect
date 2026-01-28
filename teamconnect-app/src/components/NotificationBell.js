@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './NotificationBell.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 function NotificationBell() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
@@ -55,7 +57,7 @@ function NotificationBell() {
         return; // ✅ Samo return, ne redirect
       }
       
-      const response = await fetch('http://localhost:5000/api/notifications?limit=10', {
+      const response = await fetch(`${API_URL}/notifications?limit=10`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -98,7 +100,7 @@ function NotificationBell() {
       // ✅ Provjeri je li _id ili id
       const notificationId = notification._id || notification.id;
       
-      await fetch(`http://localhost:5000/api/notifications/${notificationId}/read`, {
+      await fetch(`${API_URL}/notifications/${notificationId}/read`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -126,7 +128,7 @@ function NotificationBell() {
         return;
       }
       
-      await fetch('http://localhost:5000/api/notifications/read-all', {
+      await fetch(`${API_URL}/notifications/read-all`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -151,7 +153,7 @@ function NotificationBell() {
         return;
       }
       
-      await fetch(`http://localhost:5000/api/notifications/${notificationId}`, {
+      await fetch(`${API_URL}/notifications/${notificationId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

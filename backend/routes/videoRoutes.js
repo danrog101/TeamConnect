@@ -12,7 +12,7 @@ const {
 } = require('../controllers/videoController');
 
 const auth = require('../middleware/auth');
-const { uploadLimiter } = require('../middleware/ratelimiter');
+const { uploadLimiter } = require('../middleware/rateLimiter');
 const { uploadVideo, checkStorageLimit } = require('../middleware/upload');
 
 // UPLOAD VIDEO

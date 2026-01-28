@@ -6,6 +6,8 @@ import { getAllSports, addCustomSport } from '../data/sports';
 import { europeanCities, searchCities, addCustomCity } from '../data/cities';
 import './CreateTeam.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 function CreateTeam() {
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
@@ -99,7 +101,7 @@ function CreateTeam() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/teams', {
+      const response = await fetch(`${API_URL}/teams`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

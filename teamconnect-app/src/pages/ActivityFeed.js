@@ -4,6 +4,8 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import './ActivityFeed.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 function ActivityFeed() {
   const navigate = useNavigate();
   const [activities, setActivities] = useState([]);
@@ -22,7 +24,7 @@ function ActivityFeed() {
       setLoading(true);
       const token = localStorage.getItem('token');
       
-      let url = `http://localhost:5000/api/activities/feed?page=${page}&limit=20`;
+      let url = `${API_URL}/activities/feed?page=${page}&limit=20`;
       if (filter !== 'all') {
         url += `&type=${filter}`;
       }

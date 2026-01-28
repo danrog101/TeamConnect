@@ -5,6 +5,8 @@ import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
 import './FieldMap.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 function FieldMap() {
   // ============ STATE ============
   const [fields, setFields] = useState([]);
@@ -66,7 +68,7 @@ function FieldMap() {
   const loadFields = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/fields');
+      const response = await fetch(`${API_URL}/fields`);
 
       if (response.ok) {
         const data = await response.json();
