@@ -300,10 +300,20 @@ function FieldMap() {
   };
 
   const getFieldImage = (field) => {
+    // Check for field_images from database relation
+    if (field.field_images && field.field_images.length > 0) {
+      const img = field.field_images[0];
+      const filepath = img.filepath || '';
+      // Handle both Windows and Unix paths, and remove leading ./ or .\
+      const cleanPath = filepath.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\.\\/, '');
+      return `http://localhost:5000/${cleanPath}`;
+    }
+    // Fallback to images array
     if (field.images && field.images.length > 0) {
       const img = field.images[0];
-      const filepath = img.filepath || img;
-      return `http://localhost:5000/${filepath.replace(/\\/g, '/')}`;
+      const filepath = typeof img === 'string' ? img : (img.filepath || '');
+      const cleanPath = filepath.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\.\\/, '');
+      return `http://localhost:5000/${cleanPath}`;
     }
     return 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800';
   };
@@ -836,15 +846,6 @@ function FieldMap() {
                         </div>
                       )}
 
-                      <button
-                        className="btn btn-primary btn-small btn-block"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setToast({ message: 'Rezervacija dolazi uskoro!', type: 'info' });
-                        }}
-                      >
-                        Rezerviraj
-                      </button>
                     </div>
                   </div>
                 ))
@@ -925,23 +926,17 @@ function FieldMap() {
                   <div className="detail-actions">
                     <button
                       className="btn btn-primary btn-large"
-                      onClick={() => setToast({ message: 'Rezervacija dolazi uskoro!', type: 'info' })}
-                    >
-                      Rezerviraj sada
-                    </button>
-                    <button
-                      className="btn btn-secondary"
                       onClick={() => {
-                        const coords = selectedField.coordinates_lat && selectedField.coordinates_lng
+                        const destination = selectedField.coordinates_lat && selectedField.coordinates_lng
                           ? `${selectedField.coordinates_lat},${selectedField.coordinates_lng}`
-                          : `${selectedField.city}, ${selectedField.address}`;
+                          : `${selectedField.address}, ${selectedField.city}`;
                         window.open(
-                          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coords)}`,
+                          `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`,
                           '_blank'
                         );
                       }}
                     >
-                      Otvori u Maps
+                      Navigiraj do terena
                     </button>
                   </div>
                 </div>

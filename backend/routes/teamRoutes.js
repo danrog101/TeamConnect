@@ -36,4 +36,7 @@ router.post('/:id/messages', auth, teamController.sendTeamMessage);
 // ✅ Get team stats - PUBLIC route
 router.get('/:id/stats', teamController.getTeamStats);
 
+// ✅ Get team members - PRIVATE route (for team creator to see registered players)
+router.get('/:id/members', auth, teamController.getTeamMembers);
+
 module.exports = router;

@@ -45,7 +45,7 @@ exports.getProfile = async (req, res) => {
 
     if (error || !user) {
       console.error('Get profile error:', error);
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Korisnik nije pronađen' });
     }
 
     // Check if users are friends
@@ -66,11 +66,11 @@ exports.getProfile = async (req, res) => {
 
     // Privacy checks
     if (user.profile_visibility === 'private' && !isSelf) {
-      return res.status(403).json({ message: 'This profile is private' });
+      return res.status(403).json({ message: 'Ovaj profil je privatan' });
     }
 
     if (user.profile_visibility === 'friends' && !isSelf && !isFriend) {
-      return res.status(403).json({ message: 'This profile is visible to friends only' });
+      return res.status(403).json({ message: 'Ovaj profil je vidljiv samo prijateljima' });
     }
 
     // Hide sensitive data if not self
@@ -90,7 +90,7 @@ exports.getProfile = async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Greška servera' });
   }
 };
 
@@ -133,13 +133,13 @@ exports.updateProfile = async (req, res) => {
 
     if (error) {
       console.error('Update profile error:', error);
-      return res.status(500).json({ message: 'Failed to update profile' });
+      return res.status(500).json({ message: 'Ažuriranje profila nije uspjelo' });
     }
 
-    res.json({ message: 'Profile updated successfully!', user });
+    res.json({ message: 'Profil je uspješno ažuriran!', user });
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Greška servera' });
   }
 };
 
@@ -150,11 +150,11 @@ exports.changePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: 'Sva polja su obavezna' });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: 'New password must be at least 6 characters' });
+      return res.status(400).json({ message: 'Nova lozinka mora imati najmanje 6 znakova' });
     }
 
     // Get current password hash
@@ -165,13 +165,13 @@ exports.changePassword = async (req, res) => {
       .single();
 
     if (fetchError || !userData) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Korisnik nije pronađen' });
     }
 
     // Verify current password
     const isMatch = await bcrypt.compare(currentPassword, userData.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
+      return res.status(400).json({ message: 'Trenutna lozinka nije ispravna' });
     }
 
     // Hash new password
@@ -187,13 +187,13 @@ exports.changePassword = async (req, res) => {
 
     if (updateError) {
       console.error('Password update error:', updateError);
-      return res.status(500).json({ message: 'Failed to change password' });
+      return res.status(500).json({ message: 'Promjena lozinke nije uspjela' });
     }
 
-    res.json({ message: 'Password changed successfully!', user: updatedUser });
+    res.json({ message: 'Lozinka je uspješno promijenjena!', user: updatedUser });
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Greška servera' });
   }
 };
 
@@ -204,7 +204,7 @@ exports.uploadAvatar = async (req, res) => {
     const { avatar } = req.body;
 
     if (!avatar) {
-      return res.status(400).json({ message: 'Avatar is required' });
+      return res.status(400).json({ message: 'Avatar je obavezan' });
     }
 
     // Update avatar
@@ -217,13 +217,13 @@ exports.uploadAvatar = async (req, res) => {
 
     if (error) {
       console.error('Upload avatar error:', error);
-      return res.status(500).json({ message: 'Failed to update avatar' });
+      return res.status(500).json({ message: 'Ažuriranje avatara nije uspjelo' });
     }
 
-    res.json({ message: 'Avatar updated successfully!', user });
+    res.json({ message: 'Avatar je uspješno ažuriran!', user });
   } catch (error) {
     console.error('Upload avatar error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Greška servera' });
   }
 };
 
@@ -243,7 +243,7 @@ exports.getUserActivity = async (req, res) => {
 
     if (error) {
       console.error('Get user activity error:', error);
-      return res.status(500).json({ message: 'Failed to fetch activities' });
+      return res.status(500).json({ message: 'Dohvaćanje aktivnosti nije uspjelo' });
     }
 
     res.json({ 
@@ -252,7 +252,7 @@ exports.getUserActivity = async (req, res) => {
     });
   } catch (error) {
     console.error('Get activity error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Greška servera' });
   }
 };
 

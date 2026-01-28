@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import SportRatingModal from '../components/SportRatingModal';
+import { getAllSports } from '../data/sports';
+import { getRatingCategories, getSkillLevelName } from '../data/sportRatings';
 import './RatingSystem.css';
 
 function RatingSystem() {
@@ -16,15 +19,20 @@ function RatingSystem() {
   const [activeTab, setActiveTab] = useState('leaderboard'); // leaderboard, achievements, self-rating
   const [toast, setToast] = useState(null);
 
-  // Self-rating state
+  // Self-rating state - Simple 1-5 scale (1=amateur, 5=pro)
   const [hasSelfRated, setHasSelfRated] = useState(false);
   const [selfRatingForm, setSelfRatingForm] = useState({
-    attack: 50,
-    defense: 50,
-    teamwork: 50,
-    consistency: 50
+    skillLevel: 3 // 1-5 scale
   });
   const [submittingSelfRating, setSubmittingSelfRating] = useState(false);
+
+  // Sport-specific rating state
+  const [sportRatings, setSportRatings] = useState([]);
+  const [selectedSport, setSelectedSport] = useState('');
+  const [showSportRatingModal, setShowSportRatingModal] = useState(false);
+  const [loadingSportRatings, setLoadingSportRatings] = useState(false);
+
+  const sportsList = getAllSports();
 
   // ============ EFFECTS ============
   useEffect(() => {
@@ -33,7 +41,69 @@ function RatingSystem() {
     if (activeTab === 'achievements') {
       loadAchievements();
     }
+    if (activeTab === 'sport-ratings') {
+      loadAllSportRatings();
+    }
   }, [activeTab]);
+
+  // Load all sport-specific ratings
+  const loadAllSportRatings = async () => {
+    try {
+      setLoadingSportRatings(true);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch('http://localhost:5000/api/ratings/sports/all', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSportRatings(data);
+      }
+    } catch (error) {
+      console.error('Load sport ratings error:', error);
+    } finally {
+      setLoadingSportRatings(false);
+    }
+  };
+
+  // Handle sport rating submission
+  const handleSportRatingSubmit = async (ratingData) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('http://localhost:5000/api/ratings/sport', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(ratingData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setToast({ message: 'Ocjena za sport uspješno spremljena!', type: 'success' });
+        setShowSportRatingModal(false);
+        loadAllSportRatings();
+      } else {
+        setToast({ message: data.message || 'Greška pri spremanju ocjene', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Submit sport rating error:', error);
+      setToast({ message: 'Greška pri spremanju ocjene', type: 'error' });
+    }
+  };
+
+  // Open sport rating modal
+  const openSportRatingModal = (sport) => {
+    setSelectedSport(sport);
+    setShowSportRatingModal(true);
+  };
 
   // Check if user has self-rated
   const checkSelfRatingStatus = async () => {
@@ -50,8 +120,8 @@ function RatingSystem() {
       if (response.ok) {
         const data = await response.json();
         setHasSelfRated(data.hasSelfRated);
-        if (data.selfRatings) {
-          setSelfRatingForm(data.selfRatings);
+        if (data.skillLevel) {
+          setSelfRatingForm({ skillLevel: data.skillLevel });
         }
       }
     } catch (error) {
@@ -314,10 +384,16 @@ function RatingSystem() {
             🏆 Leaderboard
           </button>
           <button
+            className={`tab ${activeTab === 'sport-ratings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('sport-ratings')}
+          >
+            🏅 Ocjeni se po sportu
+          </button>
+          <button
             className={`tab ${activeTab === 'self-rating' ? 'active' : ''}`}
             onClick={() => setActiveTab('self-rating')}
           >
-            ⭐ {hasSelfRated ? 'My Rating' : 'Rate Yourself'}
+            ⭐ {hasSelfRated ? 'Moja ocjena' : 'Ocijeni se'}
           </button>
           <button
             className={`tab ${activeTab === 'achievements' ? 'active' : ''}`}
@@ -488,104 +564,166 @@ function RatingSystem() {
           </>
         )}
 
+        {/* SPORT-SPECIFIC RATINGS TAB */}
+        {activeTab === 'sport-ratings' && (
+          <div className="sport-ratings-section">
+            <div className="sport-ratings-header card">
+              <h2>🏅 Ocijeni se po sportu</h2>
+              <p>Ocijeni svoje vještine za svaki sport posebno. Ovo pomaže u pronalaženju pravih timova za tebe!</p>
+            </div>
+
+            {/* Existing sport ratings */}
+            {sportRatings.length > 0 && (
+              <div className="my-sport-ratings">
+                <h3>Moje ocjene po sportovima</h3>
+                <div className="sport-ratings-grid">
+                  {sportRatings.map(rating => {
+                    const sportConfig = getRatingCategories(rating.sport);
+                    return (
+                      <div key={rating.id} className="sport-rating-card card">
+                        <div className="sport-rating-header">
+                          <span className="sport-icon">{sportConfig.icon}</span>
+                          <h4>{rating.sport}</h4>
+                        </div>
+                        <div className="sport-rating-stats">
+                          <div className="overall-stat">
+                            <span className="stat-label">Ukupna ocjena</span>
+                            <span className="stat-value">{rating.overall_rating}</span>
+                          </div>
+                          <div className="level-stat">
+                            <span className="stat-label">Razina</span>
+                            <span className="stat-badge">{getSkillLevelName(rating.skill_level)}</span>
+                          </div>
+                        </div>
+                        <button
+                          className="btn btn-secondary btn-small"
+                          onClick={() => openSportRatingModal(rating.sport)}
+                        >
+                          Ažuriraj ocjenu
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Add new sport rating */}
+            <div className="add-sport-rating card">
+              <h3>Dodaj ocjenu za novi sport</h3>
+              <p>Odaberi sport za koji želiš dodati svoju ocjenu</p>
+
+              <div className="sport-selection">
+                <select
+                  value={selectedSport}
+                  onChange={(e) => setSelectedSport(e.target.value)}
+                  className="sport-select"
+                >
+                  <option value="">Odaberi sport...</option>
+                  <optgroup label="Popularni sportovi">
+                    {sportsList.filter(s => s.popular).map(sport => (
+                      <option
+                        key={sport.id}
+                        value={sport.name}
+                        disabled={sportRatings.some(r => r.sport === sport.name)}
+                      >
+                        {sport.name} {sportRatings.some(r => r.sport === sport.name) ? '(već ocijenjeno)' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Ostali sportovi">
+                    {sportsList.filter(s => !s.popular).map(sport => (
+                      <option
+                        key={sport.id}
+                        value={sport.name}
+                        disabled={sportRatings.some(r => r.sport === sport.name)}
+                      >
+                        {sport.name} {sportRatings.some(r => r.sport === sport.name) ? '(već ocijenjeno)' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+
+                <button
+                  className="btn btn-primary"
+                  onClick={() => openSportRatingModal(selectedSport)}
+                  disabled={!selectedSport || sportRatings.some(r => r.sport === selectedSport)}
+                >
+                  Ocijeni se za {selectedSport || 'sport'}
+                </button>
+              </div>
+            </div>
+
+            {loadingSportRatings && (
+              <div className="loading-indicator">
+                <p>Učitavanje ocjena...</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* SELF-RATING TAB */}
         {activeTab === 'self-rating' && (
           <div className="self-rating-section">
             <div className="self-rating-card card">
-              <h2>{hasSelfRated ? '✅ Your Self-Rating' : '⭐ Rate Yourself'}</h2>
+              <h2>{hasSelfRated ? '✅ Tvoja ocjena' : '⭐ Ocijeni se'}</h2>
               <p className="self-rating-description">
                 {hasSelfRated
-                  ? 'You have already submitted your self-rating. Other players can now rate you based on your performance.'
-                  : 'Before others can rate you, you need to rate yourself first. Be honest about your skills - this helps create accurate team matchups!'
+                  ? 'Već si se ocijenio. Drugi igrači te sada mogu ocjenjivati na temelju tvojih performansi.'
+                  : 'Prije nego te drugi mogu ocijeniti, trebaš se sam ocijeniti. Budi iskren - to pomaže u stvaranju uravnoteženih timova!'
                 }
               </p>
 
               <div className="self-rating-form">
-                <div className="rating-slider-group">
-                  <label>
-                    <span className="rating-icon">⚔️</span> Attack
-                    <span className="rating-value-display">{selfRatingForm.attack}</span>
+                <div className="simple-rating-group">
+                  <label className="simple-rating-label">
+                    Koja je tvoja razina vještine?
                   </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={selfRatingForm.attack}
-                    onChange={(e) => setSelfRatingForm({ ...selfRatingForm, attack: parseInt(e.target.value) })}
-                    disabled={hasSelfRated}
-                    className="rating-slider"
-                  />
-                  <div className="rating-labels">
-                    <span>Beginner</span>
-                    <span>Pro</span>
-                  </div>
-                </div>
 
-                <div className="rating-slider-group">
-                  <label>
-                    <span className="rating-icon">🛡️</span> Defense
-                    <span className="rating-value-display">{selfRatingForm.defense}</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={selfRatingForm.defense}
-                    onChange={(e) => setSelfRatingForm({ ...selfRatingForm, defense: parseInt(e.target.value) })}
-                    disabled={hasSelfRated}
-                    className="rating-slider"
-                  />
-                  <div className="rating-labels">
-                    <span>Beginner</span>
-                    <span>Pro</span>
+                  <div className="skill-level-options">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <button
+                        key={level}
+                        className={`skill-level-btn ${selfRatingForm.skillLevel === level ? 'selected' : ''}`}
+                        onClick={() => !hasSelfRated && setSelfRatingForm({ skillLevel: level })}
+                        disabled={hasSelfRated}
+                      >
+                        <span className="level-number">{level}</span>
+                        <span className="level-label">
+                          {level === 1 && 'Amater'}
+                          {level === 2 && 'Početnik'}
+                          {level === 3 && 'Srednji'}
+                          {level === 4 && 'Napredan'}
+                          {level === 5 && 'Pro'}
+                        </span>
+                        <span className="level-icon">
+                          {level === 1 && '🌱'}
+                          {level === 2 && '⭐'}
+                          {level === 3 && '⭐⭐'}
+                          {level === 4 && '🔥'}
+                          {level === 5 && '👑'}
+                        </span>
+                      </button>
+                    ))}
                   </div>
-                </div>
 
-                <div className="rating-slider-group">
-                  <label>
-                    <span className="rating-icon">🤝</span> Teamwork
-                    <span className="rating-value-display">{selfRatingForm.teamwork}</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={selfRatingForm.teamwork}
-                    onChange={(e) => setSelfRatingForm({ ...selfRatingForm, teamwork: parseInt(e.target.value) })}
-                    disabled={hasSelfRated}
-                    className="rating-slider"
-                  />
-                  <div className="rating-labels">
-                    <span>Beginner</span>
-                    <span>Pro</span>
+                  <div className="skill-level-description">
+                    {selfRatingForm.skillLevel === 1 && (
+                      <p>🌱 <strong>Amater</strong> - Tek počinjem, učim osnove sporta</p>
+                    )}
+                    {selfRatingForm.skillLevel === 2 && (
+                      <p>⭐ <strong>Početnik</strong> - Znam osnove, igram rekreativno</p>
+                    )}
+                    {selfRatingForm.skillLevel === 3 && (
+                      <p>⭐⭐ <strong>Srednji</strong> - Solidno igram, imam iskustva</p>
+                    )}
+                    {selfRatingForm.skillLevel === 4 && (
+                      <p>🔥 <strong>Napredan</strong> - Igram u klubu ili na višoj razini</p>
+                    )}
+                    {selfRatingForm.skillLevel === 5 && (
+                      <p>👑 <strong>Pro</strong> - Profesionalni ili poluprofesionalni igrač</p>
+                    )}
                   </div>
-                </div>
-
-                <div className="rating-slider-group">
-                  <label>
-                    <span className="rating-icon">📊</span> Consistency
-                    <span className="rating-value-display">{selfRatingForm.consistency}</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={selfRatingForm.consistency}
-                    onChange={(e) => setSelfRatingForm({ ...selfRatingForm, consistency: parseInt(e.target.value) })}
-                    disabled={hasSelfRated}
-                    className="rating-slider"
-                  />
-                  <div className="rating-labels">
-                    <span>Beginner</span>
-                    <span>Pro</span>
-                  </div>
-                </div>
-
-                <div className="overall-preview">
-                  <span>Overall Rating Preview:</span>
-                  <strong>
-                    {Math.round((selfRatingForm.attack + selfRatingForm.defense + selfRatingForm.teamwork + selfRatingForm.consistency) / 4)}
-                  </strong>
                 </div>
 
                 {!hasSelfRated && (
@@ -594,7 +732,7 @@ function RatingSystem() {
                     onClick={handleSubmitSelfRating}
                     disabled={submittingSelfRating}
                   >
-                    {submittingSelfRating ? 'Submitting...' : '✅ Submit Self-Rating'}
+                    {submittingSelfRating ? 'Spremanje...' : '✅ Spremi ocjenu'}
                   </button>
                 )}
               </div>
@@ -654,6 +792,16 @@ function RatingSystem() {
       </div>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Sport Rating Modal */}
+      {showSportRatingModal && selectedSport && (
+        <SportRatingModal
+          sport={selectedSport}
+          onSubmit={handleSportRatingSubmit}
+          onCancel={() => setShowSportRatingModal(false)}
+          existingRatings={sportRatings.find(r => r.sport === selectedSport)?.ratings}
+        />
+      )}
     </div>
   );
 }

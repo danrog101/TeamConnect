@@ -1,6 +1,6 @@
 .profile-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--bg-primary);
 }
 
 .profile-container {
@@ -11,10 +11,9 @@
 
 .profile-cover {
   height: 300px;
-  background-size: cover;
-  background-position: center;
+  background: var(--gradient-primary);
   position: relative;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-edit-cover {
@@ -22,19 +21,20 @@
   bottom: 20px;
   right: 20px;
   padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border: none;
-  border-radius: 25px;
+  border-radius: var(--radius-full);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   backdrop-filter: blur(10px);
+  color: var(--primary);
 }
 
 .btn-edit-cover:hover {
   background: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 .profile-header {
@@ -61,19 +61,23 @@
   padding: 30px;
   align-items: flex-start;
   flex-wrap: wrap;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-primary);
 }
 
 .profile-avatar-large {
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 6rem;
-  border: 6px solid white;
-  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+  border: 6px solid var(--bg-secondary);
+  box-shadow: var(--shadow-xl);
   flex-shrink: 0;
   position: relative;
   transition: all 0.3s;
@@ -89,19 +93,19 @@
   right: 0;
   width: 50px;
   height: 50px;
-  background: #667eea;
+  background: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  border: 4px solid white;
+  border: 4px solid var(--bg-secondary);
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .avatar-edit-overlay:hover {
-  background: #764ba2;
+  background: var(--primary-dark);
   transform: scale(1.1);
 }
 
@@ -113,20 +117,20 @@
 .profile-header-info h1 {
   margin: 0 0 8px 0;
   font-size: 2.5rem;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 800;
 }
 
 .profile-username {
   margin: 0 0 15px 0;
-  color: #667eea;
+  color: var(--primary);
   font-size: 1.2rem;
   font-weight: 600;
 }
 
 .profile-bio {
   margin: 15px 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.05rem;
   line-height: 1.6;
   max-width: 600px;
@@ -137,7 +141,7 @@
   gap: 20px;
   flex-wrap: wrap;
   margin: 15px 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
@@ -146,9 +150,10 @@
   align-items: center;
   gap: 5px;
   padding: 6px 14px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 20px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .profile-stats-mini {
@@ -165,13 +170,13 @@
 
 .stat-mini strong {
   font-size: 1.8rem;
-  color: #667eea;
+  color: var(--primary);
   font-weight: 800;
 }
 
 .stat-mini span {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
   text-transform: uppercase;
 }
 
@@ -210,6 +215,10 @@
 .activity-tab,
 .settings-tab {
   animation: slideUp 0.5s ease-out;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
 }
 
 .edit-profile-form,
@@ -223,10 +232,10 @@
 .activity-tab h2,
 .settings-tab h2 {
   margin: 0 0 30px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 2rem;
   padding-bottom: 20px;
-  border-bottom: 3px solid #667eea;
+  border-bottom: 3px solid var(--primary);
 }
 
 .info-grid {
@@ -241,24 +250,24 @@
   justify-content: space-between;
   align-items: center;
   padding: 15px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 12px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
   transition: all 0.3s;
 }
 
 .info-item:hover {
   transform: translateX(5px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 .info-label {
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
 .info-value {
-  color: #667eea;
+  color: var(--primary);
   font-weight: 600;
   font-size: 1rem;
 }
@@ -272,9 +281,9 @@
 
 .sport-badge {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   color: white;
-  border-radius: 20px;
+  border-radius: var(--radius-full);
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -288,18 +297,18 @@
 
 .social-links a {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   color: white;
   text-decoration: none;
-  border-radius: 25px;
+  border-radius: var(--radius-full);
   font-weight: 700;
   transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .social-links a:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: var(--shadow-lg);
 }
 
 .sports-checkboxes {
@@ -314,14 +323,14 @@
   align-items: center;
   gap: 10px;
   padding: 12px;
-  background: #f9f9f9;
-  border-radius: 10px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .checkbox-label:hover {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--bg-primary);
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -332,43 +341,44 @@
 
 .checkbox-label span {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .settings-section {
   margin: 30px 0;
   padding: 25px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 15px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
 }
 
 .settings-section h3 {
   margin: 0 0 20px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.3rem;
 }
 
 .settings-section select {
   width: 100%;
   padding: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-md);
   font-size: 1rem;
-  background: white;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .settings-section select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-alpha);
 }
 
 .link-btn {
   background: none;
   border: none;
-  color: #667eea;
+  color: var(--primary);
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
@@ -377,13 +387,13 @@
 }
 
 .link-btn:hover {
-  color: #764ba2;
+  color: var(--primary-dark);
 }
 
-/* Modal za lozinku */
+/* Password Modal */
 .password-modal {
-  background: white;
-  border-radius: 25px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
   padding: 40px;
   max-width: 500px;
   width: 95%;
@@ -392,14 +402,14 @@
 
 .password-modal h2 {
   margin: 0 0 30px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 2rem;
 }
 
-/* Modal za avatar */
+/* Avatar Modal */
 .avatar-modal {
-  background: white;
-  border-radius: 25px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
   padding: 40px;
   max-width: 600px;
   width: 95%;
@@ -408,7 +418,7 @@
 
 .avatar-modal h2 {
   margin: 0 0 30px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 2rem;
   text-align: center;
 }
@@ -424,7 +434,7 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--bg-tertiary);
   border: 3px solid transparent;
   font-size: 3rem;
   cursor: pointer;
@@ -436,13 +446,13 @@
 
 .avatar-option:hover {
   transform: scale(1.15);
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
 }
 
 .avatar-option.selected {
-  border-color: #667eea;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  border-color: var(--primary);
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-lg);
   transform: scale(1.1);
 }
 
@@ -450,20 +460,20 @@
   text-align: center;
   margin-bottom: 20px;
   padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 15px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
 }
 
 .avatar-upload-section p {
   margin: 0 0 15px 0;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .avatar-upload-section small {
   display: block;
   margin-top: 10px;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.85rem;
 }
 
@@ -482,12 +492,12 @@
   content: '';
   flex: 1;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #ccc, transparent);
+  background: linear-gradient(90deg, transparent, var(--border-primary), transparent);
 }
 
 .avatar-divider span {
   padding: 0 20px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.85rem;
@@ -497,8 +507,40 @@
   text-align: center;
   padding: 100px 20px;
   font-size: 1.5rem;
-  color: #667eea;
+  color: var(--primary);
   font-weight: 700;
+}
+
+/* Support Section */
+.support-section {
+  margin-top: 30px;
+  border-top: 2px solid var(--border-primary);
+  padding-top: 25px;
+}
+
+.support-section p {
+  color: var(--text-secondary);
+  margin-bottom: 15px;
+}
+
+.support-email-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: var(--gradient-primary);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  font-size: 1.05rem;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-md);
+}
+
+.support-email-link:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
 @media (max-width: 1024px) {

@@ -11,7 +11,7 @@ const auth = require('../middleware/auth');
 const { updateProfileValidator, userIdValidator } = require('../middleware/validators');
 
 // Get user profile
-router.get('/:userId', userIdValidator, getProfile);
+router.get('/:userId', auth, userIdValidator, getProfile);
 
 // Get user activity
 router.get('/:userId/activity', userIdValidator, auth, getUserActivity);

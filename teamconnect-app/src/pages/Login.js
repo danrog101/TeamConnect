@@ -110,9 +110,21 @@ function Login() {
         </form>
 
         <p className="auth-link">
+          <a href="/forgot-password">Zaboravili ste lozinku?</a>
+        </p>
+
+        <p className="auth-link">
           Nemaš račun? <a href="/">Registriraj se</a>
         </p>
+
+        <div className="support-info" style={{ marginTop: '20px', padding: '15px', background: '#f8fafc', borderRadius: '10px', textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+            Podrška: <a href="mailto:teamconnect0102@gmail.com" style={{ color: '#4f46e5' }}>teamconnect0102@gmail.com</a>
+          </p>
+        </div>
       </div>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

@@ -27,7 +27,9 @@ function CreateTeam() {
     gender_preference: 'mix',
     min_skill_level: '',
     max_skill_level: '',
-    amateur_only: false
+    amateur_only: false,
+    join_as_player: false,
+    position: ''
   });
 
   const sportsList = getAllSports();
@@ -90,7 +92,9 @@ function CreateTeam() {
       gender_preference: formData.gender_preference,
       min_skill_level: formData.min_skill_level ? parseInt(formData.min_skill_level) : null,
       max_skill_level: formData.max_skill_level ? parseInt(formData.max_skill_level) : null,
-      amateur_only: formData.amateur_only
+      amateur_only: formData.amateur_only,
+      join_as_player: formData.join_as_player,
+      position: formData.join_as_player ? formData.position : null
     };
 
     try {
@@ -301,8 +305,34 @@ const handleAddCustomCity = () => {
                 min="2"
                 max="50"
               />
-              <small>Uključujući tebe</small>
             </div>
+
+            <div className="form-group join-as-player-option">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="join_as_player"
+                  checked={formData.join_as_player}
+                  onChange={(e) => setFormData({ ...formData, join_as_player: e.target.checked, position: '' })}
+                />
+                <span className="checkbox-text">Pridruži se kao igrač</span>
+              </label>
+              <small>Ako označiš ovu opciju, bit ćeš registriran kao igrač u timu. Inače ćeš biti samo kreator/organizator.</small>
+            </div>
+
+            {formData.join_as_player && (
+              <div className="form-group position-select">
+                <label>Tvoja pozicija u timu</label>
+                <input
+                  type="text"
+                  name="position"
+                  value={formData.position}
+                  onChange={handleChange}
+                  placeholder="npr. Napadač, Vratar, Centar, Playmaker..."
+                />
+                <small>Upiši poziciju na kojoj želiš igrati (opcionalno)</small>
+              </div>
+            )}
 
             {/* Player Filtering Options */}
             <div className="filter-section">

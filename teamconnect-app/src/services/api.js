@@ -23,15 +23,32 @@ api.interceptors.request.use((config) => {
 // Auth API
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
-  verify: (data) => api.post('/auth/verifyCode', data),
+  verify: (data) => api.post('/auth/verify', data),
   login: (data) => api.post('/auth/login', data),
-  refresh: (data) => api.post('/auth/refresh', data),
+  refresh: (data) => api.post('/auth/refresh-token', data),
   logout: () => api.post('/auth/logout'),
-  getCurrentUser: () => api.get('/auth/me'),
-  updateProfile: (data) => api.put('/auth/profile', data),
-  changePassword: (data) => api.put('/auth/change-password', data),
+  getCurrentUser: async () => {
+    const response = await api.get('/auth/me');
+    return response.data;
+  },
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
-  resetPassword: (data) => api.post('/auth/reset-password', data)
+  verifyResetCode: (data) => api.post('/auth/verify-reset-code', data),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
+  // Profile methods (using /profile routes)
+  getProfile: (userId) => api.get(`/profile/${userId}`),
+  updateProfile: (data) => api.put('/profile', data),
+  changePassword: (data) => api.post('/profile/password', data),
+  uploadAvatar: (data) => api.post('/profile/avatar', data),
+  // Friends methods (using /friends routes)
+  getFriends: async () => {
+    const response = await api.get('/friends');
+    return response.data;
+  },
+  // Stats methods (using /stats routes)
+  getUserStats: async () => {
+    const response = await api.get('/stats');
+    return response.data;
+  }
 };
 
 // Teams API

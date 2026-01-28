@@ -117,36 +117,49 @@ function Profile() {
   const loadProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         navigate('/login');
         return;
       }
-      
+
       const user = await authAPI.getCurrentUser();
       if (!user) return;
 
-      const userProfile = await authAPI.getFriends(user.id);
-      const userStats = await authAPI.getUserStats(user.id, user.sport || 'football');
-      
+      // Load friends and stats separately with error handling
+      let friends = [];
+      let stats = {};
+
+      try {
+        friends = await authAPI.getFriends();
+      } catch (e) {
+        console.log('Could not load friends:', e.message);
+      }
+
+      try {
+        stats = await authAPI.getUserStats();
+      } catch (e) {
+        console.log('Could not load stats:', e.message);
+      }
+
       setProfile({
         ...user,
-        friends: userProfile,
-        stats: userStats
+        friends: friends || [],
+        stats: stats || {}
       });
-      
-      setIsOwnProfile(!userId || userId === currentUser.id || userId === currentUser.id);
-      
-      // Populate edit form
+
+      setIsOwnProfile(!userId || userId === currentUser.id);
+
+      // Populate edit form - map snake_case from DB to camelCase
       setEditForm({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
+        firstName: user.first_name || user.firstName || '',
+        lastName: user.last_name || user.lastName || '',
         bio: user.bio || '',
-        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+        dateOfBirth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
         gender: user.gender || '',
         sport: user.sport || '',
-        favoriteSports: user.favoriteSports || [],
-        skillLevel: user.skillLevel || '',
+        favoriteSports: user.favorite_sports || user.favoriteSports || [],
+        skillLevel: user.skill_level || user.skillLevel || '',
         position: user.position || '',
         country: user.country || '',
         city: user.city || '',
@@ -154,12 +167,12 @@ function Profile() {
         instagram: user.instagram || '',
         twitter: user.twitter || '',
         facebook: user.facebook || '',
-        profileVisibility: user.profileVisibility || 'public',
-        showEmail: user.showEmail || false,
-        showPhone: user.showPhone || false,
-        leagueLevel: user.leagueLevel || '',
-        yearsExperience: user.yearsExperience || '',
-        selfRating: user.selfRating || 5
+        profileVisibility: user.profile_visibility || user.profileVisibility || 'public',
+        showEmail: user.show_email || user.showEmail || false,
+        showPhone: user.show_phone || user.showPhone || false,
+        leagueLevel: user.league_level || user.leagueLevel || '',
+        yearsExperience: user.years_experience || user.yearsExperience || '',
+        selfRating: user.self_rating || user.selfRating || 5
       });
     } catch (error) {
       console.error('Load profile error:', error);
@@ -170,14 +183,14 @@ function Profile() {
   const handleSaveProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         setToast({ message: 'Please login to save profile', type: 'error' });
         return;
       }
 
       const dbUpdateData = {};
-      
+
       // Map frontend field names to database field names
       if (editForm.firstName) dbUpdateData.first_name = editForm.firstName;
       if (editForm.lastName) dbUpdateData.last_name = editForm.lastName;
@@ -196,26 +209,22 @@ function Profile() {
       if (editForm.profileVisibility) dbUpdateData.profile_visibility = editForm.profileVisibility;
       if (editForm.showEmail !== undefined) dbUpdateData.show_email = editForm.showEmail;
       if (editForm.showPhone !== undefined) dbUpdateData.show_phone = editForm.showPhone;
-      
+
       // Enhanced player statistics
       if (editForm.leagueLevel) dbUpdateData.league_level = editForm.leagueLevel;
       if (editForm.yearsExperience) dbUpdateData.years_experience = editForm.yearsExperience;
       if (editForm.selfRating) dbUpdateData.self_rating = editForm.selfRating;
 
       // Copy other fields directly
-      const allowedFields = ['username', 'bio', 'avatar'];
-      allowedFields.forEach(field => {
-        if (editForm[field] !== undefined) {
-          dbUpdateData[field] = editForm[field];
-        }
-      });
+      if (editForm.bio) dbUpdateData.bio = editForm.bio;
 
-      const updatedUser = await authAPI.updateProfile(userId, dbUpdateData);
-      
-      setProfile(updatedUser);
+      const response = await authAPI.updateProfile(dbUpdateData);
+      const updatedUser = response.data;
+
+      setProfile(prev => ({ ...prev, ...updatedUser }));
       setIsEditing(false);
       setToast({ message: 'Profile updated successfully!', type: 'success' });
-      
+
       // Update localStorage
       const updatedCurrentUser = { ...currentUser, ...updatedUser };
       localStorage.setItem('user', JSON.stringify(updatedCurrentUser));
@@ -231,28 +240,31 @@ function Profile() {
       return;
     }
 
-    if (parseInt(passwordForm.newPassword) < parseInt(passwordForm.currentPassword)) {
-      setToast({ message: 'New password must be longer than current password', type: 'error' });
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setToast({ message: 'New passwords do not match', type: 'error' });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setToast({ message: 'New password must be at least 6 characters', type: 'error' });
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await authAPI.changePassword(userId, {
+      const response = await authAPI.changePassword({
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword
       });
 
-      if (response.success) {
+      if (response.data) {
         setToast({ message: 'Password changed successfully!', type: 'success' });
         setShowPasswordModal(false);
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      } else {
-        setToast({ message: response.message || 'Failed to change password', type: 'error' });
       }
     } catch (error) {
       console.error('Change password error:', error);
-      setToast({ message: 'Failed to change password', type: 'error' });
+      const errorMsg = error.response?.data?.message || 'Failed to change password';
+      setToast({ message: errorMsg, type: 'error' });
     }
   };
 
@@ -315,24 +327,14 @@ function Profile() {
     reader.readAsDataURL(file);
   };
 
-  const handleToggleFavoriteSport = async (sportId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await authAPI.updateProfile(userId, {
-        favoriteSports: profile.favoriteSports.includes(sportId)
-          ? profile.favoriteSports.filter(id => id !== sportId)
-          : [...profile.favoriteSports, sportId]
-      });
+  const handleToggleFavoriteSport = (sportId) => {
+    // Update local state only - will be saved when user clicks Save
+    const currentFavorites = editForm.favoriteSports || [];
+    const newFavorites = currentFavorites.includes(sportId)
+      ? currentFavorites.filter(id => id !== sportId)
+      : [...currentFavorites, sportId];
 
-      if (response.success) {
-        const updatedUser = { ...currentUser, ...response.user };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setProfile(response.user);
-      }
-    } catch (error) {
-      console.error('Toggle favorite sport error:', error);
-      setToast({ message: 'Failed to update favorite sports', type: 'error' });
-    }
+    setEditForm({ ...editForm, favoriteSports: newFavorites });
   };
 
   const getSkillLevelLabel = (level) => {
@@ -353,6 +355,14 @@ function Profile() {
       other: 'Other'
     };
     return labels[gender] || gender;
+  };
+
+  const getPositionLabel = (position, sport) => {
+    if (!position || !sport) return position;
+    const sportPositions = positions[sport.toLowerCase()];
+    if (!sportPositions) return position;
+    const found = sportPositions.find(p => p.value === position);
+    return found ? found.label : position;
   };
 
   if (!profile) {
@@ -564,7 +574,7 @@ function Profile() {
                     <label>Main Sport</label>
                     <select
                       value={editForm.sport}
-                      onChange={(e) => setEditForm({ ...editForm, sport: e.target.value })}
+                      onChange={(e) => setEditForm({ ...editForm, sport: e.target.value, position: '' })}
                     >
                       <option value="">Select</option>
                       {sportsList.map(sport => (
@@ -604,12 +614,16 @@ function Profile() {
                     </div>
                     <div className="form-group">
                       <label>Position</label>
-                      <input
-                        type="text"
+                      <select
                         value={editForm.position}
                         onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
-                        placeholder="e.g. Forward"
-                      />
+                        disabled={!editForm.sport}
+                      >
+                        <option value="">{editForm.sport ? 'Select position' : 'Select sport first'}</option>
+                        {editForm.sport && positions[editForm.sport.toLowerCase()]?.map(pos => (
+                          <option key={pos.value} value={pos.value}>{pos.label}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -730,7 +744,7 @@ function Profile() {
                     {profile.position && (
                       <div className="info-item">
                         <span className="info-label">Position:</span>
-                        <span className="info-value">{profile.position}</span>
+                        <span className="info-value">{getPositionLabel(profile.position, profile.sport)}</span>
                       </div>
                     )}
                   </div>
@@ -824,12 +838,23 @@ function Profile() {
               </div>
 
               <div className="form-actions">
-                <button 
+                <button
                   className="btn btn-primary"
                   onClick={handleSaveProfile}
                 >
                   💾 Save Settings
                 </button>
+              </div>
+
+              <div className="settings-section support-section">
+                <h3>📧 Podrška / Support</h3>
+                <p>Imate pitanje ili problem? Kontaktirajte nas:</p>
+                <a
+                  href="mailto:teamconnect0102@gmail.com"
+                  className="support-email-link"
+                >
+                  📩 teamconnect0102@gmail.com
+                </a>
               </div>
             </div>
           )}

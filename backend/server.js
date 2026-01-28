@@ -105,13 +105,14 @@ app.get('/api', (req, res) => {
       activities: '/api/activities',
       notifications: '/api/notifications',
       chat: '/api/chat',
-      admin: '/api/admin'
+      admin: '/api/admin',
+      waitlist: '/api/waitlist'
     },
     health: '/health'
   });
 });
 
-// ✅ IMPORT ALL 14 ROUTE FILES
+// ✅ IMPORT ALL 15 ROUTE FILES
 const activityRoutes = require('./routes/activityRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -126,8 +127,9 @@ const statsRoutes = require('./routes/statsRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const tournamentRoutes = require('./routes/tournamentRoutes');
 const videoRoutes = require('./routes/videoRoutes');
+const waitlistRoutes = require('./routes/waitlistRoutes');
 
-// ✅ USE ALL 14 ROUTES
+// ✅ USE ALL 15 ROUTES
 app.use('/api/activities', activityRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/auth', authRoutes);
@@ -142,6 +144,7 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/videos', videoRoutes);
+app.use('/api/waitlist', waitlistRoutes);
 
 // Socket.io event handlers
 io.on('connection', (socket) => {
@@ -211,7 +214,7 @@ server.listen(PORT, () => {
   console.log(`🌍 Frontend URL: ${config.frontendUrl}`);
   console.log(`🗄️  Database: Supabase (${config.supabase.url ? '✅' : '❌'})`);
   console.log('');
-  console.log('📋 Available Routes (14):');
+  console.log('📋 Available Routes (15):');
   console.log('   ✅ /api/activities');
   console.log('   ✅ /api/admin');
   console.log('   ✅ /api/auth');
@@ -226,6 +229,7 @@ server.listen(PORT, () => {
   console.log('   ✅ /api/teams');
   console.log('   ✅ /api/tournaments');
   console.log('   ✅ /api/videos');
+  console.log('   ✅ /api/waitlist');
   console.log('═══════════════════════════════════════════');
 });
 

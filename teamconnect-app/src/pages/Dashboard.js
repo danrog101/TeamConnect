@@ -109,12 +109,12 @@ function Dashboard() {
     }
   };
 
-  const handleJoinTeam = async (teamId) => {
-    console.log('🔵 Dashboard - Join team called with ID:', teamId);
-    
+  const handleJoinTeam = async (teamId, position = '') => {
+    console.log('🔵 Dashboard - Join team called with ID:', teamId, 'Position:', position);
+
     try {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         navigate('/login', { replace: true });
         return;
@@ -133,7 +133,8 @@ function Dashboard() {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ position: position || null })
       });
 
       console.log('📡 Join response status:', response.status);
@@ -305,11 +306,12 @@ function Dashboard() {
         ) : (
           <div className="teams-grid">
             {filteredTeams.map(team => (
-              <TeamCard 
+              <TeamCard
                 key={team.id}
-                team={team} 
+                team={team}
                 onJoin={handleJoinTeam}
                 onJoinWaitlist={handleJoinWaitlist}
+                onShowNotification={(msg, type) => setToast({ message: msg, type })}
               />
             ))}
           </div>

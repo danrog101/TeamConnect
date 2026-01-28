@@ -1,0 +1,272 @@
+.sport-rating-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(6px);
+  padding: 20px;
+}
+
+.sport-rating-modal {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.sport-rating-header {
+  padding: 32px 32px 24px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.sport-rating-header .sport-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.sport-rating-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.sport-rating-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.sport-rating-categories {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rating-category {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid var(--border-primary);
+  transition: all 0.2s;
+}
+
+.rating-category:hover {
+  border-color: var(--primary);
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.category-icon {
+  font-size: 1.8rem;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.category-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.category-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.category-description {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* 1-5 Rating Buttons */
+.category-rating-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.rating-level-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 3px solid var(--border-primary);
+  background: var(--bg-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.rating-level-btn:hover {
+  transform: scale(1.1);
+  border-color: var(--level-color, var(--primary));
+}
+
+.rating-level-btn.selected {
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.rating-level-btn .level-num {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.rating-level-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  padding: 0 4px;
+}
+
+.sport-rating-summary {
+  padding: 24px 32px;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.overall-rating,
+.skill-level {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.overall-label,
+.level-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.overall-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+}
+
+.overall-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.overall-stars .star {
+  font-size: 2rem;
+  transition: all 0.2s;
+}
+
+.overall-stars .star.filled {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.level-badge {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.sport-rating-actions {
+  padding: 24px 32px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border-primary);
+}
+
+.sport-rating-actions .btn {
+  padding: 12px 28px;
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .sport-rating-modal {
+    max-height: 95vh;
+  }
+
+  .sport-rating-header {
+    padding: 24px 20px 20px;
+  }
+
+  .sport-rating-header .sport-icon {
+    font-size: 3rem;
+  }
+
+  .sport-rating-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .sport-rating-categories {
+    padding: 20px;
+  }
+
+  .rating-category {
+    padding: 16px;
+  }
+
+  .category-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+
+  .sport-rating-summary {
+    padding: 20px;
+  }
+
+  .sport-rating-actions {
+    padding: 20px;
+    flex-direction: column;
+  }
+
+  .sport-rating-actions .btn {
+    width: 100%;
+  }
+}

@@ -86,87 +86,87 @@ function ActivityFeed() {
   };
 
   const getActivityText = (activity) => {
-    const username = activity.user.username;
-    
+    const username = activity.user?.username || 'Korisnik';
+
     switch (activity.type) {
       case 'team_created':
         return (
           <>
             <strong>{username}</strong> je kreirao tim{' '}
-            <span className="highlight">{activity.data.teamName}</span>
+            <span className="highlight">{activity.team_name}</span>
           </>
         );
       case 'team_joined':
         return (
           <>
             <strong>{username}</strong> se pridružio timu{' '}
-            <span className="highlight">{activity.data.teamName}</span>
+            <span className="highlight">{activity.team_name}</span>
           </>
         );
       case 'match_played':
         return (
           <>
             <strong>{username}</strong> je odigrao utakmicu protiv{' '}
-            <span className="highlight">{activity.data.opponent}</span>
+            <span className="highlight">{activity.opponent}</span>
           </>
         );
       case 'match_won':
         return (
           <>
             <strong>{username}</strong> je pobijedio{' '}
-            <span className="highlight">{activity.data.opponent}</span> rezultatom{' '}
-            <span className="highlight">{activity.data.score}</span>
+            <span className="highlight">{activity.opponent}</span> rezultatom{' '}
+            <span className="highlight">{activity.score}</span>
           </>
         );
       case 'video_uploaded':
         return (
           <>
             <strong>{username}</strong> je uploadao video{' '}
-            <span className="highlight">{activity.data.videoTitle}</span>
+            <span className="highlight">{activity.video_title}</span>
           </>
         );
       case 'tournament_created':
         return (
           <>
             <strong>{username}</strong> je kreirao turnir{' '}
-            <span className="highlight">{activity.data.tournamentName}</span>
+            <span className="highlight">{activity.tournament_name}</span>
           </>
         );
       case 'tournament_joined':
         return (
           <>
             <strong>{username}</strong> se prijavio na turnir{' '}
-            <span className="highlight">{activity.data.tournamentName}</span> s timom{' '}
-            <span className="highlight">{activity.data.teamName}</span>
+            <span className="highlight">{activity.tournament_name}</span> s timom{' '}
+            <span className="highlight">{activity.team_name}</span>
           </>
         );
       case 'field_added':
         return (
           <>
             <strong>{username}</strong> je dodao teren{' '}
-            <span className="highlight">{activity.data.fieldName}</span>
+            <span className="highlight">{activity.field_name}</span>
           </>
         );
       case 'friend_added':
         return (
           <>
             <strong>{username}</strong> i{' '}
-            <strong>{activity.data.friendName}</strong> su sada prijatelji
+            <strong>{activity.friend_name}</strong> su sada prijatelji
           </>
         );
       case 'achievement_unlocked':
         return (
           <>
-            <strong>{username}</strong> je otkljućao achievement{' '}
-            <span className="highlight">{activity.data.achievementName}</span>
+            <strong>{username}</strong> je otključao achievement{' '}
+            <span className="highlight">{activity.achievement_name}</span>
           </>
         );
       case 'rank_up':
         return (
           <>
             <strong>{username}</strong> je napredovao iz{' '}
-            <span className="highlight">{activity.data.oldRank}</span> u{' '}
-            <span className="highlight">{activity.data.newRank}</span> rank
+            <span className="highlight">{activity.old_rank}</span> u{' '}
+            <span className="highlight">{activity.new_rank}</span> rank
           </>
         );
       case 'goal_scored':
@@ -217,7 +217,7 @@ function ActivityFeed() {
       
       <div className="activity-feed-container">
         <div className="activity-feed-header">
-          <h1>📰 Activity Feed</h1>
+          <h1>📰 Aktivnosti</h1>
           <p>Vidi što se događa u TeamConnect zajednici</p>
         </div>
 
@@ -270,20 +270,20 @@ function ActivityFeed() {
           <>
             <div className="activities-list">
               {activities.map(activity => (
-                <div key={activity._id} className="activity-item card">
+                <div key={activity.id} className="activity-item card">
                   <div className="activity-icon">
                     {getActivityIcon(activity.type)}
                   </div>
-                  
+
                   <div className="activity-content">
                     <div className="activity-avatar">
-                      {activity.user.avatar}
+                      {activity.user?.avatar || '👤'}
                     </div>
-                    
+
                     <div className="activity-text">
                       <p>{getActivityText(activity)}</p>
                       <span className="activity-time">
-                        {formatTime(activity.createdAt)}
+                        {formatTime(activity.created_at)}
                       </span>
                     </div>
                   </div>

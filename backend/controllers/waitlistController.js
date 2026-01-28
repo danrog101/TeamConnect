@@ -37,7 +37,7 @@ exports.joinWaitlist = async (req, res) => {
       .single();
 
     if (existingWaitlist) {
-      return res.status(400).json({ message: 'Already on waitlist!' });
+      return res.status(400).json({ message: 'Već ste na listi čekanja!' });
     }
 
     // Check if already a member
@@ -49,7 +49,7 @@ exports.joinWaitlist = async (req, res) => {
       .single();
 
     if (membership) {
-      return res.status(400).json({ message: 'Already a team member!' });
+      return res.status(400).json({ message: 'Već ste član tima!' });
     }
 
     // Add to waitlist
@@ -67,8 +67,8 @@ exports.joinWaitlist = async (req, res) => {
       return res.status(500).json({ message: 'Failed to join waitlist' });
     }
 
-    res.json({ 
-      message: 'Added to waitlist! We will notify you by email when a spot opens.' 
+    res.json({
+      message: 'Dodani ste na listu čekanja! Obavijestit ćemo vas emailom kada se oslobodi mjesto.'
     });
   } catch (error) {
     console.error('Waitlist error:', error);
@@ -105,7 +105,7 @@ exports.leaveWaitlist = async (req, res) => {
       return res.status(500).json({ message: 'Failed to leave waitlist' });
     }
 
-    res.json({ message: 'Removed from waitlist' });
+    res.json({ message: 'Uklonjeni ste s liste čekanja' });
   } catch (error) {
     console.error('Leave waitlist error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -147,47 +147,47 @@ exports.notifyWaitlist = async (teamId) => {
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: item.email,
-        subject: `🎉 Spot available in team: ${team.name}`,
+        subject: `🎉 Oslobodilo se mjesto u timu: ${team.name}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px;">
-            <h1 style="color: white; text-align: center;">🎉 Good news!</h1>
-            
+            <h1 style="color: white; text-align: center;">🎉 Odlične vijesti!</h1>
+
             <div style="background: white; padding: 30px; border-radius: 10px; margin: 20px 0;">
-              <h2 style="color: #667eea;">A spot has opened up!</h2>
-              
+              <h2 style="color: #667eea;">Oslobodilo se mjesto!</h2>
+
               <p style="font-size: 16px; color: #333; line-height: 1.6;">
-                A spot is now available in the team you were interested in:
+                Mjesto je sada dostupno u timu za koji ste bili zainteresirani:
               </p>
-              
+
               <div style="background: #f5f7fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                <p style="margin: 10px 0;"><strong>Team:</strong> ${team.name}</p>
+                <p style="margin: 10px 0;"><strong>Tim:</strong> ${team.name}</p>
                 <p style="margin: 10px 0;"><strong>Sport:</strong> ${team.sport}</p>
-                <p style="margin: 10px 0;"><strong>Location:</strong> ${team.city}, ${team.location}</p>
-                <p style="margin: 10px 0;"><strong>Date:</strong> ${new Date(team.date).toLocaleDateString('en-US')}</p>
-                <p style="margin: 10px 0;"><strong>Time:</strong> ${team.time}</p>
-                <p style="margin: 10px 0;"><strong>Available spots:</strong> ${team.max_players - team.current_players}/${team.max_players}</p>
+                <p style="margin: 10px 0;"><strong>Lokacija:</strong> ${team.city}, ${team.location}</p>
+                <p style="margin: 10px 0;"><strong>Datum:</strong> ${new Date(team.date).toLocaleDateString('hr-HR')}</p>
+                <p style="margin: 10px 0;"><strong>Vrijeme:</strong> ${team.time}</p>
+                <p style="margin: 10px 0;"><strong>Dostupna mjesta:</strong> ${team.max_players - team.current_players}/${team.max_players}</p>
               </div>
-              
+
               <p style="font-size: 16px; color: #333;">
-                Hurry! Join quickly because spots fill up fast.
+                Požurite! Pridružite se brzo jer se mjesta brzo popunjavaju.
               </p>
-              
+
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${process.env.FRONTEND_URL}/teams/${teamId}" 
-                   style="background: linear-gradient(135deg, #667eea, #764ba2); 
-                          color: white; 
-                          padding: 15px 40px; 
-                          text-decoration: none; 
-                          border-radius: 25px; 
+                <a href="${process.env.FRONTEND_URL}/dashboard"
+                   style="background: linear-gradient(135deg, #667eea, #764ba2);
+                          color: white;
+                          padding: 15px 40px;
+                          text-decoration: none;
+                          border-radius: 25px;
                           font-weight: bold;
                           display: inline-block;">
-                  Join Team
+                  Pridruži se timu
                 </a>
               </div>
             </div>
-            
+
             <p style="color: white; text-align: center; font-size: 14px;">
-              TeamConnect - Connect with players 🏆
+              TeamConnect - Poveži se s igračima 🏆
             </p>
           </div>
         `

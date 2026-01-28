@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import Toast from '../components/Toast';
 import './Auth.css';
 
 function VerifyEmail() {
@@ -8,6 +9,7 @@ function VerifyEmail() {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,9 +72,11 @@ function VerifyEmail() {
         </form>
 
         <p className="auth-link">
-          Nisi primio kod? <a href="#" onClick={() => alert('Funkcija dolazi uskoro!')}>Pošalji ponovno</a>
+          Nisi primio kod? <a href="#" onClick={(e) => { e.preventDefault(); setToast({ message: 'Funkcija dolazi uskoro!', type: 'info' }); }}>Pošalji ponovno</a>
         </p>
       </div>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

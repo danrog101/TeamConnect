@@ -1,17 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import NotificationBell from './NotificationBell';
+import LanguageSelector from './LanguageSelector';
 import './Navbar.css';
+
+const ADMIN_EMAIL = 'teamconnect0102@gmail.com';
 
 function Navbar() {
   const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [showMenu, setShowMenu] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const isAdmin = user.email === ADMIN_EMAIL;
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('refreshToken');
     navigate('/login');
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(true);
   };
 
   return (
@@ -61,14 +73,6 @@ function Navbar() {
             📊 Statistika
           </button>
           
-          <button className="nav-link" onClick={() => { navigate('/events'); setShowMenu(false); }}>
-            🎫 Eventi
-          </button>
-          
-          <button className="nav-link" onClick={() => { navigate('/rewards'); setShowMenu(false); }}>
-            🏅 Rewards
-          </button>
-          
           <button className="nav-link" onClick={() => { navigate('/highlights'); setShowMenu(false); }}>
             📹 Highlights
           </button>
@@ -76,9 +80,23 @@ function Navbar() {
           <button className="nav-link" onClick={() => { navigate('/activity'); setShowMenu(false); }}>
             📰 Aktivnosti
           </button>
+
+          {isAdmin && (
+            <button className="nav-link admin-link" onClick={() => { navigate('/admin'); setShowMenu(false); }}>
+              ⚙️ Admin
+            </button>
+          )}
         </div>
 
         <div className="navbar-user">
+          <LanguageSelector />
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            title={isDark ? 'Prebaci na svijetli način' : 'Prebaci na tamni način'}
+          >
+            {isDark ? '☀️' : '🌙'}
+          </button>
           <NotificationBell />
           <button className="user-avatar" onClick={() => navigate('/profile')}>
             {user.avatar || '👤'}
@@ -86,11 +104,36 @@ function Navbar() {
           <span className="user-name" onClick={() => navigate('/profile')}>
             {user.username}
           </span>
-          <button className="btn-logout" onClick={handleLogout}>
+          <button className="btn-logout" onClick={confirmLogout}>
             Odjava
           </button>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="logout-modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
+          <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="logout-modal-icon">👋</div>
+            <h3>Odjava</h3>
+            <p>Jeste li sigurni da se želite odjaviti?</p>
+            <div className="logout-modal-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowLogoutConfirm(false)}
+              >
+                Odustani
+              </button>
+              <button
+                className="btn btn-primary btn-logout-confirm"
+                onClick={handleLogout}
+              >
+                Da, odjavi me
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

@@ -1,9 +1,6 @@
 .tournament-register-page {
   min-height: 100vh;
-  background: 
-    linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%),
-    url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1920&q=80') center/cover no-repeat fixed;
-  background-blend-mode: overlay;
+  background: var(--bg-primary);
 }
 
 .register-container {
@@ -13,6 +10,11 @@
 }
 
 .register-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-primary);
   animation: slideIn 0.5s ease-out;
 }
 
@@ -30,24 +32,28 @@
 .register-header {
   text-align: center;
   padding-bottom: 30px;
-  border-bottom: 3px solid #f0f0f0;
+  border-bottom: 3px solid var(--border-primary);
   margin-bottom: 40px;
 }
 
 .register-header h1 {
   font-size: 2.5rem;
-  color: #333;
   margin-bottom: 10px;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .register-header h2 {
   font-size: 1.8rem;
-  color: #667eea;
+  color: var(--primary);
   margin: 15px 0 10px 0;
 }
 
 .register-header p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.1rem;
 }
 
@@ -56,11 +62,11 @@
 }
 
 .form-section h3 {
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 20px;
   font-size: 1.4rem;
   padding-bottom: 10px;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid var(--primary);
 }
 
 .player-field {
@@ -72,10 +78,23 @@
 
 .player-field input {
   flex: 1;
+  padding: 14px 16px;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  transition: all 0.2s;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.player-field input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-alpha);
 }
 
 .btn-remove {
-  background: #f44336;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
   border: none;
   width: 40px;
@@ -90,32 +109,104 @@
 }
 
 .btn-remove:hover {
-  background: #d32f2f;
   transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-add-player {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-add-player:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);
 }
 
 .fee-notice {
-  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
   padding: 20px;
-  border-radius: 15px;
-  border-left: 5px solid #ff9800;
+  border-radius: var(--radius-lg);
+  border-left: 5px solid #f59e0b;
   margin-bottom: 30px;
+}
+
+[data-theme="dark"] .fee-notice {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
 }
 
 .fee-notice p {
   margin: 0 0 5px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.1rem;
 }
 
 .fee-notice strong {
-  color: #ff9800;
+  color: #d97706;
   font-size: 1.3rem;
 }
 
 .fee-notice small {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  transition: all 0.2s;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-alpha);
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.form-actions .btn {
+  flex: 1;
 }
 
 @media (max-width: 768px) {
@@ -129,5 +220,9 @@
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .register-card {
+    padding: 24px;
   }
 }

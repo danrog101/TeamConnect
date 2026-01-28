@@ -332,46 +332,34 @@ const isUserAmateur = (overallRating) => {
   return percentage < 60; // Amateur if less than 60%
 };
 
-// Submit self-rating
+// Submit self-rating - Simplified 1-5 scale
 exports.submitSelfRating = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { attack, defense, teamwork, consistency } = req.body;
+    const { skillLevel } = req.body;
 
-    // Validate ratings (0-100)
-    const validateRating = (value) => {
-      const num = parseInt(value);
-      return !isNaN(num) && num >= 0 && num <= 100 ? num : null;
-    };
-
-    const selfRatings = {
-      self_rating_attack: validateRating(attack),
-      self_rating_defense: validateRating(defense),
-      self_rating_teamwork: validateRating(teamwork),
-      self_rating_consistency: validateRating(consistency)
-    };
-
-    // Check all ratings are valid
-    if (Object.values(selfRatings).some(v => v === null)) {
-      return res.status(400).json({ message: 'All ratings must be between 0 and 100' });
+    // Validate skill level (1-5)
+    const level = parseInt(skillLevel);
+    if (isNaN(level) || level < 1 || level > 5) {
+      return res.status(400).json({ message: 'Skill level must be between 1 and 5' });
     }
 
-    // Calculate overall self-rating (0-100)
-    const overallSelfRating = Math.round(
-      (selfRatings.self_rating_attack +
-       selfRatings.self_rating_defense +
-       selfRatings.self_rating_teamwork +
-       selfRatings.self_rating_consistency) / 4
-    );
+    // Convert 1-5 to percentage-based ratings (for compatibility)
+    // 1=20%, 2=40%, 3=60%, 4=80%, 5=100%
+    const ratingValue = level * 20;
 
-    // Calculate skill level (1-5)
-    const skillLevel = calculateSkillLevel(overallSelfRating);
+    const selfRatings = {
+      self_rating_attack: ratingValue,
+      self_rating_defense: ratingValue,
+      self_rating_teamwork: ratingValue,
+      self_rating_consistency: ratingValue
+    };
 
     // Convert to rating scale (0-3000)
-    const overallRatingScaled = overallSelfRating * 30;
+    const overallRatingScaled = ratingValue * 30;
 
-    // Determine amateur status (amateur if rating < 60%)
-    const amateur = isUserAmateur(overallRatingScaled);
+    // Determine amateur status (levels 1-2 are amateur)
+    const amateur = level <= 2;
 
     // Update user with self-ratings
     const { data: updatedUser, error } = await supabase
@@ -380,15 +368,15 @@ exports.submitSelfRating = async (req, res) => {
         ...selfRatings,
         has_self_rated: true,
         self_rated_at: new Date().toISOString(),
-        // Initialize actual ratings from self-ratings (will be adjusted by others later)
-        rating_attack: selfRatings.self_rating_attack,
-        rating_defense: selfRatings.self_rating_defense,
-        rating_teamwork: selfRatings.self_rating_teamwork,
-        rating_consistency: selfRatings.self_rating_consistency,
+        // Initialize actual ratings from self-ratings
+        rating_attack: ratingValue,
+        rating_defense: ratingValue,
+        rating_teamwork: ratingValue,
+        rating_consistency: ratingValue,
         rating_overall: overallRatingScaled,
         rating_last_updated: new Date().toISOString(),
         // Set skill level and amateur status
-        skill_level_numeric: skillLevel,
+        skill_level_numeric: level,
         is_amateur: amateur
       })
       .eq('id', userId)
@@ -402,14 +390,7 @@ exports.submitSelfRating = async (req, res) => {
 
     res.json({
       message: 'Self-rating submitted successfully!',
-      selfRatings: {
-        attack: selfRatings.self_rating_attack,
-        defense: selfRatings.self_rating_defense,
-        teamwork: selfRatings.self_rating_teamwork,
-        consistency: selfRatings.self_rating_consistency,
-        overall: overallSelfRating
-      },
-      skillLevel,
+      skillLevel: level,
       isAmateur: amateur,
       user: updatedUser
     });
@@ -426,7 +407,7 @@ exports.getSelfRatingStatus = async (req, res) => {
 
     const { data: user, error } = await supabase
       .from('users')
-      .select('has_self_rated, self_rating_attack, self_rating_defense, self_rating_teamwork, self_rating_consistency, self_rated_at')
+      .select('has_self_rated, skill_level_numeric, self_rated_at')
       .eq('id', userId)
       .single();
 
@@ -436,16 +417,169 @@ exports.getSelfRatingStatus = async (req, res) => {
 
     res.json({
       hasSelfRated: user.has_self_rated || false,
-      selfRatings: user.has_self_rated ? {
-        attack: user.self_rating_attack,
-        defense: user.self_rating_defense,
-        teamwork: user.self_rating_teamwork,
-        consistency: user.self_rating_consistency
-      } : null,
+      skillLevel: user.skill_level_numeric || null,
       selfRatedAt: user.self_rated_at
     });
   } catch (error) {
     console.error('Get self-rating status error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get sport-specific rating for current user
+exports.getSportRating = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { sport } = req.params;
+
+    // Check if user has sport-specific rating
+    const { data: sportRating, error } = await supabase
+      .from('sport_ratings')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('sport', sport)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Get sport rating error:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (!sportRating) {
+      return res.json({
+        hasRating: false,
+        sport: sport
+      });
+    }
+
+    res.json({
+      hasRating: true,
+      sport: sport,
+      ratings: sportRating.ratings,
+      overall_rating: sportRating.overall_rating,
+      skill_level: sportRating.skill_level,
+      created_at: sportRating.created_at,
+      updated_at: sportRating.updated_at
+    });
+  } catch (error) {
+    console.error('Get sport rating error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Submit sport-specific rating
+exports.submitSportRating = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { sport, ratings, overallRating, skillLevel } = req.body;
+
+    if (!sport || !ratings) {
+      return res.status(400).json({ message: 'Sport and ratings are required' });
+    }
+
+    // Validate all rating values are 0-100
+    const ratingValues = Object.values(ratings);
+    if (ratingValues.some(v => typeof v !== 'number' || v < 0 || v > 100)) {
+      return res.status(400).json({ message: 'All ratings must be between 0 and 100' });
+    }
+
+    // Check if user already has a rating for this sport
+    const { data: existing } = await supabase
+      .from('sport_ratings')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('sport', sport)
+      .single();
+
+    let result;
+
+    if (existing) {
+      // Update existing rating
+      const { data, error } = await supabase
+        .from('sport_ratings')
+        .update({
+          ratings: ratings,
+          overall_rating: overallRating,
+          skill_level: skillLevel,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Update sport rating error:', error);
+        return res.status(500).json({ message: 'Failed to update rating' });
+      }
+      result = data;
+    } else {
+      // Insert new rating
+      const { data, error } = await supabase
+        .from('sport_ratings')
+        .insert({
+          user_id: userId,
+          sport: sport,
+          ratings: ratings,
+          overall_rating: overallRating,
+          skill_level: skillLevel
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Insert sport rating error:', error);
+        return res.status(500).json({ message: 'Failed to save rating' });
+      }
+      result = data;
+    }
+
+    // Also update user's main skill level if this is their primary sport
+    const { data: user } = await supabase
+      .from('users')
+      .select('sport')
+      .eq('id', userId)
+      .single();
+
+    if (user && (user.sport === sport || !user.sport)) {
+      await supabase
+        .from('users')
+        .update({
+          skill_level_numeric: skillLevel,
+          has_self_rated: true,
+          self_rated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+    }
+
+    res.json({
+      message: 'Ocjena uspješno spremljena!',
+      sportRating: result
+    });
+  } catch (error) {
+    console.error('Submit sport rating error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get all sport ratings for a user
+exports.getAllSportRatings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const { data: sportRatings, error } = await supabase
+      .from('sport_ratings')
+      .select('*')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Get all sport ratings error:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    res.json(sportRatings || []);
+  } catch (error) {
+    console.error('Get all sport ratings error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

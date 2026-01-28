@@ -22,52 +22,50 @@ function MyTeams() {
     try {
       setLoading(true);
       const response = await teamsAPI.getMy();
-      
-      // ✅ FIXED: Changed from setTeams(data) to setTeams(response.data)
       setTeams(response.data || []);
     } catch (error) {
       console.error('Fetch teams error:', error);
-      setToast({ message: 'Failed to load teams', type: 'error' });
+      setToast({ message: 'Greška pri učitavanju timova', type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleLeaveTeam = async (teamId) => {
-    if (!window.confirm('Are you sure you want to leave this team?')) {
+    if (!window.confirm('Jeste li sigurni da želite napustiti ovaj tim?')) {
       return;
     }
 
     try {
       await teamsAPI.leave(teamId);
-      setToast({ message: 'You left the team', type: 'info' });
+      setToast({ message: 'Napustili ste tim', type: 'info' });
       fetchMyTeams();
     } catch (error) {
       console.error('Leave team error:', error);
-      setToast({ message: 'Failed to leave team', type: 'error' });
+      setToast({ message: 'Greška pri napuštanju tima', type: 'error' });
     }
   };
 
   const handleDeleteTeam = async (teamId) => {
-    if (!window.confirm('Are you sure you want to delete this team? This action cannot be undone!')) {
+    if (!window.confirm('Jeste li sigurni da želite obrisati ovaj tim? Ova radnja se ne može poništiti!')) {
       return;
     }
 
     try {
       await teamsAPI.delete(teamId);
-      setToast({ message: 'Team deleted', type: 'success' });
+      setToast({ message: 'Tim je obrisan', type: 'success' });
       fetchMyTeams();
     } catch (error) {
       console.error('Delete team error:', error);
-      setToast({ message: 'Failed to delete team', type: 'error' });
+      setToast({ message: 'Greška pri brisanju tima', type: 'error' });
     }
   };
 
-  const myCreatedTeams = teams.filter(t => 
+  const myCreatedTeams = teams.filter(t =>
     t.creator?.id === currentUser.id || t.creator_id === currentUser.id
   );
-  
-  const myJoinedTeams = teams.filter(t => 
+
+  const myJoinedTeams = teams.filter(t =>
     t.creator?.id !== currentUser.id && t.creator_id !== currentUser.id
   );
 
@@ -77,7 +75,7 @@ function MyTeams() {
         <Navbar />
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading teams...</p>
+          <p>Učitavanje timova...</p>
         </div>
       </div>
     );
@@ -86,27 +84,27 @@ function MyTeams() {
   return (
     <div className="my-teams-page">
       <Navbar />
-      
+
       <div className="my-teams-container">
         <div className="my-teams-header">
-          <h1>👥 My Teams</h1>
-          <p>Manage your teams</p>
+          <h1>Moji Timovi</h1>
+          <p>Upravljaj svojim timovima</p>
           <button className="btn btn-primary btn-large" onClick={() => navigate('/create-team')}>
-            + Create New Team
+            + Kreiraj Novi Tim
           </button>
         </div>
 
         {teams.length === 0 ? (
           <div className="no-teams card">
             <span className="empty-icon">⚽</span>
-            <h2>You have no teams</h2>
-            <p>Create a new team or browse existing teams on the Dashboard</p>
+            <h2>Nemate timova</h2>
+            <p>Kreirajte novi tim ili pregledajte postojeće timove na Dashboardu</p>
             <div className="empty-actions">
               <button className="btn btn-primary" onClick={() => navigate('/create-team')}>
-                Create Team
+                Kreiraj Tim
               </button>
               <button className="btn btn-secondary" onClick={() => navigate('/dashboard')}>
-                Browse Teams
+                Pregledaj Timove
               </button>
             </div>
           </div>
@@ -114,14 +112,15 @@ function MyTeams() {
           <>
             {myCreatedTeams.length > 0 && (
               <div className="teams-section">
-                <h2 className="section-title">🎯 Teams I Created ({myCreatedTeams.length})</h2>
+                <h2 className="section-title">Timovi koje sam kreirao ({myCreatedTeams.length})</h2>
                 <div className="teams-grid">
                   {myCreatedTeams.map(team => (
-                    <TeamCard 
-                      key={team.id} 
+                    <TeamCard
+                      key={team.id}
                       team={team}
                       onDelete={handleDeleteTeam}
                       showActions={true}
+                      autoExpandMembers={true}
                     />
                   ))}
                 </div>
@@ -130,11 +129,11 @@ function MyTeams() {
 
             {myJoinedTeams.length > 0 && (
               <div className="teams-section">
-                <h2 className="section-title">🤝 Teams I Joined ({myJoinedTeams.length})</h2>
+                <h2 className="section-title">Timovi kojima sam se pridružio ({myJoinedTeams.length})</h2>
                 <div className="teams-grid">
                   {myJoinedTeams.map(team => (
-                    <TeamCard 
-                      key={team.id} 
+                    <TeamCard
+                      key={team.id}
                       team={team}
                       onLeave={handleLeaveTeam}
                       showActions={true}

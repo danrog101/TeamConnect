@@ -1,8 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { LanguageProvider } from './i18n/LanguageContext';
 import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import AdminDashboard from './pages/AdminDashboard';
 import ProfileSetup from './pages/ProfileSetup';
 import Dashboard from './pages/Dashboard';
 import CreateTeam from './pages/CreateTeam';
@@ -18,20 +21,20 @@ import FieldMap from './pages/FieldMap';
 import MatchTracker from './pages/MatchTracker';
 import Friends from './pages/Friends';
 import Statistics from './pages/Statistics';
-import EventTicketing from './pages/EventTicketing';
-import LoyaltyRewards from './pages/LoyaltyRewards';
 import VideoHighlights from './pages/VideoHighlights';
 import './App.css';
 import Notifications from './pages/Notifications';
 
-function App() {
+// PrivateRoute component - checks token on each render
+function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
-  
-  const PrivateRoute = ({ children }) => {
-    return token ? children : <Navigate to="/login" />;
-  };
+  return token ? children : <Navigate to="/login" replace />;
+}
+
+function App() {
 
   return (
+    <LanguageProvider>
     <Router>
       <div className="app">
         <Routes>
@@ -39,6 +42,10 @@ function App() {
           <Route path="/" element={<Register />} />
           <Route path="/verify" element={<VerifyEmail />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
+          {/* Admin ruta */}
+          <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
           
           {/* Privatne rute */}
           <Route path="/profile-setup" element={<PrivateRoute><ProfileSetup /></PrivateRoute>} />
@@ -76,17 +83,12 @@ function App() {
           {/* Statistics */}
           <Route path="/statistics" element={<PrivateRoute><Statistics /></PrivateRoute>} />
           
-          {/* Event Ticketing */}
-          <Route path="/events" element={<PrivateRoute><EventTicketing /></PrivateRoute>} />
-          
-          {/* Loyalty Rewards */}
-          <Route path="/rewards" element={<PrivateRoute><LoyaltyRewards /></PrivateRoute>} />
-          
           {/* Video Highlights */}
           <Route path="/highlights" element={<PrivateRoute><VideoHighlights /></PrivateRoute>} />
         </Routes>
       </div>
     </Router>
+    </LanguageProvider>
   );
 }
 

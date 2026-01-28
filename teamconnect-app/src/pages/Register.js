@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import Toast from '../components/Toast';
 import './Auth.css';
 
 function Register() {
@@ -21,6 +22,7 @@ function Register() {
   ];
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -59,8 +61,8 @@ function Register() {
         localStorage.setItem('token', response.data.accessToken);
       }
 
-      alert('✅ Registracija uspješna! Provjeri email za verifikacijski kod.');
-      navigate('/verify');
+      setToast({ message: 'Registracija uspješna! Provjeri email za verifikacijski kod.', type: 'success' });
+      setTimeout(() => navigate('/verify'), 1500);
     } catch (err) {
       console.error('Register error:', err);
       setError(err.response?.data?.message || 'Greška pri registraciji');
@@ -151,7 +153,15 @@ function Register() {
         <p className="auth-link">
           Već imaš račun? <a href="/login">Prijavi se</a>
         </p>
+
+        <div className="support-info">
+          <p>
+            Podrška: <a href="mailto:teamconnect0102@gmail.com">teamconnect0102@gmail.com</a>
+          </p>
+        </div>
       </div>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }
