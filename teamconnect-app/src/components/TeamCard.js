@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SportRatingModal from './SportRatingModal';
+import { API_URL } from '../config';
 import './TeamCard.css';
 
 function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotification, showActions = true, autoExpandMembers = false }) {
@@ -164,7 +165,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
   const checkUserSportRating = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/ratings/sport/${team.sport}`, {
+      const response = await fetch(`${API_URL}/ratings/sport/${team.sport}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -185,7 +186,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
   const handleSportRatingSubmit = async (ratingData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/ratings/sport', {
+      const response = await fetch(`${API_URL}/ratings/sport`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -227,7 +228,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
     setLoadingMembers(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/teams/${team.id}/members`, {
+      const response = await fetch(`${API_URL}/teams/${team.id}/members`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

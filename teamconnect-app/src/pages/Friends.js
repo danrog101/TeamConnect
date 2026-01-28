@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import { API_URL } from '../config';
 import './Friends.css';
 
 function Friends() {
@@ -36,7 +37,7 @@ function Friends() {
         return;
       }
       
-      const response = await fetch('http://localhost:5000/api/friends', {
+      const response = await fetch(`${API_URL}/friends`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -65,7 +66,7 @@ function Friends() {
         return;
       }
       
-      const response = await fetch('http://localhost:5000/api/friends/requests', {
+      const response = await fetch(`${API_URL}/friends/requests`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -103,7 +104,7 @@ function Friends() {
 
       console.log('🔍 Searching for:', searchQuery);
 
-      const res = await fetch(`http://localhost:5000/api/friends/search?query=${encodeURIComponent(searchQuery)}`, {
+      const res = await fetch(`${API_URL}/friends/search?query=${encodeURIComponent(searchQuery)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -148,7 +149,7 @@ function Friends() {
 
       console.log('📤 Sending friend request to:', selectedUser.username);
 
-      const res = await fetch(`http://localhost:5000/api/friends/request/${selectedUser.id}`, {
+      const res = await fetch(`${API_URL}/friends/request/${selectedUser.id}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -189,7 +190,7 @@ function Friends() {
         return;
       }
 
-      const res = await fetch(`http://localhost:5000/api/friends/accept/${requestId}`, {
+      const res = await fetch(`${API_URL}/friends/accept/${requestId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -224,7 +225,7 @@ function Friends() {
         return;
       }
 
-      const res = await fetch(`http://localhost:5000/api/friends/reject/${requestId}`, {
+      const res = await fetch(`${API_URL}/friends/reject/${requestId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -258,7 +259,7 @@ function Friends() {
         return;
       }
 
-      const res = await fetch(`http://localhost:5000/api/friends/${friendId}`, {
+      const res = await fetch(`${API_URL}/friends/${friendId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

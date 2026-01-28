@@ -5,6 +5,7 @@ import Toast from '../components/Toast';
 import SportRatingModal from '../components/SportRatingModal';
 import { getAllSports } from '../data/sports';
 import { getRatingCategories, getSkillLevelName } from '../data/sportRatings';
+import { API_URL } from '../config';
 import './RatingSystem.css';
 
 function RatingSystem() {
@@ -53,7 +54,7 @@ function RatingSystem() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/ratings/sports/all', {
+      const response = await fetch(`${API_URL}/ratings/sports/all`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -75,7 +76,7 @@ function RatingSystem() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:5000/api/ratings/sport', {
+      const response = await fetch(`${API_URL}/ratings/sport`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ function RatingSystem() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/ratings/self-rating/status', {
+      const response = await fetch(`${API_URL}/ratings/self-rating/status`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -135,7 +136,7 @@ function RatingSystem() {
       setSubmittingSelfRating(true);
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:5000/api/ratings/self-rating', {
+      const response = await fetch(`${API_URL}/ratings/self-rating`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +167,7 @@ function RatingSystem() {
   const loadRatings = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/ratings/leaderboard?limit=100');
+      const response = await fetch(`${API_URL}/ratings/leaderboard?limit=100`);
 
       if (response.ok) {
         const data = await response.json();
@@ -186,7 +187,7 @@ function RatingSystem() {
   const loadAchievements = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/ratings/achievements', {
+      const response = await fetch(`${API_URL}/ratings/achievements`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -207,7 +208,7 @@ function RatingSystem() {
   const handleRecalculateRating = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/ratings/recalculate', {
+      const response = await fetch(`${API_URL}/ratings/recalculate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

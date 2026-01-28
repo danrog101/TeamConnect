@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import { API_URL } from '../config';
 import './VideoHighlights.css';
 
 function VideoHighlights() {
@@ -29,7 +30,7 @@ function VideoHighlights() {
   const loadHighlights = async () => {
     try {
       const token = localStorage.getItem('token');
-      let url = 'http://localhost:5000/api/videos';
+      let url = `${API_URL}/videos`;
       
       if (filter === 'myVideos') {
         url += `?author=${currentUser._id || currentUser.id}`;
@@ -153,7 +154,7 @@ function VideoHighlights() {
         setIsUploading(false);
       });
 
-      xhr.open('POST', 'http://localhost:5000/api/videos/upload');
+      xhr.open('POST', `${API_URL}/videos/upload`);
       xhr.setRequestHeader('Authorization', `Bearer ${token}`);
       xhr.send(formData);
 
@@ -167,7 +168,7 @@ function VideoHighlights() {
   const handleLike = async (videoId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/videos/${videoId}/like`, {
+      const response = await fetch(`${API_URL}/videos/${videoId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -190,7 +191,7 @@ function VideoHighlights() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/videos/${videoId}`, {
+      const response = await fetch(`${API_URL}/videos/${videoId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -325,7 +326,7 @@ function VideoHighlights() {
                     className="highlight-video"
                   >
                     <source 
-                      src={`http://localhost:5000/api/videos/${highlight._id}/stream`}
+                      src={`${API_URL}/videos/${highlight._id}/stream`}
                       type={highlight.mimeType || 'video/mp4'}
                     />
                     Your browser does not support the video tag.

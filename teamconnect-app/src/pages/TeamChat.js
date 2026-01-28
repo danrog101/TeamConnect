@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { getSocket } from '../utils/socket';
+import { API_URL } from '../config';
 import './TeamChat.css';
 
 function TeamChat() {
@@ -65,7 +66,7 @@ function TeamChat() {
 
   const loadTeam = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/teams/${teamId}`);
+      const response = await fetch(`${API_URL}/teams/${teamId}`);
       if (response.ok) {
         const data = await response.json();
         setTeam(data);
@@ -82,7 +83,7 @@ function TeamChat() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/chat/${teamId}/messages`, {
+      const response = await fetch(`${API_URL}/chat/${teamId}/messages`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -170,7 +171,7 @@ function TeamChat() {
 
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/chat/${teamId}/messages/${messageId}`, {
+      await fetch(`${API_URL}/chat/${teamId}/messages/${messageId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import { API_URL } from '../config';
 import './TournamentDetail.css';
 import BracketGenerator from '../components/Bracketgenerator';
 
@@ -30,7 +31,7 @@ function TournamentDetail() {
       const token = localStorage.getItem('token');
       
       // ✅ FIX: Dohvati sa backend-a, NE iz localStorage
-      const response = await fetch(`http://localhost:5000/api/tournaments/${id}`, {
+      const response = await fetch(`${API_URL}/tournaments/${id}`, {
         headers: token ? {
           'Authorization': `Bearer ${token}`
         } : {}
@@ -76,7 +77,7 @@ function TournamentDetail() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/tournaments/${id}/unregister`, {
+      const response = await fetch(`${API_URL}/tournaments/${id}/unregister`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

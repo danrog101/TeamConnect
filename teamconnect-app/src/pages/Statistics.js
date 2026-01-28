@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { getAllSports } from '../data/sports';
+import { API_URL } from '../config';
 import './Statistics.css';
 
 function Statistics() {
@@ -46,8 +47,8 @@ function Statistics() {
     try {
       const token = localStorage.getItem('token');
       const url = selectedSport 
-        ? `http://localhost:5000/api/stats?sport=${encodeURIComponent(selectedSport)}`
-        : 'http://localhost:5000/api/stats';
+        ? `${API_URL}/stats?sport=${encodeURIComponent(selectedSport)}`
+        : `${API_URL}/stats`;
       
       const response = await fetch(url, {
         headers: {
@@ -92,7 +93,7 @@ function Statistics() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/stats/match', {
+      const response = await fetch(`${API_URL}/stats/match`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -136,7 +137,7 @@ function Statistics() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/stats', {
+      const response = await fetch(`${API_URL}/stats`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -171,7 +172,7 @@ function Statistics() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:5000/api/stats/match/${matchId}?sport=${encodeURIComponent(selectedSport)}`,
+        `${API_URL}/stats/match/${matchId}?sport=${encodeURIComponent(selectedSport)}`,
         {
           method: 'DELETE',
           headers: {

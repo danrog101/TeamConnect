@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import { API_URL } from '../config';
 import './Notifications.css';
 
 function Notifications() {
@@ -20,7 +21,7 @@ function Notifications() {
       setLoading(true);
       const token = localStorage.getItem('token');
       
-      let url = 'http://localhost:5000/api/notifications?limit=100';
+      let url = `${API_URL}/notifications?limit=100`;
       if (filter === 'unread') {
         url += '&unreadOnly=true';
       }
@@ -46,7 +47,7 @@ function Notifications() {
   const handleNotificationClick = async (notification) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/notifications/${notification._id}/read`, {
+      await fetch(`${API_URL}/notifications/${notification._id}/read`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -66,7 +67,7 @@ function Notifications() {
   const handleMarkAllAsRead = async () => {
     try {
       const token = localStorage.getItem('token');
-      await fetch('http://localhost:5000/api/notifications/read-all', {
+      await fetch(`${API_URL}/notifications/read-all`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -88,7 +89,7 @@ function Notifications() {
 
     try {
       const token = localStorage.getItem('token');
-      await fetch('http://localhost:5000/api/notifications', {
+      await fetch(`${API_URL}/notifications`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

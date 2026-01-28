@@ -3,9 +3,8 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
+import { API_URL, BASE_URL } from '../config';
 import './FieldMap.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function FieldMap() {
   // ============ STATE ============
@@ -277,7 +276,7 @@ function FieldMap() {
         setIsUploading(false);
       });
 
-      xhr.open('POST', 'http://localhost:5000/api/fields');
+      xhr.open('POST', `${API_URL}/fields`);
       xhr.setRequestHeader('Authorization', `Bearer ${token}`);
       xhr.send(formData);
 
@@ -308,14 +307,14 @@ function FieldMap() {
       const filepath = img.filepath || '';
       // Handle both Windows and Unix paths, and remove leading ./ or .\
       const cleanPath = filepath.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\.\\/, '');
-      return `http://localhost:5000/${cleanPath}`;
+      return `${BASE_URL}/${cleanPath}`;
     }
     // Fallback to images array
     if (field.images && field.images.length > 0) {
       const img = field.images[0];
       const filepath = typeof img === 'string' ? img : (img.filepath || '');
       const cleanPath = filepath.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\.\\/, '');
-      return `http://localhost:5000/${cleanPath}`;
+      return `${BASE_URL}/${cleanPath}`;
     }
     return 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800';
   };
