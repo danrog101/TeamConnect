@@ -52,17 +52,21 @@ function Register() {
         gender: formData.gender
       });
 
-      // ✅ Spremi userId i accessToken
-      if (response.data.userId) {
-        localStorage.setItem('tempUserId', response.data.userId);
-      }
-      
+      // ✅ Backend sada vraća tokens odmah - spremi ih i logiraj korisnika
       if (response.data.accessToken) {
+        localStorage.clear(); // Očisti stare podatke
         localStorage.setItem('token', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
       }
 
-      setToast({ message: 'Registracija uspješna! Provjeri email za verifikacijski kod.', type: 'success' });
-      setTimeout(() => navigate('/verify'), 1500);
+      setToast({ message: 'Registracija uspješna! Dobrodošao/la!', type: 'success' });
+      
+      // ✅ Idi odmah na dashboard umjesto na verification stranicu
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1500);
+      
     } catch (err) {
       console.error('Register error:', err);
       setError(err.response?.data?.message || 'Greška pri registraciji');
