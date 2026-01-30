@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 
-// Initialize Resend
+// Initialize Resend (still needed for password reset)
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Function for generating access and refresh tokens
@@ -23,7 +23,7 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
-// Function for sending verification email with Resend
+// Function for sending verification email with Resend (kept for password reset)
 const sendVerificationEmail = async (email, code) => {
   console.log('🔍 DEBUG - sendVerificationEmail called');
   console.log('🔍 DEBUG - Email parameter:', email);
@@ -105,7 +105,7 @@ const sendPasswordResetEmail = async (email, code) => {
 
 // ----------------- CONTROLLER FUNCTIONS -----------------
 
-// Registration
+// Registration - NO EMAIL VERIFICATION REQUIRED
 exports.register = async (req, res) => {
   try {
     console.log('📥 Register request:', req.body);
@@ -114,7 +114,7 @@ exports.register = async (req, res) => {
 
     console.log('🔍 Extracted email from request:', email);
 
-    // Check if user exists - only check email since username column might not exist
+    // Check if user exists
     const { data: existingUsers, error: checkError } = await supabase
       .from('users')
       .select('email')
@@ -133,10 +133,10 @@ exports.register = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Generate 6-digit code
+    // Generate 6-digit code (kept for potential future use)
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Create user
+    // Create user - ALREADY VERIFIED
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
@@ -147,7 +147,7 @@ exports.register = async (req, res) => {
         sport: sport || null,
         location: location || null,
         verification_code: verificationCode,
-        is_verified: false
+        is_verified: true  // ✅ AUTOMATICALLY VERIFIED
       })
       .select()
       .single();
@@ -169,12 +169,32 @@ exports.register = async (req, res) => {
     console.log('✅ User created:', newUser.id);
     console.log('✅ User email in database:', newUser.email);
 
-    // Send email with Resend
-    await sendVerificationEmail(email, verificationCode);
+    // Generate tokens immediately (user is logged in right away!)
+    const { accessToken, refreshToken } = generateTokens(newUser.id);
+
+    // Save refresh token
+    await supabase
+      .from('users')
+      .update({ 
+        refresh_token: refreshToken,
+        refresh_token_expiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      })
+      .eq('id', newUser.id);
+
+    console.log('✅ User auto-logged in after registration');
 
     res.status(201).json({ 
-      message: 'Registration successful! Please check email for verification code.', 
-      userId: newUser.id 
+      message: 'Registracija uspješna!',
+      accessToken,
+      refreshToken,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        username: newUser.username,
+        sport: newUser.sport,
+        location: newUser.location,
+        avatar: newUser.avatar
+      }
     });
   } catch (error) {
     console.error('❌ Register error:', error);
@@ -182,7 +202,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// Verification code
+// Verification code (kept for legacy support but not used)
 exports.verifyCode = async (req, res) => {
   try {
     console.log('📧 Verify request:', req.body);
@@ -272,7 +292,7 @@ exports.verifyCode = async (req, res) => {
   }
 };
 
-// Resend verification code
+// Resend verification code (kept for legacy support but not used)
 exports.resendVerificationCode = async (req, res) => {
   try {
     const { email } = req.body;
@@ -337,13 +357,7 @@ exports.login = async (req, res) => {
 
     const userData = users[0];
 
-    if (!userData.is_verified) {
-      console.log('⚠️ User not verified:', email);
-      return res.status(401).json({
-        message: 'Email nije verificiran. Provjerite inbox za verifikacijski kod.',
-        userId: userData.id
-      });
-    }
+    // Note: Email verification check removed since all users are auto-verified now
 
     const isPasswordValid = await bcrypt.compare(password, userData.password);
     if (!isPasswordValid) {
@@ -373,6 +387,7 @@ exports.login = async (req, res) => {
       user: {
         id: userData.id,
         email: userData.email,
+        username: userData.username,
         avatar: userData.avatar,
         sport: userData.sport
       }
@@ -491,7 +506,7 @@ exports.forgotPassword = async (req, res) => {
     // Generate 6-digit reset code
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store reset code in database with expiry (1 hour)
+    // Store reset code in database
     const { error: updateError } = await supabase
       .from('users')
       .update({
@@ -512,7 +527,7 @@ exports.forgotPassword = async (req, res) => {
     res.json({
       message: 'Ako email postoji u sustavu, poslat ćemo vam kod za resetiranje.',
       success: true,
-      email: email // Return email for frontend to use
+      email: email
     });
   } catch (error) {
     console.error('Forgot password error:', error);
@@ -624,7 +639,7 @@ exports.getCurrentUser = async (req, res) => {
 
     const { data: userData, error } = await supabase
       .from('users')
-      .select('id, email, sport, location, is_verified, created_at, avatar')
+      .select('id, email, username, sport, location, is_verified, created_at, avatar')
       .eq('id', userId)
       .single();
 
