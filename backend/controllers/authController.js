@@ -1,7 +1,10 @@
 const { supabase } = require('../config/supabase');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Function for generating access and refresh tokens
 const generateTokens = (userId) => {
@@ -20,28 +23,15 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
-// Email transporter setup
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-};
-
-// Function for sending verification email
+// Function for sending verification email with Resend
 const sendVerificationEmail = async (email, code) => {
   console.log('🔍 DEBUG - sendVerificationEmail called');
   console.log('🔍 DEBUG - Email parameter:', email);
   console.log('🔍 DEBUG - Verification code:', code);
 
   try {
-    const transporter = createTransporter();
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    const { data, error } = await resend.emails.send({
+      from: 'TeamConnect <onboarding@resend.dev>',
       to: email,
       subject: '🏀 TeamConnect - Verifikacijski kod',
       html: `
@@ -55,29 +45,32 @@ const sendVerificationEmail = async (email, code) => {
           <p style="color: #6b7280; font-size: 12px;">Podrška: teamconnect0102@gmail.com</p>
         </div>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Email successfully sent to: ${email}`);
+    if (error) {
+      console.error('❌ Resend error:', error);
+      console.log(`📧 Verification code for ${email}: ${code}`);
+      return false;
+    }
+
+    console.log(`✅ Email successfully sent to: ${email}`, data);
     return true;
   } catch (error) {
     console.log(`❌ Email sending FAILED for ${email}`);
     console.log(`📧 Verification code for ${email}: ${code}`);
-    console.error('Email error details:', error.message);
+    console.error('Email error details:', error);
     return false;
   }
 };
 
-// Function for sending password reset email
+// Function for sending password reset email with Resend
 const sendPasswordResetEmail = async (email, code) => {
   console.log('🔍 DEBUG - sendPasswordResetEmail called');
   console.log('🔍 DEBUG - Email parameter:', email);
 
   try {
-    const transporter = createTransporter();
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    const { data, error } = await resend.emails.send({
+      from: 'TeamConnect <onboarding@resend.dev>',
       to: email,
       subject: '🔐 TeamConnect - Resetiranje lozinke',
       html: `
@@ -92,15 +85,20 @@ const sendPasswordResetEmail = async (email, code) => {
           <p style="color: #6b7280; font-size: 12px;">Podrška: teamconnect0102@gmail.com</p>
         </div>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Password reset email sent to: ${email}`);
+    if (error) {
+      console.error('❌ Resend error:', error);
+      console.log(`🔐 Reset code for ${email}: ${code}`);
+      return false;
+    }
+
+    console.log(`✅ Password reset email sent to: ${email}`, data);
     return true;
   } catch (error) {
     console.log(`❌ Password reset email FAILED for ${email}`);
     console.log(`🔐 Reset code for ${email}: ${code}`);
-    console.error('Email error details:', error.message);
+    console.error('Email error details:', error);
     return false;
   }
 };
@@ -171,7 +169,7 @@ exports.register = async (req, res) => {
     console.log('✅ User created:', newUser.id);
     console.log('✅ User email in database:', newUser.email);
 
-    // Send email (or log code to terminal if email doesn't work)
+    // Send email with Resend
     await sendVerificationEmail(email, verificationCode);
 
     res.status(201).json({ 
@@ -306,7 +304,7 @@ exports.resendVerificationCode = async (req, res) => {
       .update({ verification_code: verificationCode })
       .eq('id', userData.id);
 
-    // Send email
+    // Send email with Resend
     await sendVerificationEmail(email, verificationCode);
 
     res.json({ message: 'New verification code sent!' });
@@ -506,7 +504,7 @@ exports.forgotPassword = async (req, res) => {
       return res.status(500).json({ message: 'Greška pri spremanju koda' });
     }
 
-    // Send reset email
+    // Send reset email with Resend
     await sendPasswordResetEmail(email, resetCode);
 
     console.log(`✅ Password reset code generated for: ${email}`);
