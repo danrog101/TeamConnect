@@ -9,6 +9,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinPosition, setJoinPosition] = useState('');
   const [showMembers, setShowMembers] = useState(autoExpandMembers);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -326,16 +327,44 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
                   Obriši
                 </button>
               )}
+              <button
+                className="btn btn-secondary btn-small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const teamUrl = `${window.location.origin}/dashboard?team=${team.id}`;
+                  navigator.clipboard.writeText(teamUrl).then(() => {
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 2000);
+                  });
+                }}
+              >
+                {linkCopied ? '✅ Kopirano!' : '🔗 Podijeli link'}
+              </button>
             </>
           ) : joined ? (
-            onLeave && (
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => handleAction(onLeave, team.id)}
+            <>
+              {onLeave && (
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => handleAction(onLeave, team.id)}
+                >
+                  Napusti tim
+                </button>
+              )}
+              <button
+                className="btn btn-secondary btn-small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const teamUrl = `${window.location.origin}/dashboard?team=${team.id}`;
+                  navigator.clipboard.writeText(teamUrl).then(() => {
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 2000);
+                  });
+                }}
               >
-                Napusti tim
+                {linkCopied ? '✅ Kopirano!' : '🔗 Podijeli link'}
               </button>
-            )
+            </>
           ) : isFull ? (
             onWaitlist ? (
               <button className="btn btn-disabled" disabled>

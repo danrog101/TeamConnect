@@ -44,6 +44,8 @@ function Tournaments() {
 
   const [showTeamsModal, setShowTeamsModal] = useState(false);
   const [selectedTeamsList, setSelectedTeamsList] = useState([]);
+  const [citySearch, setCitySearch] = useState('');
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
 
   const sportPositions = {
     '⚽ Nogomet': [
@@ -127,6 +129,18 @@ function Tournaments() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleCitySearch = (value) => {
+    setCitySearch(value);
+    setFormData({ ...formData, city: value });
+    setShowCityDropdown(true);
+  };
+
+  const handleCitySelect = (city) => {
+    setFormData({ ...formData, city });
+    setCitySearch(city);
+    setShowCityDropdown(false);
+  };
+
   const handleRegisterChange = (e) => {
     setRegisterData({ ...registerData, [e.target.name]: e.target.value });
   };
@@ -171,6 +185,7 @@ function Tournaments() {
 
       if (response.data) {
         setShowCreateModal(false);
+        setCitySearch('');
         setFormData({
           name: '',
           sport: '',
@@ -447,7 +462,7 @@ function Tournaments() {
 
       {/* Modal za kreiranje turnira */}
       {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+        <div className="modal-overlay" onClick={() => { setShowCreateModal(false); setCitySearch(''); }}>
           <div className="create-tournament-modal" onClick={(e) => e.stopPropagation()}>
             <h2>🏆 Kreiraj novi turnir</h2>
             
@@ -494,12 +509,33 @@ function Tournaments() {
 
               <div className="form-group">
                 <label>Grad *</label>
-                <select name="city" value={formData.city} onChange={handleChange}>
-                  <option value="">Odaberi</option>
-                  {formData.country && europeanCities[formData.country]?.map(city => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                </select>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={citySearch || formData.city}
+                    onChange={(e) => handleCitySearch(e.target.value)}
+                    onFocus={() => setShowCityDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowCityDropdown(false), 200)}
+                    placeholder="Upiši ili odaberi grad..."
+                  />
+                  {showCityDropdown && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--card-bg, white)', border: '1px solid #ddd', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto', zIndex: 10 }}>
+                      {((formData.country && europeanCities[formData.country]) || [])
+                        .filter(city => !citySearch || city.toLowerCase().includes(citySearch.toLowerCase()))
+                        .slice(0, 10)
+                        .map((city, index) => (
+                          <div
+                            key={index}
+                            style={{ padding: '8px 12px', cursor: 'pointer' }}
+                            onMouseDown={() => handleCitySelect(city)}
+                          >
+                            {city}
+                          </div>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -743,7 +779,7 @@ function Tournaments() {
               </div>
 
               <div className="modal-actions">
-                <button className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>
+                <button className="btn btn-secondary" onClick={() => { setShowCreateModal(false); setCitySearch(''); }}>
                   Odustani
                 </button>
                 <button className="btn btn-primary" onClick={handleCreateTournament}>

@@ -75,6 +75,31 @@ function Register() {
 
   return (
     <div className="auth-container">
+      <div className="auth-info" style={{
+        maxWidth: '500px',
+        width: '100%',
+        marginBottom: '20px',
+        padding: '24px',
+        background: 'rgba(255,255,255,0.1)',
+        borderRadius: '16px',
+        textAlign: 'center',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '12px', color: 'var(--text-primary, #333)' }}>
+          Dobrodošli u TeamConnect!
+        </h2>
+        <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text-secondary, #666)', marginBottom: '16px' }}>
+          TeamConnect je aplikacija koja povezuje sportaše i rekreativce po lokaciji i sportu.
+          Pronađi suigrače, pridruži se timovima ili organiziraj vlastite sportske događaje.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', fontSize: '0.9rem', color: 'var(--text-secondary, #666)' }}>
+          <span>1. Registriraj se</span>
+          <span>→</span>
+          <span>2. Odaberi sport</span>
+          <span>→</span>
+          <span>3. Pronađi tim</span>
+        </div>
+      </div>
       <div className="auth-card card">
         <h1 className="auth-title">🏀 TeamConnect</h1>
         <h2>Kreiraj račun</h2>
