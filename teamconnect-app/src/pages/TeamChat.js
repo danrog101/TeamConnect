@@ -10,7 +10,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 function TeamChat() {
   const { teamId } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');

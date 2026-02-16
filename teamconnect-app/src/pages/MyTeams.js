@@ -9,7 +9,7 @@ import './MyTeams.css';
 import { useLanguage } from '../i18n/LanguageContext'; 
 function MyTeams() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);

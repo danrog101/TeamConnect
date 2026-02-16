@@ -8,7 +8,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 
 function Login() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  
   const [formData, setFormData] = useState({
     email: '',
     password: ''

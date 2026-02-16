@@ -16,8 +16,9 @@ const SECURITY_QUESTIONS = {
   'first_car': 'Koji je bio vaš prvi automobil?'
 };
 function ForgotPassword() {
+
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  
   const [step, setStep] = useState(1); // 1: email, 2: code, 3: new password, 'security': security question flow
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');

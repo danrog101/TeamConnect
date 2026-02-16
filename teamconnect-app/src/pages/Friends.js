@@ -8,7 +8,7 @@ import './Friends.css';
 import { useLanguage } from '../i18n/LanguageContext'; 
 function Friends() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+
   const [activeTab, setActiveTab] = useState('friends');
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);

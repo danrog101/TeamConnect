@@ -12,7 +12,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function Dashboard() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+
   const [teams, setTeams] = useState([]);
   const [filteredTeams, setFilteredTeams] = useState([]);
   const [toast, setToast] = useState(null);

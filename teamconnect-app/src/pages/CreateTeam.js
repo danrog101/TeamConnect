@@ -10,9 +10,9 @@ import { useLanguage } from '../i18n/LanguageContext';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function CreateTeam() {
-   const { t } = useLanguage();
+  
   const navigate = useNavigate();
-  const { t } = useLanguage();
+ 
   const [toast, setToast] = useState(null);
   const [showCustomSportModal, setShowCustomSportModal] = useState(false);
   const [customSportName, setCustomSportName] = useState('');

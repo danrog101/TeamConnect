@@ -7,7 +7,7 @@ import './Auth.css';
 import { useLanguage } from '../i18n/LanguageContext'; 
 function Register() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+ 
   const [formData, setFormData] = useState({
     username: '',
     email: '',

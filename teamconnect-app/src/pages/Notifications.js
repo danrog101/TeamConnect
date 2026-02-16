@@ -8,7 +8,7 @@ import './Notifications.css';
 import { useLanguage } from '../i18n/LanguageContext'; 
 function Notifications() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
