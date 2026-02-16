@@ -6,7 +6,7 @@ import TeamCard from '../components/TeamCard';
 import Toast from '../components/Toast';
 import { teamsAPI } from '../services/api';
 import './MyTeams.css';
-import { useLanguage } from '../i18n/LanguageContext'; 
+
 function MyTeams() {
   const navigate = useNavigate();
   

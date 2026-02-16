@@ -6,7 +6,7 @@ import { getSocket } from '../utils/socket';
 import { API_URL } from '../config';
 import { useLanguage } from '../i18n/LanguageContext';
 import './TeamChat.css';
-import { useLanguage } from '../i18n/LanguageContext'; 
+ 
 function TeamChat() {
   const { teamId } = useParams();
   const navigate = useNavigate();
