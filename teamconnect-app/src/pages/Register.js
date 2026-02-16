@@ -7,7 +7,7 @@ import './Auth.css';
  
 function Register() {
   const navigate = useNavigate();
- 
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
