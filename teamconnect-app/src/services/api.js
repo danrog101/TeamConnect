@@ -35,6 +35,8 @@ export const authAPI = {
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
   verifyResetCode: (data) => api.post('/auth/verify-reset-code', data),
   resetPassword: (data) => api.post('/auth/reset-password', data),
+  getSecurityQuestion: (data) => api.post('/auth/security-question', data),
+  verifySecurityAnswer: (data) => api.post('/auth/verify-security-answer', data),
   // Profile methods (using /profile routes)
   getProfile: (userId) => api.get(`/profile/${userId}`),
   updateProfile: (data) => api.put('/profile', data),

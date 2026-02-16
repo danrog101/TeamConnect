@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { useLanguage } from '../i18n/LanguageContext';
 import Toast from '../components/Toast';
 import './Auth.css';
 
 function ForgotPassword() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: email, 2: code, 3: new password
+  const { t } = useLanguage();
+  const [step, setStep] = useState(1); // 1: email, 2: code, 3: new password, 'security': security question flow
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [resetToken, setResetToken] = useState('');
@@ -15,6 +17,11 @@ function ForgotPassword() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const [securityEmail, setSecurityEmail] = useState('');
+  const [securityQuestion, setSecurityQuestion] = useState('');
+  const [securityAnswer, setSecurityAnswer] = useState('');
+  const [securityStep, setSecurityStep] = useState(1); // 1: enter email, 2: answer question, 3: new password
 
   // Step 1: Request reset code
   const handleRequestCode = async (e) => {
@@ -94,15 +101,97 @@ function ForgotPassword() {
     }
   };
 
+  // Security question flow - Step 1: Fetch question by email
+  const handleFetchSecurityQuestion = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await authAPI.getSecurityQuestion({ email: securityEmail });
+
+      if (response.data.success) {
+        setSecurityQuestion(response.data.security_question);
+        setSecurityStep(2);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Korisnik nije pronađen ili nema sigurnosno pitanje');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Security question flow - Step 2: Verify answer
+  const handleVerifySecurityAnswer = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await authAPI.verifySecurityAnswer({
+        email: securityEmail,
+        security_answer: securityAnswer
+      });
+
+      if (response.data.success) {
+        setResetToken(response.data.resetToken);
+        setToast({ message: 'Odgovor je ispravan!', type: 'success' });
+        setSecurityStep(3);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Neispravan odgovor');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Security question flow - Step 3: Set new password
+  const handleSecurityResetPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (newPassword.length < 6) {
+      setError('Lozinka mora imati najmanje 6 znakova!');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Lozinke se ne podudaraju!');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await authAPI.resetPassword({ resetToken, newPassword });
+
+      if (response.data.success) {
+        setToast({ message: 'Lozinka je uspješno promijenjena!', type: 'success' });
+        setTimeout(() => navigate('/login'), 2000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Greška pri promjeni lozinke');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTitle = () => {
+    if (step === 'security') {
+      if (securityStep === 1) return 'Sigurnosno pitanje';
+      if (securityStep === 2) return 'Odgovorite na pitanje';
+      return 'Nova lozinka';
+    }
+    if (step === 1) return 'Zaboravljena lozinka';
+    if (step === 2) return 'Unesite kod';
+    return 'Nova lozinka';
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-card card">
         <h1 className="auth-title">🔐</h1>
-        <h2>
-          {step === 1 && 'Zaboravljena lozinka'}
-          {step === 2 && 'Unesite kod'}
-          {step === 3 && 'Nova lozinka'}
-        </h2>
+        <h2>{getTitle()}</h2>
 
         {step === 1 && (
           <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
@@ -122,26 +211,56 @@ function ForgotPassword() {
           </p>
         )}
 
+        {step === 'security' && securityStep === 1 && (
+          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+            Unesite email adresu vašeg računa da biste dobili sigurnosno pitanje.
+          </p>
+        )}
+
+        {step === 'security' && securityStep === 2 && (
+          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+            Odgovorite na sigurnosno pitanje za račun <strong>{securityEmail}</strong>
+          </p>
+        )}
+
+        {step === 'security' && securityStep === 3 && (
+          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+            Unesite novu lozinku za vaš račun.
+          </p>
+        )}
+
         {error && <div className="error-message">{error}</div>}
 
         {/* Step 1: Email form */}
         {step === 1 && (
-          <form onSubmit={handleRequestCode}>
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="vas@email.com"
-                required
-              />
-            </div>
+          <>
+            <form onSubmit={handleRequestCode}>
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="vas@email.com"
+                  required
+                />
+              </div>
 
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Slanje...' : 'Pošalji kod'}
-            </button>
-          </form>
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? 'Slanje...' : 'Pošalji kod'}
+              </button>
+            </form>
+
+            <p style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.9rem' }}>
+              <button
+                type="button"
+                onClick={() => { setStep('security'); setError(''); }}
+                style={{ background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Ili koristite sigurnosno pitanje
+              </button>
+            </p>
+          </>
         )}
 
         {/* Step 2: Code verification */}
@@ -177,6 +296,99 @@ function ForgotPassword() {
         {/* Step 3: New password */}
         {step === 3 && (
           <form onSubmit={handleResetPassword}>
+            <div className="form-group">
+              <label>Nova lozinka</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Minimalno 6 znakova"
+                required
+                minLength={6}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Potvrdi lozinku</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Ponovno unesite lozinku"
+                required
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Spremanje...' : 'Spremi novu lozinku'}
+            </button>
+          </form>
+        )}
+
+        {/* Security question flow - Step 1: Enter email */}
+        {step === 'security' && securityStep === 1 && (
+          <>
+            <form onSubmit={handleFetchSecurityQuestion}>
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  value={securityEmail}
+                  onChange={(e) => setSecurityEmail(e.target.value)}
+                  placeholder="vas@email.com"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? 'Traženje...' : 'Dohvati pitanje'}
+              </button>
+            </form>
+
+            <p style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.9rem' }}>
+              <button
+                type="button"
+                onClick={() => { setStep(1); setError(''); }}
+                style={{ background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Ili koristite email kod
+              </button>
+            </p>
+          </>
+        )}
+
+        {/* Security question flow - Step 2: Answer question */}
+        {step === 'security' && securityStep === 2 && (
+          <form onSubmit={handleVerifySecurityAnswer}>
+            <div className="form-group">
+              <label>{SECURITY_QUESTIONS[securityQuestion] || securityQuestion}</label>
+              <input
+                type="text"
+                value={securityAnswer}
+                onChange={(e) => setSecurityAnswer(e.target.value)}
+                placeholder="Vaš odgovor..."
+                required
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Provjera...' : 'Potvrdi odgovor'}
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => { setSecurityStep(1); setError(''); }}
+              style={{ marginTop: '10px' }}
+            >
+              Natrag
+            </button>
+          </form>
+        )}
+
+        {/* Security question flow - Step 3: New password */}
+        {step === 'security' && securityStep === 3 && (
+          <form onSubmit={handleSecurityResetPassword}>
             <div className="form-group">
               <label>Nova lozinka</label>
               <input

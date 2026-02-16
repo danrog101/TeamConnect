@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
 import NotificationBell from './NotificationBell';
 import LanguageSelector from './LanguageSelector';
 import './Navbar.css';
@@ -10,6 +11,7 @@ const ADMIN_EMAIL = 'teamconnect0102@gmail.com';
 function Navbar() {
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [showMenu, setShowMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -46,44 +48,44 @@ function Navbar() {
 
         <div className={`navbar-menu ${showMenu ? 'show' : ''}`}>
           <button className="nav-link" onClick={() => { navigate('/dashboard'); setShowMenu(false); }}>
-            🏠 Dashboard
+            {t('nav.dashboard')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/my-teams'); setShowMenu(false); }}>
-            👥 Moji timovi
+            {t('nav.myTeams')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/tournaments'); setShowMenu(false); }}>
-            🏆 Turniri
+            {t('nav.tournaments')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/ratings'); setShowMenu(false); }}>
-            ⭐ Ratings
+            {t('nav.ratings')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/fields'); setShowMenu(false); }}>
-            📍 Tereni
+            {t('nav.fields')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/friends'); setShowMenu(false); }}>
-            👫 Prijatelji
+            {t('nav.friends')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/statistics'); setShowMenu(false); }}>
-            📊 Statistika
+            {t('nav.statistics')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/highlights'); setShowMenu(false); }}>
-            📹 Highlights
+            {t('nav.highlights')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/activity'); setShowMenu(false); }}>
-            📰 Aktivnosti
+            {t('nav.activities')}
           </button>
 
           {isAdmin && (
             <button className="nav-link admin-link" onClick={() => { navigate('/admin'); setShowMenu(false); }}>
-              ⚙️ Admin
+              {t('nav.admin')}
             </button>
           )}
         </div>
@@ -105,7 +107,7 @@ function Navbar() {
             {user.username}
           </span>
           <button className="btn-logout" onClick={confirmLogout}>
-            Odjava
+            {t('nav.logout')}
           </button>
         </div>
       </div>
@@ -114,21 +116,20 @@ function Navbar() {
       {showLogoutConfirm && (
         <div className="logout-modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
           <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="logout-modal-icon">👋</div>
-            <h3>Odjava</h3>
-            <p>Jeste li sigurni da se želite odjaviti?</p>
+            <h3>{t('nav.logout')}</h3>
+            <p>{t('auth.logoutConfirm')}</p>
             <div className="logout-modal-actions">
               <button
                 className="btn btn-secondary"
                 onClick={() => setShowLogoutConfirm(false)}
               >
-                Odustani
+                {t('common.cancel')}
               </button>
               <button
                 className="btn btn-primary btn-logout-confirm"
                 onClick={handleLogout}
               >
-                Da, odjavi me
+                {t('common.yes')}
               </button>
             </div>
           </div>

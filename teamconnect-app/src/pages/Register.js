@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { useLanguage } from '../i18n/LanguageContext';
 import Toast from '../components/Toast';
 import './Auth.css';
 
 function Register() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    gender: ''
+    gender: '',
+    securityQuestion: '',
+    securityAnswer: ''
   });
 
   const genderOptions = [
-    { value: 'male', label: 'Muško' },
-    { value: 'female', label: 'Žensko' }
+    { value: 'male', label: t('auth.male') },
+    { value: 'female', label: t('auth.female') }
   ];
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,7 +51,9 @@ function Register() {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        gender: formData.gender
+        gender: formData.gender,
+        security_question: formData.securityQuestion,
+        security_answer: formData.securityAnswer
       });
 
       // ✅ Backend sada vraća tokens odmah - spremi ih i logiraj korisnika
@@ -170,6 +176,35 @@ function Register() {
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
+          </div>
+
+          <div className="form-group">
+            <label>Sigurnosno pitanje</label>
+            <select
+              name="securityQuestion"
+              value={formData.securityQuestion}
+              onChange={handleChange}
+              required
+            >
+              <option value="">-- Odaberi sigurnosno pitanje --</option>
+              <option value="pet">Kako se zove vaš prvi ljubimac?</option>
+              <option value="city">U kojem ste gradu rođeni?</option>
+              <option value="school">Kako se zvala vaša osnovna škola?</option>
+              <option value="team">Koji je vaš omiljeni sportski tim?</option>
+              <option value="food">Koja je vaša omiljena hrana?</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Odgovor na sigurnosno pitanje</label>
+            <input
+              type="text"
+              name="securityAnswer"
+              value={formData.securityAnswer}
+              onChange={handleChange}
+              placeholder="Vaš odgovor..."
+              required
+            />
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={loading}>

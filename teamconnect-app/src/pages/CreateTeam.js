@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { getAllSports, addCustomSport } from '../data/sports';
@@ -10,6 +11,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function CreateTeam() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [toast, setToast] = useState(null);
   const [showCustomSportModal, setShowCustomSportModal] = useState(false);
   const [customSportName, setCustomSportName] = useState('');

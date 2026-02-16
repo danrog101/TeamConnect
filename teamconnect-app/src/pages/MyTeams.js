@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
 import Navbar from '../components/Navbar';
 import TeamCard from '../components/TeamCard';
 import Toast from '../components/Toast';
@@ -8,6 +9,7 @@ import './MyTeams.css';
 
 function MyTeams() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);

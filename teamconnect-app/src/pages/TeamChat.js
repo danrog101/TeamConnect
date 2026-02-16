@@ -4,11 +4,13 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { getSocket } from '../utils/socket';
 import { API_URL } from '../config';
+import { useLanguage } from '../i18n/LanguageContext';
 import './TeamChat.css';
 
 function TeamChat() {
   const { teamId } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
