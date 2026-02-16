@@ -177,12 +177,14 @@ exports.getTournament = async (req, res) => {
     }
 
     // Get registered teams
-    const { data: registrations } = await supabase
-      .from('tournament_registrations')
-      .select('*')
-      .eq('tournament_id', id)
-      .order('registered_at', { ascending: true });
+  // ✅ NOVO:
+const { data: registrations } = await supabase
+  .from('tournament_registrations')
+  .select('id, team_name, players, status, is_waitlist, registered_at')
+  .eq('tournament_id', tournament.id)
+  .eq('is_waitlist', false);
 
+const count = registrations?.length || 0;
     const registeredTeams = registrations?.filter(r => !r.is_waitlist) || [];
     const waitlist = registrations?.filter(r => r.is_waitlist) || [];
 
@@ -300,6 +302,7 @@ exports.createTournament = async (req, res) => {
 };
 
 // Register for tournament (allows multiple teams from same user)
+// Register for tournament (allows multiple teams from same user)
 exports.registerForTournament = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -349,14 +352,26 @@ exports.registerForTournament = async (req, res) => {
       return res.status(400).json({ message: 'A team with this name is already registered' });
     }
 
-    // Check if tournament is full
-    const { count: registeredCount } = await supabase
+    // ✅ FIXED: Properly count registered teams
+    const { data: registeredTeams, error: countError } = await supabase
       .from('tournament_registrations')
-      .select('*', { count: 'exact', head: true })
+      .select('id')
       .eq('tournament_id', id)
       .eq('is_waitlist', false);
 
+    if (countError) {
+      console.error('❌ Count error:', countError);
+      return res.status(500).json({ message: 'Failed to count registered teams' });
+    }
+
+    const registeredCount = registeredTeams?.length || 0;
     const isFull = registeredCount >= tournament.max_teams;
+
+    console.log('📊 Tournament capacity:', {
+      registered: registeredCount,
+      max: tournament.max_teams,
+      isFull
+    });
 
     // Validate players count
     const minPlayers = tournament.min_players_per_team || 5;
@@ -403,7 +418,7 @@ exports.registerForTournament = async (req, res) => {
     }
 
     // Send email notification to organizer
-    if (tournament.creator) {
+    if (tournament.creator && !isFull) {
       await sendOrganizerNotification(
         tournament.creator,
         tournament,

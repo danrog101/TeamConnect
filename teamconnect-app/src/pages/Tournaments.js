@@ -112,16 +112,13 @@ function Tournaments() {
   const loadTournaments = async () => {
     try {
       const response = await tournamentsAPI.getAllTournaments();
-      
-      // ✅ Handle axios response format
       const data = response.data || response || [];
-      
       console.log('✅ Fetched tournaments:', data.length);
       setTournaments(data);
     } catch (error) {
       console.error('❌ Load tournaments error:', error);
       setToast({ message: 'Greška pri učitavanju turnira', type: 'error' });
-      setTournaments([]); // Set empty array on error
+      setTournaments([]);
     }
   };
 
@@ -174,7 +171,6 @@ function Tournaments() {
       return;
     }
 
-    // Validation min/max players
     if (parseInt(formData.maxPlayersPerTeam) < parseInt(formData.minPlayersPerTeam)) {
       setToast({ message: 'Maksimalan broj natjecatelja mora biti veći ili jednak minimumu!', type: 'error' });
       return;
@@ -266,7 +262,10 @@ function Tournaments() {
 
       setShowRegisterModal(false);
       setRegisterData({ teamName: '', players: [] });
-      setToast({ message: 'Tim uspješno prijavljen! 🎉', type: 'success' });
+      
+      // ✅ FIXED: Toast notifikacija
+      setToast({ message: '✅ Tim uspješno prijavljen na turnir!', type: 'success' });
+      
       loadTournaments();
     } catch (error) {
       console.error('Register team error:', error);
@@ -400,7 +399,6 @@ function Tournaments() {
                     <p className="tournament-description">{tournament.description}</p>
                   )}
 
-                  {/* Registered Teams Preview */}
                   {tournament.registered_teams_list && tournament.registered_teams_list.length > 0 && (
                     <div className="registered-teams-preview">
                       <p><strong>Prijavljeni timovi:</strong></p>
@@ -460,7 +458,7 @@ function Tournaments() {
         </div>
       </div>
 
-      {/* Modal za kreiranje turnira */}
+      {/* CREATE MODAL - SVE */}
       {showCreateModal && (
         <div className="modal-overlay" onClick={() => { setShowCreateModal(false); setCitySearch(''); }}>
           <div className="create-tournament-modal" onClick={(e) => e.stopPropagation()}>
@@ -693,7 +691,6 @@ function Tournaments() {
                 />
               </div>
 
-              {/* Tournament Category */}
               <div className="form-group">
                 <label>Kategorija turnira *</label>
                 <select
@@ -710,7 +707,6 @@ function Tournaments() {
                 </small>
               </div>
 
-              {/* Player Filtering Options */}
               <div className="filter-section">
                 <h4>🎯 Filteri za igrače/timove</h4>
 
@@ -791,7 +787,7 @@ function Tournaments() {
         </div>
       )}
 
-      {/* Modal za prijavu tima */}
+      {/* REGISTER MODAL */}
       {showRegisterModal && selectedTournament && (
         <div className="modal-overlay" onClick={() => setShowRegisterModal(false)}>
           <div className="create-tournament-modal" onClick={(e) => e.stopPropagation()}>
@@ -854,7 +850,7 @@ function Tournaments() {
         </div>
       )}
 
-      {/* Modal za prikaz svih timova */}
+      {/* TEAMS MODAL */}
       {showTeamsModal && (
         <div className="modal-overlay" onClick={() => setShowTeamsModal(false)}>
           <div className="teams-modal" onClick={(e) => e.stopPropagation()}>

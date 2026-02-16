@@ -48,43 +48,53 @@ function Navbar() {
 
         <div className={`navbar-menu ${showMenu ? 'show' : ''}`}>
           <button className="nav-link" onClick={() => { navigate('/dashboard'); setShowMenu(false); }}>
+            <span className="nav-icon">🏠</span>
             {t('nav.dashboard')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/my-teams'); setShowMenu(false); }}>
+            <span className="nav-icon">👥</span>
             {t('nav.myTeams')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/tournaments'); setShowMenu(false); }}>
+            <span className="nav-icon">🏆</span>
             {t('nav.tournaments')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/ratings'); setShowMenu(false); }}>
+            <span className="nav-icon">⭐</span>
             {t('nav.ratings')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/fields'); setShowMenu(false); }}>
+            <span className="nav-icon">🏟️</span>
             {t('nav.fields')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/friends'); setShowMenu(false); }}>
+            <span className="nav-icon">🤝</span>
             {t('nav.friends')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/statistics'); setShowMenu(false); }}>
+            <span className="nav-icon">📊</span>
             {t('nav.statistics')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/highlights'); setShowMenu(false); }}>
+            <span className="nav-icon">🎬</span>
             {t('nav.highlights')}
           </button>
           
           <button className="nav-link" onClick={() => { navigate('/activity'); setShowMenu(false); }}>
+            <span className="nav-icon">📰</span>
             {t('nav.activities')}
           </button>
 
           {isAdmin && (
             <button className="nav-link admin-link" onClick={() => { navigate('/admin'); setShowMenu(false); }}>
+              <span className="nav-icon">⚙️</span>
               {t('nav.admin')}
             </button>
           )}

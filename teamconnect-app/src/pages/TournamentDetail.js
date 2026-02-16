@@ -18,7 +18,6 @@ function TournamentDetail() {
   const [userTeamId, setUserTeamId] = useState(null);
 
   useEffect(() => {
-    // Load current user
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     setCurrentUser(user);
     
@@ -30,7 +29,6 @@ function TournamentDetail() {
     try {
       const token = localStorage.getItem('token');
       
-      // ✅ FIX: Dohvati sa backend-a, NE iz localStorage
       const response = await fetch(`${API_URL}/tournaments/${id}`, {
         headers: token ? {
           'Authorization': `Bearer ${token}`
@@ -39,24 +37,27 @@ function TournamentDetail() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Tournament loaded:', data);
         setTournament(data);
         
         // Provjeri je li trenutni korisnik registriran
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const registered = data.registeredTeams?.some(
           team => team.captain && team.captain._id === user.id
+        ) || data.registered_teams_list?.some(
+          team => team.user_id === user.id
         );
         setIsUserRegistered(registered);
         
         // Nađi team ID ako je registriran
         if (registered) {
-          const userTeam = data.registeredTeams.find(
+          const userTeam = data.registeredTeams?.find(
             team => team.captain && team.captain._id === user.id
+          ) || data.registered_teams_list?.find(
+            team => team.user_id === user.id
           );
-          setUserTeamId(userTeam?._id);
+          setUserTeamId(userTeam?._id || userTeam?.id);
         }
-        
-        console.log('✅ Tournament loaded:', data);
       } else {
         setToast({ message: 'Turnir ne postoji!', type: 'error' });
         setTimeout(() => navigate('/tournaments'), 2000);
@@ -69,7 +70,6 @@ function TournamentDetail() {
     }
   };
 
-  // ✅ NOVO - Odjavi tim sa turnira
   const handleUnregisterTeam = async () => {
     if (!window.confirm('Jesi li siguran/a da želiš odjaviti tim sa turnira?')) {
       return;
@@ -89,7 +89,7 @@ function TournamentDetail() {
 
       if (response.ok) {
         setToast({ message: '✅ Tim uspješno odjavljen!', type: 'success' });
-        loadTournament(); // Reload
+        loadTournament();
       } else {
         setToast({ message: data.message || 'Greška pri odjavljivanju', type: 'error' });
       }
@@ -99,12 +99,27 @@ function TournamentDetail() {
     }
   };
 
+  // ✅ FIXED: Properly format date from both snake_case and camelCase
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('hr-HR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
+    if (!dateString) return 'Datum nije postavljen';
+    
+    try {
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'Nevažeći datum';
+      }
+      
+      return date.toLocaleDateString('hr-HR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Date format error:', error);
+      return 'Nevažeći datum';
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -134,6 +149,15 @@ function TournamentDetail() {
     );
   }
 
+  // ✅ FIXED: Handle both snake_case and camelCase from backend
+  const startDate = tournament.start_date || tournament.startDate;
+  const endDate = tournament.end_date || tournament.endDate;
+  const registeredTeams = tournament.registered_teams_list || tournament.registeredTeams || [];
+  const maxTeams = tournament.max_teams || tournament.maxTeams || 8;
+  const minPlayers = tournament.min_players_per_team || tournament.minPlayersPerTeam || 5;
+  const maxPlayers = tournament.max_players_per_team || tournament.maxPlayersPerTeam || 7;
+  const entryFee = tournament.entry_fee || tournament.entryFee || 0;
+
   return (
     <div className="tournament-detail-page">
       <Navbar />
@@ -153,7 +177,7 @@ function TournamentDetail() {
             <h1>{tournament.name}</h1>
             <p className="hero-location">📍 {tournament.city}, {tournament.location}</p>
             <p className="hero-dates">
-              📅 {formatDate(tournament.startDate)} - {formatDate(tournament.endDate)}
+              📅 {formatDate(startDate)} - {formatDate(endDate)}
             </p>
           </div>
         </div>
@@ -169,7 +193,7 @@ function TournamentDetail() {
             className={`tab ${activeTab === 'teams' ? 'active' : ''}`}
             onClick={() => setActiveTab('teams')}
           >
-            👥 Timovi ({tournament.registeredTeams?.length || 0}/{tournament.maxTeams})
+            👥 Timovi ({registeredTeams.length}/{maxTeams})
           </button>
           <button 
             className={`tab ${activeTab === 'bracket' ? 'active' : ''}`}
@@ -206,18 +230,18 @@ function TournamentDetail() {
                 </div>
                 <div className="info-item">
                   <span className="info-label">Broj timova:</span>
-                  <span className="info-value">{tournament.maxTeams}</span>
+                  <span className="info-value">{maxTeams}</span>
                 </div>
                 <div className="info-item">
                   <span className="info-label">Igrača po timu:</span>
                   <span className="info-value">
-                    {tournament.minPlayersPerTeam || tournament.teamSize || 5} - {tournament.maxPlayersPerTeam || tournament.teamSize || 5}
+                    {minPlayers} - {maxPlayers}
                   </span>
                 </div>
                 <div className="info-item">
                   <span className="info-label">Kotizacija:</span>
                   <span className="info-value">
-                    {tournament.entryFee > 0 ? `${tournament.entryFee} €` : 'Besplatno'}
+                    {entryFee > 0 ? `${entryFee} €` : 'Besplatno'}
                   </span>
                 </div>
                 {tournament.prize && (
@@ -236,7 +260,6 @@ function TournamentDetail() {
                 </div>
               </div>
 
-              {/* ✅ NOVO - Dodaj button za odjavu */}
               <div className="tournament-register-section">
                 {isUserRegistered ? (
                   <div className="user-registered-section">
@@ -251,7 +274,7 @@ function TournamentDetail() {
                       ❌ Odjavi tim
                     </button>
                   </div>
-                ) : (tournament.registeredTeams?.length || 0) < tournament.maxTeams ? (
+                ) : registeredTeams.length < maxTeams ? (
                   <>
                     <p className="register-info">
                       Još uvijek ima mjesta! Prijavi svoj tim i sudjeluj u turniru.
@@ -277,17 +300,17 @@ function TournamentDetail() {
           {activeTab === 'teams' && (
             <div className="teams-list-tab">
               <h2>👥 Prijavljeni timovi</h2>
-              {tournament.registeredTeams && tournament.registeredTeams.length > 0 ? (
+              {registeredTeams.length > 0 ? (
                 <div className="registered-teams-list">
-                  {tournament.registeredTeams.map((team, index) => (
-                    <div key={team._id} className="registered-team-item">
+                  {registeredTeams.map((team, index) => (
+                    <div key={team._id || team.id} className="registered-team-item">
                       <div className="team-number">#{index + 1}</div>
                       <div className="team-details">
-                        <h4>{team.teamName}</h4>
-                        <p>👤 Kapetan: {team.captain?.username || 'Unknown'}</p>
+                        <h4>{team.teamName || team.team_name}</h4>
+                        <p>👤 Kapetan: {team.captain?.username || team.user?.username || 'Unknown'}</p>
                         <p>👥 {team.players?.length || 0} igrača</p>
                         <p className="team-registered-date">
-                          Prijavljen: {new Date(team.registeredAt).toLocaleDateString('hr-HR')}
+                          Prijavljen: {formatDate(team.registeredAt || team.registered_at)}
                         </p>
                         {team.players && team.players.length > 0 && (
                           <div className="team-players-list">
@@ -295,7 +318,8 @@ function TournamentDetail() {
                             <ul>
                               {team.players.map((player, idx) => (
                                 <li key={idx}>
-                                  {player.name} {player.position && `(${player.position})`}
+                                  {typeof player === 'string' ? player : player.name} 
+                                  {player.position && ` (${player.position})`}
                                 </li>
                               ))}
                             </ul>
@@ -316,11 +340,11 @@ function TournamentDetail() {
             <div className="bracket-tab">
               {tournament.bracket && tournament.bracket.length > 0 ? (
                 <BracketGenerator 
-                  teams={tournament.registeredTeams?.map(t => t.teamName) || []}
+                  teams={registeredTeams.map(t => t.teamName || t.team_name) || []}
                   matches={tournament.bracket || []}
                   onUpdateMatch={(match) => console.log('Update match:', match)}
                 />
-              ) : tournament.registeredTeams && tournament.registeredTeams.length >= 2 ? (
+              ) : registeredTeams.length >= 2 ? (
                 <div className="no-bracket-container">
                   <p className="no-bracket">Bracket će biti generiran od strane organizatora</p>
                 </div>
