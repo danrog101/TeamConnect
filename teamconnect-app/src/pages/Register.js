@@ -15,10 +15,8 @@ function Register() {
   });
 
   const genderOptions = [
-    { value: 'male', label: 'Male' },
-    { value: 'female', label: 'Female' },
-    { value: 'prefer_not_to_say', label: 'I don\'t want to say' },
-    { value: 'other', label: 'Other' }
+    { value: 'male', label: 'Muško' },
+    { value: 'female', label: 'Žensko' }
   ];
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

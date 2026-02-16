@@ -84,12 +84,12 @@ function TournamentRegister() {
     const maxPlayers = tournament.max_players_per_team || 7;
 
     if (filledPlayers.length < minPlayers) {
-      setToast({ message: `Potrebno je minimalno ${minPlayers} igrača!`, type: 'error' });
+      setToast({ message: `Potrebno je minimalno ${minPlayers} natjecatelja!`, type: 'error' });
       return;
     }
 
     if (filledPlayers.length > maxPlayers) {
-      setToast({ message: `Maksimalno ${maxPlayers} igrača dozvoljeno!`, type: 'error' });
+      setToast({ message: `Maksimalno ${maxPlayers} natjecatelja dozvoljeno!`, type: 'error' });
       return;
     }
 
@@ -174,10 +174,10 @@ function TournamentRegister() {
             </div>
 
             <div className="form-section">
-              <h3>Igrači ({formData.players.filter(p => p.trim()).length}/{tournament.max_players_per_team || 7})</h3>
+              <h3>Natjecatelji ({formData.players.filter(p => p.trim()).length}/{tournament.max_players_per_team || 7})</h3>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '15px', fontSize: '0.95rem' }}>
-                Minimalno <strong>{tournament.min_players_per_team || 5}</strong> igrača,
-                Maksimalno <strong>{tournament.max_players_per_team || 7}</strong> igrača (uključujući rezerve)
+                Minimalno <strong>{tournament.min_players_per_team || 5}</strong> natjecatelja,
+                Maksimalno <strong>{tournament.max_players_per_team || 7}</strong> natjecatelja (uključujući rezerve)
               </p>
 
               {formData.players.map((playerName, index) => (
@@ -186,7 +186,7 @@ function TournamentRegister() {
                     type="text"
                     value={playerName}
                     onChange={(e) => handlePlayerChange(index, e.target.value)}
-                    placeholder={`Igrač ${index + 1}${index < (tournament.min_players_per_team || 5) ? ' *' : ' (rezerva)'}`}
+                    placeholder={`Natjecatelj ${index + 1}${index < (tournament.min_players_per_team || 5) ? ' *' : ' (rezerva)'}`}
                   />
                   {formData.players.length > 1 && (
                     <button
@@ -206,7 +206,7 @@ function TournamentRegister() {
                   className="btn btn-secondary"
                   onClick={addPlayerField}
                 >
-                  + Dodaj igrača
+                  + Dodaj natjecatelja
                 </button>
               )}
             </div>

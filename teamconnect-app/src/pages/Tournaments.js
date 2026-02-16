@@ -32,6 +32,7 @@ function Tournaments() {
     teamSize: 5,
     format: 'knockout',
     entryFee: 0,
+    extraPlayerFee: 0,
     prize: '',
     description: '',
     gender_category: 'mix',
@@ -44,14 +45,55 @@ function Tournaments() {
   const [showTeamsModal, setShowTeamsModal] = useState(false);
   const [selectedTeamsList, setSelectedTeamsList] = useState([]);
 
-  const positionOptions = [
+  const sportPositions = {
+    '⚽ Nogomet': [
+      { value: '', label: 'Odaberi poziciju' },
+      { value: 'GK', label: 'Golman (GK)' },
+      { value: 'DEF', label: 'Branič (DEF)' },
+      { value: 'MID', label: 'Vezni (MID)' },
+      { value: 'FWD', label: 'Napadač (FWD)' },
+      { value: 'SUB', label: 'Zamjena (SUB)' }
+    ],
+    '🏀 Košarka': [
+      { value: '', label: 'Odaberi poziciju' },
+      { value: 'PG', label: 'Razigravač (PG)' },
+      { value: 'SG', label: 'Bek šuter (SG)' },
+      { value: 'SF', label: 'Krilo (SF)' },
+      { value: 'PF', label: 'Krilni centar (PF)' },
+      { value: 'C', label: 'Centar (C)' },
+      { value: 'SUB', label: 'Zamjena (SUB)' }
+    ],
+    '🏐 Odbojka': [
+      { value: '', label: 'Odaberi poziciju' },
+      { value: 'SET', label: 'Dizač (SET)' },
+      { value: 'OH', label: 'Primač servisa (OH)' },
+      { value: 'OPP', label: 'Dijagonala (OPP)' },
+      { value: 'MB', label: 'Srednji blok (MB)' },
+      { value: 'L', label: 'Libero (L)' },
+      { value: 'SUB', label: 'Zamjena (SUB)' }
+    ],
+    '🤾 Rukomet': [
+      { value: '', label: 'Odaberi poziciju' },
+      { value: 'GK', label: 'Golman (GK)' },
+      { value: 'LW', label: 'Lijevo krilo (LW)' },
+      { value: 'RW', label: 'Desno krilo (RW)' },
+      { value: 'LB', label: 'Lijevi bek (LB)' },
+      { value: 'CB', label: 'Srednji bek (CB)' },
+      { value: 'RB', label: 'Desni bek (RB)' },
+      { value: 'PIV', label: 'Pivot (PIV)' },
+      { value: 'SUB', label: 'Zamjena (SUB)' }
+    ]
+  };
+
+  const defaultPositions = [
     { value: '', label: 'Odaberi poziciju' },
-    { value: 'GK', label: 'Golman (GK)' },
-    { value: 'DEF', label: 'Branič (DEF)' },
-    { value: 'MID', label: 'Vezni (MID)' },
-    { value: 'FWD', label: 'Napadač (FWD)' },
-    { value: 'SUB', label: 'Zamjena (SUB)' }
+    { value: 'PLAYER', label: 'Natjecatelj' },
+    { value: 'SUB', label: 'Zamjena' }
   ];
+
+  const getPositionsForSport = (sportName) => {
+    return sportPositions[sportName] || defaultPositions;
+  };
 
   const [registerData, setRegisterData] = useState({
     teamName: '',
@@ -76,7 +118,7 @@ function Tournaments() {
       setTournaments(data);
     } catch (error) {
       console.error('❌ Load tournaments error:', error);
-      setToast({ message: 'Failed to load tournaments', type: 'error' });
+      setToast({ message: 'Greška pri učitavanju turnira', type: 'error' });
       setTournaments([]); // Set empty array on error
     }
   };
@@ -109,13 +151,18 @@ function Tournaments() {
     console.log('🚀 Creating tournament with data:', formData);
 
     if (!formData.name || !formData.sport || !formData.city || !formData.startDate || !formData.endDate || !formData.location) {
-      setToast({ message: 'Please fill all required fields!', type: 'error' });
+      setToast({ message: 'Molimo popunite sva obavezna polja!', type: 'error' });
+      return;
+    }
+
+    if (new Date(formData.endDate) < new Date(formData.startDate)) {
+      setToast({ message: 'Datum završetka ne može biti prije datuma početka!', type: 'error' });
       return;
     }
 
     // Validation min/max players
     if (parseInt(formData.maxPlayersPerTeam) < parseInt(formData.minPlayersPerTeam)) {
-      setToast({ message: 'Maximum players must be greater than or equal to minimum!', type: 'error' });
+      setToast({ message: 'Maksimalan broj natjecatelja mora biti veći ili jednak minimumu!', type: 'error' });
       return;
     }
 
@@ -139,6 +186,7 @@ function Tournaments() {
           teamSize: 5,
           format: 'knockout',
           entryFee: 0,
+          extraPlayerFee: 0,
           prize: '',
           description: '',
           gender_category: 'mix',
@@ -147,15 +195,15 @@ function Tournaments() {
           max_skill_level: '',
           amateur_only: false
         });
-        setToast({ message: 'Tournament created successfully! 🏆', type: 'success' });
+        setToast({ message: 'Turnir uspješno kreiran! 🏆', type: 'success' });
         loadTournaments();
       } else {
         console.error('Create tournament error:', response);
-        setToast({ message: response.message || 'Failed to create tournament', type: 'error' });
+        setToast({ message: response.message || 'Greška pri kreiranju turnira', type: 'error' });
       }
     } catch (error) {
       console.error('Create tournament error:', error);
-      setToast({ message: 'Failed to create tournament', type: 'error' });
+      setToast({ message: 'Greška pri kreiranju turnira', type: 'error' });
     }
   };
 
@@ -177,7 +225,7 @@ function Tournaments() {
     console.log('🚀 Registering team:', registerData);
 
     if (!registerData.teamName) {
-      setToast({ message: 'Please enter team name!', type: 'error' });
+      setToast({ message: 'Molimo unesite naziv tima!', type: 'error' });
       return;
     }
 
@@ -186,33 +234,29 @@ function Tournaments() {
     const maxPlayers = selectedTournament.max_players_per_team || selectedTournament.maxPlayersPerTeam || selectedTournament.teamSize || 5;
 
     if (filledPlayers.length < minPlayers) {
-      setToast({ message: `Minimum players: ${minPlayers}`, type: 'error' });
+      setToast({ message: `Minimalno natjecatelja: ${minPlayers}`, type: 'error' });
       return;
     }
 
     if (filledPlayers.length > maxPlayers) {
-      setToast({ message: `Maximum players (with substitutes): ${maxPlayers}`, type: 'error' });
+      setToast({ message: `Maksimalno natjecatelja (uključujući zamjene): ${maxPlayers}`, type: 'error' });
       return;
     }
 
     try {
-      const response = await tournamentsAPI.registerTeam(selectedTournament.id, {
+      await tournamentsAPI.registerTeam(selectedTournament.id, {
         teamName: registerData.teamName,
         players: filledPlayers
       });
 
-      if (response.data) {
-        setShowRegisterModal(false);
-        setRegisterData({ teamName: '', players: [] });
-        setToast({ message: 'Team registered successfully! 🎉', type: 'success' });
-        loadTournaments();
-      } else {
-        console.error('Register team error:', response);
-        setToast({ message: response.message || 'Failed to register team', type: 'error' });
-      }
+      setShowRegisterModal(false);
+      setRegisterData({ teamName: '', players: [] });
+      setToast({ message: 'Tim uspješno prijavljen! 🎉', type: 'success' });
+      loadTournaments();
     } catch (error) {
       console.error('Register team error:', error);
-      setToast({ message: 'Failed to register team', type: 'error' });
+      const errorMessage = error.response?.data?.message || 'Greška pri prijavi tima';
+      setToast({ message: errorMessage, type: 'error' });
     }
   };
 
@@ -228,9 +272,9 @@ function Tournaments() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      active: { text: 'Active', color: '#4caf50' },
-      upcoming: { text: 'Upcoming', color: '#ff9800' },
-      finished: { text: 'Finished', color: '#999' }
+      active: { text: 'Aktivan', color: '#4caf50' },
+      upcoming: { text: 'Nadolazeći', color: '#ff9800' },
+      finished: { text: 'Završen', color: '#999' }
     };
     return badges[status] || badges.upcoming;
   };
@@ -575,6 +619,20 @@ function Tournaments() {
                     placeholder="0.00"
                   />
                 </div>
+
+                <div className="form-group">
+                  <label>Naknada za dodatnog igrača (€)</label>
+                  <input
+                    type="number"
+                    name="extraPlayerFee"
+                    value={formData.extraPlayerFee}
+                    onChange={handleChange}
+                    min={0}
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                  <small style={{ color: '#666', fontSize: '12px' }}>Naknada za svakog igrača iznad minimuma</small>
+                </div>
               </div>
 
               <div className="form-group">
@@ -717,7 +775,7 @@ function Tournaments() {
               </div>
 
               <p style={{ marginBottom: '10px', fontWeight: 'bold' }}>
-                Igrači (min {selectedTournament.min_players_per_team || 5}, max {selectedTournament.max_players_per_team || 7}):
+                Natjecatelji (min {selectedTournament.min_players_per_team || 5}, max {selectedTournament.max_players_per_team || 7}):
               </p>
 
               {registerData.players.map((player, index) => (
@@ -726,7 +784,7 @@ function Tournaments() {
                     type="text"
                     value={player.name}
                     onChange={(e) => handlePlayerChange(index, 'name', e.target.value)}
-                    placeholder={`Igrač ${index + 1}${index < (selectedTournament.min_players_per_team || 5) ? ' *' : ' (zamjena)'}`}
+                    placeholder={`Natjecatelj ${index + 1}${index < (selectedTournament.min_players_per_team || 5) ? ' *' : ' (zamjena)'}`}
                     className="player-name-input"
                   />
                   <select
@@ -734,7 +792,7 @@ function Tournaments() {
                     onChange={(e) => handlePlayerChange(index, 'position', e.target.value)}
                     className="player-position-select"
                   >
-                    {positionOptions.map(opt => (
+                    {(getPositionsForSport(selectedTournament?.sport) || defaultPositions).map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
