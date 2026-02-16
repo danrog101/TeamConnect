@@ -4,9 +4,10 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { tournamentsAPI } from '../services/api';
 import './TournamentRegister.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function TournamentRegister() {
   const { id } = useParams();
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
   const [toast, setToast] = useState(null);

@@ -6,10 +6,11 @@ import Toast from '../components/Toast';
 import { getAllSports, addCustomSport } from '../data/sports';
 import { europeanCities, searchCities, addCustomCity } from '../data/cities';
 import './CreateTeam.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function CreateTeam() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [toast, setToast] = useState(null);

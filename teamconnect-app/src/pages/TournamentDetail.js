@@ -5,9 +5,10 @@ import Toast from '../components/Toast';
 import { API_URL } from '../config';
 import './TournamentDetail.css';
 import BracketGenerator from '../components/Bracketgenerator';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function TournamentDetail() {
   const { id } = useParams();
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
   const [activeTab, setActiveTab] = useState('info');

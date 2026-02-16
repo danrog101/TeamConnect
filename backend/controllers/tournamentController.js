@@ -105,19 +105,23 @@ exports.getTournaments = async (req, res) => {
 
     const tournamentsWithDetails = await Promise.all(
       (tournaments || []).map(async (tournament) => {
-        // Get registered teams count and details
-        const { data: registrations, count } = await supabase
+        // ✅ FIXED: Properly count registered teams
+        const { data: registrations } = await supabase
           .from('tournament_registrations')
-          .select('id, team_name, players, status, is_waitlist, registered_at', { count: 'exact' })
+          .select('id, team_name, players, status, is_waitlist, registered_at')
           .eq('tournament_id', tournament.id)
           .eq('is_waitlist', false);
 
+        const count = registrations?.length || 0;
+
         // Get waitlist count
-        const { count: waitlistCount } = await supabase
+        const { data: waitlistTeams } = await supabase
           .from('tournament_registrations')
-          .select('*', { count: 'exact', head: true })
+          .select('id')
           .eq('tournament_id', tournament.id)
           .eq('is_waitlist', true);
+
+        const waitlistCount = waitlistTeams?.length || 0;
 
         // Calculate correct status based on dates
         const calculatedStatus = calculateTournamentStatus(tournament);
@@ -133,9 +137,9 @@ exports.getTournaments = async (req, res) => {
         return {
           ...tournament,
           status: calculatedStatus,
-          registered_teams: count || 0,
+          registered_teams: count,
           registered_teams_list: registrations || [],
-          waitlist_count: waitlistCount || 0
+          waitlist_count: waitlistCount
         };
       })
     );
@@ -176,15 +180,13 @@ exports.getTournament = async (req, res) => {
       return res.status(500).json({ message: 'Server error' });
     }
 
-    // Get registered teams
-  // ✅ NOVO:
-const { data: registrations } = await supabase
-  .from('tournament_registrations')
-  .select('id, team_name, players, status, is_waitlist, registered_at')
-  .eq('tournament_id', tournament.id)
-  .eq('is_waitlist', false);
+    // ✅ FIXED: Get registered teams
+    const { data: registrations } = await supabase
+      .from('tournament_registrations')
+      .select('*')
+      .eq('tournament_id', id)
+      .order('registered_at', { ascending: true });
 
-const count = registrations?.length || 0;
     const registeredTeams = registrations?.filter(r => !r.is_waitlist) || [];
     const waitlist = registrations?.filter(r => r.is_waitlist) || [];
 
@@ -302,7 +304,6 @@ exports.createTournament = async (req, res) => {
 };
 
 // Register for tournament (allows multiple teams from same user)
-// Register for tournament (allows multiple teams from same user)
 exports.registerForTournament = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -417,7 +418,7 @@ exports.registerForTournament = async (req, res) => {
       });
     }
 
-    // Send email notification to organizer
+    // ✅ Send email notification to organizer
     if (tournament.creator && !isFull) {
       await sendOrganizerNotification(
         tournament.creator,
@@ -425,6 +426,21 @@ exports.registerForTournament = async (req, res) => {
         teamName,
         formattedPlayers
       );
+    }
+
+    // ✅ Create notification for tournament creator
+    if (tournament.creator && tournament.creator.id !== userId && !isFull) {
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: tournament.creator.id,
+          type: 'team_registered',
+          title: 'Nova prijava tima!',
+          message: `Tim "${teamName}" se prijavio na vaš turnir "${tournament.name}"`,
+          link: `/tournament/${id}`,
+          read: false,
+          created_at: new Date().toISOString()
+        });
     }
 
     console.log('✅ Team registered successfully', isFull ? '(on waitlist)' : '');
@@ -520,11 +536,11 @@ exports.removeTeamFromTournament = async (req, res) => {
       return res.status(500).json({ message: 'Failed to remove team' });
     }
 
-    // If removed team was registered (not waitlist), promote first waitlist team
+    // ✅ If removed team was registered (not waitlist), promote first waitlist team
     if (wasRegistered) {
       const { data: firstWaitlist } = await supabase
         .from('tournament_registrations')
-        .select('id')
+        .select('id, team_name, user_id')
         .eq('tournament_id', id)
         .eq('is_waitlist', true)
         .order('registered_at', { ascending: true })
@@ -534,14 +550,127 @@ exports.removeTeamFromTournament = async (req, res) => {
       if (firstWaitlist) {
         await supabase
           .from('tournament_registrations')
-          .update({ is_waitlist: false, status: 'registered' })
+          .update({ 
+            is_waitlist: false, 
+            status: 'registered',
+            updated_at: new Date().toISOString()
+          })
           .eq('id', firstWaitlist.id);
+
+        // Notify promoted team
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: firstWaitlist.user_id,
+            type: 'waitlist_promoted',
+            title: 'Promaknuti s liste čekanja!',
+            message: `Vaš tim "${firstWaitlist.team_name}" je promaknut s liste čekanja i sada je službeno prijavljen na turnir!`,
+            link: `/tournament/${id}`,
+            read: false,
+            created_at: new Date().toISOString()
+          });
       }
     }
 
     res.json({ message: 'Team removed successfully' });
   } catch (error) {
     console.error('❌ Remove team error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// ✅ NEW: Unregister team from tournament
+exports.unregisterTeam = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    console.log('🔵 Unregister request:', { userId, tournamentId: id });
+
+    // Find user's registration
+    const { data: registration, error: regError } = await supabase
+      .from('tournament_registrations')
+      .select('*')
+      .eq('tournament_id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (regError || !registration) {
+      console.log('❌ Registration not found');
+      return res.status(404).json({ message: 'Niste prijavljeni na ovaj turnir' });
+    }
+
+    const wasRegistered = !registration.is_waitlist;
+    console.log('📝 Found registration:', { 
+      id: registration.id, 
+      wasRegistered, 
+      teamName: registration.team_name 
+    });
+
+    // Delete registration
+    const { error: deleteError } = await supabase
+      .from('tournament_registrations')
+      .delete()
+      .eq('id', registration.id);
+
+    if (deleteError) {
+      console.error('❌ Delete error:', deleteError);
+      return res.status(500).json({ message: 'Greška pri odjavljivanju tima' });
+    }
+
+    console.log('✅ Registration deleted');
+
+    // If removed team was registered (not waitlist), promote first waitlist team
+    if (wasRegistered) {
+      const { data: firstWaitlist, error: waitlistError } = await supabase
+        .from('tournament_registrations')
+        .select('id, team_name, user_id')
+        .eq('tournament_id', id)
+        .eq('is_waitlist', true)
+        .order('registered_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (firstWaitlist && !waitlistError) {
+        console.log('📢 Promoting waitlist team:', firstWaitlist.team_name);
+
+        // Promote from waitlist
+        const { error: updateError } = await supabase
+          .from('tournament_registrations')
+          .update({ 
+            is_waitlist: false, 
+            status: 'registered',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', firstWaitlist.id);
+
+        if (!updateError) {
+          // Create notification for promoted team
+          await supabase
+            .from('notifications')
+            .insert({
+              user_id: firstWaitlist.user_id,
+              type: 'waitlist_promoted',
+              title: 'Promaknuti s liste čekanja!',
+              message: `Vaš tim "${firstWaitlist.team_name}" je promaknut s liste čekanja i sada je službeno prijavljen na turnir!`,
+              link: `/tournament/${id}`,
+              read: false,
+              created_at: new Date().toISOString()
+            });
+
+          console.log('✅ Waitlist team promoted and notified');
+        }
+      } else {
+        console.log('ℹ️ No waitlist teams to promote');
+      }
+    }
+
+    res.json({ 
+      message: 'Tim uspješno odjavljen sa turnira!',
+      promoted: wasRegistered 
+    });
+  } catch (error) {
+    console.error('❌ Unregister team error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -608,16 +737,16 @@ exports.updateTournament = async (req, res) => {
       return res.status(500).json({ message: 'Failed to update tournament' });
     }
 
-    // Get registration counts
-    const { count } = await supabase
+    // ✅ Get registration counts properly
+    const { data: registeredTeams } = await supabase
       .from('tournament_registrations')
-      .select('*', { count: 'exact', head: true })
+      .select('id')
       .eq('tournament_id', id)
       .eq('is_waitlist', false);
 
     res.json({
       ...updated,
-      registered_teams: count || 0
+      registered_teams: registeredTeams?.length || 0
     });
   } catch (error) {
     console.error('❌ Update tournament error:', error);

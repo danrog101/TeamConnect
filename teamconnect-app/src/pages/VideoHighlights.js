@@ -4,8 +4,9 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { API_URL } from '../config';
 import './VideoHighlights.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function VideoHighlights() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [highlights, setHighlights] = useState([]);
   const [filter, setFilter] = useState('all');

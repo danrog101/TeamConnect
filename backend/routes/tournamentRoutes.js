@@ -11,7 +11,8 @@ const {
   getRegisteredTeams,
   removeTeamFromTournament,
   cleanupExpired,
-  updateTournamentStatuses
+  updateTournamentStatuses,
+  unregisterTeam  // ✅ DODAJ OVO
 } = require('../controllers/tournamentController');
 
 // Public routes
@@ -22,6 +23,7 @@ router.get('/:id/teams', getRegisteredTeams);
 // Protected routes
 router.post('/', auth, createTournament);
 router.post('/:id/register', auth, registerForTournament);
+router.post('/:id/unregister', auth, unregisterTeam);  // ✅ DODAJ OVO
 router.put('/:id', auth, updateTournament);
 router.delete('/:id', auth, deleteTournament);
 router.delete('/:id/teams/:registrationId', auth, removeTeamFromTournament);

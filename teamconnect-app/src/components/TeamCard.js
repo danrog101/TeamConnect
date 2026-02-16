@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import SportRatingModal from './SportRatingModal';
 import { API_URL } from '../config';
 import './TeamCard.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotification, showActions = true, autoExpandMembers = false }) {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinPosition, setJoinPosition] = useState('');

@@ -4,10 +4,11 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import api from '../services/api';
 import './AdminDashboard.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 const ADMIN_EMAIL = 'teamconnect0102@gmail.com';
 
 function AdminDashboard() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState(null);

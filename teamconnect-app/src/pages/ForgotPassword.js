@@ -4,7 +4,7 @@ import { authAPI } from '../services/api';
 import { useLanguage } from '../i18n/LanguageContext';
 import Toast from '../components/Toast';
 import './Auth.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 const SECURITY_QUESTIONS = {
   'mothers_maiden_name': 'Koje je prezime vaše majke prije udaje?',
   'first_pet': 'Kako se zvao vaš prvi ljubimac?',

@@ -7,8 +7,9 @@ import { tournamentsAPI } from '../services/api';
 import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
 import './Tournaments.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function Tournaments() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);

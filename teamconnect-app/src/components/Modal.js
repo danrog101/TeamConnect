@@ -1,7 +1,8 @@
 import React from 'react';
 import './Modal.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function Modal({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText }) {
+   const { t } = useLanguage();
   if (!isOpen) return null;
 
   return (

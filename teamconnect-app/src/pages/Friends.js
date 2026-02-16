@@ -5,7 +5,7 @@ import Toast from '../components/Toast';
 import { API_URL } from '../config';
 import { useLanguage } from '../i18n/LanguageContext';
 import './Friends.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function Friends() {
   const navigate = useNavigate();
   const { t } = useLanguage();

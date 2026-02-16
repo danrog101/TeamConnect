@@ -1,7 +1,9 @@
 import React from 'react';
 import './BracketGenerator.css';
+import { useLanguage } from '../i18n/LanguageContext'; 
 
 function BracketGenerator({ teams, matches, onUpdateMatch }) {
+   const { t } = useLanguage();
   // Generiraj bracket struktu za knockout
   const generateBracket = () => {
     if (!teams || teams.length === 0) return null;

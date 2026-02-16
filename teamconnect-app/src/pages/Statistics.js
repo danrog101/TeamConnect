@@ -5,8 +5,9 @@ import Toast from '../components/Toast';
 import { getAllSports } from '../data/sports';
 import { API_URL } from '../config';
 import './Statistics.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function Statistics() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [selectedSport, setSelectedSport] = useState('');

@@ -8,6 +8,12 @@ const hpp = require('hpp');
 const morgan = require('morgan');
 require('dotenv').config();
 
+// ✅ DODAJ OVO - Cron job setup
+const cron = require('node-cron');
+
+// Import config and middleware
+
+
 // Import config and middleware
 const config = require('./config/config');
 const logger = require('./utils/logger');
@@ -208,6 +214,40 @@ io.on('connection', (socket) => {
 // Error Handling Middleware (must be last!)
 app.use(notFound);
 app.use(errorHandler);
+
+// ✅ DODAJ OVO - Auto-cleanup cron job (runs daily at 2 AM)
+cron.schedule('0 2 * * *', async () => {
+  console.log('🧹 Running auto-cleanup...');
+  
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - 30); // 30 days old
+  
+  try {
+    const { supabase } = require('./config/supabase');
+    
+    // Delete old finished tournaments
+    const { data: deletedTournaments } = await supabase
+      .from('tournaments')
+      .delete()
+      .lt('end_date', cutoffDate.toISOString().split('T')[0])
+      .eq('status', 'finished')
+      .select('id, name');
+
+    // Delete old teams (past their date)
+    const { data: deletedTeams } = await supabase
+      .from('teams')
+      .delete()
+      .lt('date', cutoffDate.toISOString().split('T')[0])
+      .select('id, name');
+
+    console.log('✅ Cleanup completed:', {
+      tournaments: deletedTournaments?.length || 0,
+      teams: deletedTeams?.length || 0
+    });
+  } catch (error) {
+    console.error('❌ Cleanup error:', error);
+  }
+});
 
 const PORT = config.port;
 server.listen(PORT, () => {

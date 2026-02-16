@@ -5,7 +5,7 @@ import Toast from '../components/Toast';
 import { API_URL } from '../config';
 import { useLanguage } from '../i18n/LanguageContext';
 import './Notifications.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function Notifications() {
   const navigate = useNavigate();
   const { t } = useLanguage();

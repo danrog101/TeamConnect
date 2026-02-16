@@ -7,7 +7,7 @@ import Toast from '../components/Toast';
 import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
 import './Dashboard.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function Dashboard() {

@@ -5,8 +5,9 @@ import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
 import { API_URL, BASE_URL } from '../config';
 import './FieldMap.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function FieldMap() {
+   const { t } = useLanguage();
   // ============ STATE ============
   const [fields, setFields] = useState([]);
   const [selectedField, setSelectedField] = useState(null);

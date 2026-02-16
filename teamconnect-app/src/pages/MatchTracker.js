@@ -4,9 +4,10 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { API_URL } from '../config';
 import './MatchTracker.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function MatchTracker() {
   const { matchId } = useParams();
+   const { t } = useLanguage();
   const navigate = useNavigate();
   
   // ============ STATE ============

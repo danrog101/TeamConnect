@@ -4,10 +4,10 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { API_URL } from '../config';
 import './RatingSystem.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function RatingSystem() {
   const navigate = useNavigate();
-
+ const { t } = useLanguage();
   const [players, setPlayers] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(false);

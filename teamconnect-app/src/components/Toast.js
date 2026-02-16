@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import './Toast.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function Toast({ message, type, onClose }) {
+   const { t } = useLanguage();
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();

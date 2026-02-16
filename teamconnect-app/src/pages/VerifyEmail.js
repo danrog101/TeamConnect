@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import Toast from '../components/Toast';
 import './Auth.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function VerifyEmail() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');

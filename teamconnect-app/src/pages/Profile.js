@@ -4,8 +4,33 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { authAPI } from '../services/api';
 import './Profile.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Profile page component.
+ * 
+ * This component displays the profile page of a user.
+ * It fetches the user's profile data from the server and displays it.
+ * It also provides the ability to edit the profile data.
+ * When the user clicks on the edit button, it renders a form to edit the profile data.
+ * When the user clicks on the save button, it sends the updated profile data to the server.
+ * If the update is successful, it updates the profile data in the component's state.
+ * If the update fails, it displays an error message to the user.
+ * The component also provides the ability to change the user's password.
+ * When the user clicks on the change password button, it renders a form to change the password.
+ * When the user clicks on the save button, it sends the new password to the server.
+ * If the update is successful, it updates the user's password in the component's state.
+ * If the update fails, it displays an error message to the user.
+ * The component also displays a list of the user's friends and the number of matches and wins they have played.
+ * It also provides the ability to view the user's statistics in a detailed view.
+ * When the user clicks on the view statistics button, it navigates to the statistics page.
+ * The component also displays a list of the user's recent activity.
+ * It also provides the ability to view the user's privacy settings.
+ * When the user clicks on the privacy settings button, it navigates to the privacy settings page.
+ */
+/*******  dda72837-31ec-4844-93ea-a7cba5713530  *******/
 function Profile() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const { userId } = useParams();
   const [profile, setProfile] = useState(null);

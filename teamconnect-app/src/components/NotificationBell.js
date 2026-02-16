@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
 import './NotificationBell.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function NotificationBell() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { getRatingCategories, getSkillLevelName } from '../data/sportRatings';
 import './SportRatingModal.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function SportRatingModal({ sport, onSubmit, onCancel, existingRatings = null }) {
+   const { t } = useLanguage();
   const sportConfig = getRatingCategories(sport);
 
   // Initialize ratings - either from existing (convert from 0-100 to 1-5) or default to 3

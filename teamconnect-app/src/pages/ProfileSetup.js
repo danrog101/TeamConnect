@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function ProfileSetup() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     sport: '',

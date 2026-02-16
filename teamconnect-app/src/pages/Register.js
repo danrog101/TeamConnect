@@ -4,7 +4,7 @@ import { authAPI } from '../services/api';
 import { useLanguage } from '../i18n/LanguageContext';
 import Toast from '../components/Toast';
 import './Auth.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function Register() {
   const navigate = useNavigate();
   const { t } = useLanguage();
