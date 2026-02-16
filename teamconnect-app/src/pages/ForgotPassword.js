@@ -5,6 +5,16 @@ import { useLanguage } from '../i18n/LanguageContext';
 import Toast from '../components/Toast';
 import './Auth.css';
 
+const SECURITY_QUESTIONS = {
+  'mothers_maiden_name': 'Koje je prezime vaše majke prije udaje?',
+  'first_pet': 'Kako se zvao vaš prvi ljubimac?',
+  'birth_city': 'U kojem gradu ste rođeni?',
+  'elementary_school': 'Kako se zvala vaša osnovna škola?',
+  'favorite_movie': 'Koji je vaš omiljeni film?',
+  'favorite_book': 'Koja je vaša omiljena knjiga?',
+  'favorite_teacher': 'Kako se zvao vaš omiljeni učitelj?',
+  'first_car': 'Koji je bio vaš prvi automobil?'
+};
 function ForgotPassword() {
   const navigate = useNavigate();
   const { t } = useLanguage();
