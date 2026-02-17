@@ -17,6 +17,7 @@ function Tournaments() {
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [toast, setToast] = useState(null);
   const [activeTab, setActiveTab] = useState('active');
+  const [filters, setFilters] = useState({ sport: '', city: '' });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -108,6 +109,28 @@ function Tournaments() {
 
   useEffect(() => {
     loadTournaments();
+  }, []);
+
+  useEffect(() => {
+    const checkReminders = () => {
+      const reminders = JSON.parse(localStorage.getItem('eventReminders') || '[]');
+      const now = new Date();
+      reminders.forEach(reminder => {
+        const eventDate = new Date(reminder.date);
+        const diff = eventDate - now;
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        if (diff > 0 && diff < oneDayMs && Notification.permission === 'granted') {
+          new Notification('TeamConnect - Podsjetnik', {
+            body: `${reminder.name} počinje sutra!`,
+            icon: '🏆'
+          });
+          // Remove shown reminder
+          const updated = reminders.filter(r => r.id !== reminder.id);
+          localStorage.setItem('eventReminders', JSON.stringify(updated));
+        }
+      });
+    };
+    checkReminders();
   }, []);
 
   const loadTournaments = async () => {
@@ -302,7 +325,11 @@ function Tournaments() {
     });
   };
 
-  const filteredTournaments = filterTournaments(activeTab);
+  const filteredTournaments = filterTournaments(activeTab).filter(t => {
+    if (filters.sport && t.sport !== filters.sport) return false;
+    if (filters.city && t.city !== filters.city) return false;
+    return true;
+  });
 
   return (
     <div className="tournaments-page">
@@ -336,6 +363,35 @@ function Tournaments() {
           >
             Završeni ({filterTournaments('finished').length})
           </button>
+        </div>
+
+        <div className="filters-section card" style={{ marginBottom: '20px' }}>
+          <h3>🔍 Filtriraj turnire</h3>
+          <div className="filters-grid">
+            <div className="filter-group">
+              <label>Sport</label>
+              <select value={filters.sport} onChange={(e) => setFilters({...filters, sport: e.target.value})}>
+                <option value="">Svi sportovi</option>
+                {sportsList.map(sport => (
+                  <option key={sport.id} value={sport.name}>{sport.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Grad</label>
+              <select value={filters.city} onChange={(e) => setFilters({...filters, city: e.target.value})}>
+                <option value="">Svi gradovi</option>
+                {[...new Set(tournaments.map(t => t.city).filter(Boolean))].sort().map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
+            {(filters.sport || filters.city) && (
+              <button className="btn btn-secondary" onClick={() => setFilters({ sport: '', city: '' })}>
+                Resetiraj filtere
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="tournaments-grid">
@@ -446,6 +502,30 @@ function Tournaments() {
                       onClick={() => navigate(`/tournament/${tournament.id}`)}
                     >
                       Detalji
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => {
+                        const reminders = JSON.parse(localStorage.getItem('eventReminders') || '[]');
+                        const exists = reminders.find(r => r.id === tournament.id);
+                        if (exists) {
+                          setToast({ message: 'Podsjetnik već postavljen!', type: 'info' });
+                          return;
+                        }
+                        reminders.push({
+                          id: tournament.id,
+                          name: tournament.name,
+                          date: tournament.start_date || tournament.startDate,
+                          sport: tournament.sport
+                        });
+                        localStorage.setItem('eventReminders', JSON.stringify(reminders));
+                        if (Notification.permission === 'default') {
+                          Notification.requestPermission();
+                        }
+                        setToast({ message: '🔔 Podsjetnik postavljen!', type: 'success' });
+                      }}
+                    >
+                      🔔 Podsjeti me
                     </button>
                   </div>
 

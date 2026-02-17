@@ -204,38 +204,62 @@ function ForgotPassword() {
         <h1 className="auth-title">🔐</h1>
         <h2>{getTitle()}</h2>
 
+        {step !== 'security' && (
+          <div className="step-progress" style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '20px' }}>
+            {[1, 2, 3].map(s => (
+              <div key={s} style={{
+                width: '40px', height: '4px', borderRadius: '2px',
+                background: s <= step ? 'var(--color-primary, #22c55e)' : 'var(--border-primary, #e2e8f0)',
+                transition: 'background 0.3s'
+              }} />
+            ))}
+          </div>
+        )}
+
+        {step === 'security' && (
+          <div className="step-progress" style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '20px' }}>
+            {[1, 2, 3].map(s => (
+              <div key={s} style={{
+                width: '40px', height: '4px', borderRadius: '2px',
+                background: s <= securityStep ? 'var(--color-primary, #22c55e)' : 'var(--border-primary, #e2e8f0)',
+                transition: 'background 0.3s'
+              }} />
+            ))}
+          </div>
+        )}
+
         {step === 1 && (
-          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
             Unesite email adresu vašeg računa i poslat ćemo vam kod za resetiranje lozinke.
           </p>
         )}
 
         {step === 2 && (
-          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
             Unesite 6-znamenkasti kod koji ste primili na <strong>{email}</strong>
           </p>
         )}
 
         {step === 3 && (
-          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
             Unesite novu lozinku za vaš račun.
           </p>
         )}
 
         {step === 'security' && securityStep === 1 && (
-          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
             Unesite email adresu vašeg računa da biste dobili sigurnosno pitanje.
           </p>
         )}
 
         {step === 'security' && securityStep === 2 && (
-          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
             Odgovorite na sigurnosno pitanje za račun <strong>{securityEmail}</strong>
           </p>
         )}
 
         {step === 'security' && securityStep === 3 && (
-          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
             Unesite novu lozinku za vaš račun.
           </p>
         )}
@@ -266,7 +290,7 @@ function ForgotPassword() {
               <button
                 type="button"
                 onClick={() => { setStep('security'); setError(''); }}
-                style={{ background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', textDecoration: 'underline' }}
+                style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
               >
                 Ili koristite sigurnosno pitanje
               </button>
@@ -317,6 +341,22 @@ function ForgotPassword() {
                 required
                 minLength={6}
               />
+              {newPassword && (
+                <div className="password-strength">
+                  <div className="strength-bar">
+                    <div 
+                      className="strength-fill" 
+                      style={{ 
+                        width: `${Math.min(100, (newPassword.length / 12) * 50 + (/[A-Z]/.test(newPassword) ? 15 : 0) + (/[0-9]/.test(newPassword) ? 15 : 0) + (/[^A-Za-z0-9]/.test(newPassword) ? 20 : 0))}%`,
+                        background: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#22c55e'
+                      }} 
+                    />
+                  </div>
+                  <small style={{ color: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#22c55e' }}>
+                    {newPassword.length < 6 ? 'Preslaba' : newPassword.length < 10 ? 'Srednja jakost' : 'Jaka lozinka'}
+                  </small>
+                </div>
+              )}
             </div>
 
             <div className="form-group">
@@ -360,7 +400,7 @@ function ForgotPassword() {
               <button
                 type="button"
                 onClick={() => { setStep(1); setError(''); }}
-                style={{ background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', textDecoration: 'underline' }}
+                style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
               >
                 Ili koristite email kod
               </button>
@@ -410,6 +450,22 @@ function ForgotPassword() {
                 required
                 minLength={6}
               />
+              {newPassword && (
+                <div className="password-strength">
+                  <div className="strength-bar">
+                    <div 
+                      className="strength-fill" 
+                      style={{ 
+                        width: `${Math.min(100, (newPassword.length / 12) * 50 + (/[A-Z]/.test(newPassword) ? 15 : 0) + (/[0-9]/.test(newPassword) ? 15 : 0) + (/[^A-Za-z0-9]/.test(newPassword) ? 20 : 0))}%`,
+                        background: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#22c55e'
+                      }} 
+                    />
+                  </div>
+                  <small style={{ color: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#22c55e' }}>
+                    {newPassword.length < 6 ? 'Preslaba' : newPassword.length < 10 ? 'Srednja jakost' : 'Jaka lozinka'}
+                  </small>
+                </div>
+              )}
             </div>
 
             <div className="form-group">
@@ -433,13 +489,9 @@ function ForgotPassword() {
           <a href="/login">Povratak na prijavu</a>
         </p>
 
-        <div className="support-info" style={{ marginTop: '30px', padding: '15px', background: '#f8fafc', borderRadius: '10px', textAlign: 'center' }}>
-          <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b' }}>
-            Trebate pomoć? Kontaktirajte nas:
-          </p>
-          <a href="mailto:teamconnect0102@gmail.com" style={{ color: '#4f46e5', fontWeight: '600' }}>
-            teamconnect0102@gmail.com
-          </a>
+        <div className="support-info">
+          <p>Trebate pomoć? Kontaktirajte nas:</p>
+          <a href="mailto:teamconnect0102@gmail.com">teamconnect0102@gmail.com</a>
         </div>
       </div>
 

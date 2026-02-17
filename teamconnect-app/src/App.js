@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './i18n/LanguageContext';
+import LandingPage from './pages/LandingPage';
 import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import Login from './pages/Login';
@@ -39,7 +40,8 @@ function App() {
       <div className="app">
         <Routes>
           {/* Javne rute */}
-          <Route path="/" element={<Register />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/verify" element={<VerifyEmail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

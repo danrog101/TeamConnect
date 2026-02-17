@@ -11,6 +11,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function Dashboard() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [teams, setTeams] = useState([]);
   const [filteredTeams, setFilteredTeams] = useState([]);
@@ -18,7 +19,8 @@ function Dashboard() {
   const [filters, setFilters] = useState({
     sport: '',
     country: '',
-    city: ''
+    city: '',
+    date: ''
   });
   const [loading, setLoading] = useState(true);
 
@@ -76,11 +78,11 @@ function Dashboard() {
         setTeams(data);
       } else {
         console.error('❌ Failed to fetch teams:', response.status);
-        setToast({ message: 'Greška pri učitavanju timova', type: 'error' });
+        setToast({ message: t('dashboard.loadError'), type: 'error' });
       }
     } catch (error) {
       console.error('❌ Fetch teams error:', error);
-      setToast({ message: 'Greška pri učitavanju timova', type: 'error' });
+      setToast({ message: t('dashboard.loadError'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -99,6 +101,14 @@ function Dashboard() {
 
     if (filters.city) {
       filtered = filtered.filter(team => team.city === filters.city);
+    }
+
+    if (filters.date) {
+      filtered = filtered.filter(team => {
+        if (!team.date) return false;
+        const teamDate = new Date(team.date).toISOString().split('T')[0];
+        return teamDate === filters.date;
+      });
     }
 
     setFilteredTeams(filtered);
@@ -125,7 +135,7 @@ function Dashboard() {
 
       if (!teamId) {
         console.error('❌ Team ID is undefined!');
-        setToast({ message: 'Greška: ID tima nije dostupan', type: 'error' });
+        setToast({ message: t('dashboard.teamIdError'), type: 'error' });
         return;
       }
 
@@ -152,14 +162,14 @@ function Dashboard() {
       console.log('📡 Join response data:', data);
 
       if (response.ok) {
-        setToast({ message: 'Uspješno si se pridružio timu! 🎉', type: 'success' });
+        setToast({ message: t('dashboard.joinSuccess'), type: 'success' });
         fetchTeams();
       } else {
-        setToast({ message: data.message || 'Greška pri pridruživanju', type: 'error' });
+        setToast({ message: data.message || t('dashboard.joinError'), type: 'error' });
       }
     } catch (error) {
       console.error('❌ Join team error:', error);
-      setToast({ message: 'Greška pri pridruživanju timu', type: 'error' });
+      setToast({ message: t('dashboard.joinError'), type: 'error' });
     }
   };
 
@@ -176,7 +186,7 @@ function Dashboard() {
 
       if (!teamId) {
         console.error('❌ Team ID is undefined!');
-        setToast({ message: 'Greška: ID tima nije dostupan', type: 'error' });
+        setToast({ message: t('dashboard.teamIdError'), type: 'error' });
         return;
       }
 
@@ -204,7 +214,7 @@ function Dashboard() {
       }
     } catch (error) {
       console.error('❌ Join waitlist error:', error);
-      setToast({ message: 'Greška pri dodavanju na listu čekanja', type: 'error' });
+      setToast({ message: t('dashboard.waitlistError'), type: 'error' });
     }
   };
 
@@ -213,7 +223,7 @@ function Dashboard() {
       <div className="dashboard-page">
         <Navbar />
         <div className="dashboard-container">
-          <div className="loading-spinner">Učitavanje...</div>
+          <div className="loading-spinner">{t('common.loading')}</div>
         </div>
       </div>
     );
@@ -225,8 +235,8 @@ function Dashboard() {
       
       <div className="dashboard-container">
         <div className="dashboard-header">
-          <h1>Dostupni timovi</h1>
-          <p>Pronađi tim i pridruži se utakmici!</p>
+          <h1>{t('dashboard.availableTeams')}</h1>
+          <p>{t('dashboard.findTeam')}</p>
           <button className="btn btn-primary btn-large" onClick={() => navigate('/create-team')}>
             + Kreiraj novi tim
           </button>
@@ -282,14 +292,77 @@ function Dashboard() {
               </select>
             </div>
 
-            {(filters.sport || filters.country || filters.city) && (
+            <div className="filter-group">
+              <label>Datum</label>
+              <input 
+                type="date"
+                value={filters.date}
+                onChange={(e) => handleFilterChange('date', e.target.value)}
+              />
+            </div>
+
+            {(filters.sport || filters.country || filters.city || filters.date) && (
               <button 
                 className="btn btn-secondary"
-                onClick={() => setFilters({ sport: '', country: '', city: '' })}
+                onClick={() => setFilters({ sport: '', country: '', city: '', date: '' })}
               >
                 Resetiraj filtere
               </button>
             )}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+            <button 
+              className={`btn btn-small ${filters.date === new Date().toISOString().split('T')[0] ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => {
+                const today = new Date().toISOString().split('T')[0];
+                setFilters({ ...filters, date: filters.date === today ? '' : today });
+              }}
+            >
+              📅 Danas
+            </button>
+            <button 
+              className={`btn btn-small ${filters.date === new Date(Date.now() + 86400000).toISOString().split('T')[0] ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => {
+                const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+                setFilters({ ...filters, date: filters.date === tomorrow ? '' : tomorrow });
+              }}
+            >
+              📅 Sutra
+            </button>
+            <button 
+              className={`btn btn-small ${(() => {
+                const now = new Date();
+                const sat = new Date(now);
+                sat.setDate(now.getDate() + (6 - now.getDay()));
+                return filters.date === sat.toISOString().split('T')[0];
+              })() ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => {
+                const now = new Date();
+                const sat = new Date(now);
+                sat.setDate(now.getDate() + (6 - now.getDay()));
+                const satDate = sat.toISOString().split('T')[0];
+                setFilters({ ...filters, date: filters.date === satDate ? '' : satDate });
+              }}
+            >
+              📅 Subota
+            </button>
+            <button 
+              className={`btn btn-small ${(() => {
+                const now = new Date();
+                const sun = new Date(now);
+                sun.setDate(now.getDate() + (7 - now.getDay()));
+                return filters.date === sun.toISOString().split('T')[0];
+              })() ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => {
+                const now = new Date();
+                const sun = new Date(now);
+                sun.setDate(now.getDate() + (7 - now.getDay()));
+                const sunDate = sun.toISOString().split('T')[0];
+                setFilters({ ...filters, date: filters.date === sunDate ? '' : sunDate });
+              }}
+            >
+              📅 Nedjelja
+            </button>
           </div>
         </div>
 
@@ -298,7 +371,7 @@ function Dashboard() {
             <span className="empty-icon">⚽</span>
             <h2>Nema timova</h2>
             <p>
-              {filters.sport || filters.country || filters.city 
+              {filters.sport || filters.country || filters.city || filters.date
                 ? 'Nema timova koji odgovaraju tvojim filterima. Pokušaj promijeniti kriterije.'
                 : 'Trenutno nema dostupnih timova. Budi prvi i kreiraj novi tim!'}
             </p>

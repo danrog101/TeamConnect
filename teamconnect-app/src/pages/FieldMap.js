@@ -910,6 +910,33 @@ function FieldMap() {
                         <p>{selectedField.rating || '0'}/5 ({selectedField.reviews_count || 0} recenzija)</p>
                       </div>
                     </div>
+                    {selectedField.phone && (
+                      <div className="detail-info-item">
+                        <span className="detail-icon">📞</span>
+                        <div>
+                          <strong>Telefon</strong>
+                          <p><a href={`tel:${selectedField.phone}`}>{selectedField.phone}</a></p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedField.email && (
+                      <div className="detail-info-item">
+                        <span className="detail-icon">📧</span>
+                        <div>
+                          <strong>Email</strong>
+                          <p><a href={`mailto:${selectedField.email}`}>{selectedField.email}</a></p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedField.website && (
+                      <div className="detail-info-item">
+                        <span className="detail-icon">🌐</span>
+                        <div>
+                          <strong>Web</strong>
+                          <p><a href={selectedField.website} target="_blank" rel="noopener noreferrer">{selectedField.website}</a></p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {selectedField.facilities && selectedField.facilities.length > 0 && (
@@ -940,6 +967,20 @@ function FieldMap() {
                     >
                       Navigiraj do terena
                     </button>
+                    {(selectedField.email || selectedField.phone) && (
+                      <button
+                        className="btn btn-secondary btn-large"
+                        onClick={() => {
+                          if (selectedField.email) {
+                            window.open(`mailto:${selectedField.email}?subject=Upit za rezervaciju - ${selectedField.name}&body=Poštovani,%0A%0AŽelio/la bih rezervirati teren ${selectedField.name}.%0A%0AMolim vas za informacije o dostupnim terminima.%0A%0AHvala!`, '_blank');
+                          } else if (selectedField.phone) {
+                            window.open(`tel:${selectedField.phone}`, '_blank');
+                          }
+                        }}
+                      >
+                        📩 Kontaktiraj za rezervaciju
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

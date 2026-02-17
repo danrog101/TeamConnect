@@ -98,6 +98,23 @@ function Navbar() {
               {t('nav.admin')}
             </button>
           )}
+
+          {/* Mobile-only: theme, profile, logout inside menu */}
+          <div className="mobile-menu-extras">
+            <div className="mobile-menu-divider" />
+            <button className="nav-link" onClick={() => { navigate('/profile'); setShowMenu(false); }}>
+              <span className="nav-icon">👤</span>
+              {t('nav.profile')}
+            </button>
+            <button className="nav-link" onClick={() => { toggleTheme(); }}>
+              <span className="nav-icon">{isDark ? '☀️' : '🌙'}</span>
+              {isDark ? 'Light Mode' : 'Dark Mode'}
+            </button>
+            <button className="nav-link logout-link" onClick={() => { setShowMenu(false); confirmLogout(); }}>
+              <span className="nav-icon">🚪</span>
+              {t('nav.logout')}
+            </button>
+          </div>
         </div>
 
         <div className="navbar-user">

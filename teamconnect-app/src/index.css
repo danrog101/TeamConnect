@@ -115,6 +115,8 @@
   --primary-dark: var(--color-primary-hover);
   --primary-alpha: var(--color-primary-bg);
   --gradient-primary: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
+  --card-bg: var(--bg-card);
+  --danger: var(--color-error);
 }
 
 /* ============ GLOBAL VARIABLES ============ */
@@ -125,6 +127,8 @@
   --primary-alpha: var(--color-primary-bg);
   --gradient-primary: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
   --gradient-secondary: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --card-bg: var(--bg-card);
+  --danger: var(--color-error);
 
   /* Spacing */
   --space-xs: 4px;

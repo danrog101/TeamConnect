@@ -35,12 +35,12 @@ function Register() {
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Lozinke se ne podudaraju!');
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Lozinka mora imati minimalno 6 znakova!');
+      setError(t('auth.passwordTooShort'));
       return;
     }
 
@@ -64,7 +64,7 @@ function Register() {
         localStorage.setItem('user', JSON.stringify(response.data.user));
       }
 
-      setToast({ message: 'Registracija uspješna! Dobrodošao/la!', type: 'success' });
+      setToast({ message: t('auth.registerSuccess'), type: 'success' });
       
       // ✅ Idi odmah na dashboard umjesto na verification stranicu
       setTimeout(() => {
@@ -73,7 +73,7 @@ function Register() {
       
     } catch (err) {
       console.error('Register error:', err);
-      setError(err.response?.data?.message || 'Greška pri registraciji');
+      setError(err.response?.data?.message || t('auth.registerError'));
     } finally {
       setLoading(false);
     }
@@ -92,42 +92,41 @@ function Register() {
         backdropFilter: 'blur(10px)'
       }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '12px', color: 'var(--text-primary, #333)' }}>
-          Dobrodošli u TeamConnect!
+          {t('auth.welcomeTitle')}
         </h2>
         <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text-secondary, #666)', marginBottom: '16px' }}>
-          TeamConnect je aplikacija koja povezuje sportaše i rekreativce po lokaciji i sportu.
-          Pronađi suigrače, pridruži se timovima ili organiziraj vlastite sportske događaje.
+          {t('auth.welcomeDesc')}
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', fontSize: '0.9rem', color: 'var(--text-secondary, #666)' }}>
-          <span>1. Registriraj se</span>
+          <span>{t('auth.step1')}</span>
           <span>→</span>
-          <span>2. Odaberi sport</span>
+          <span>{t('auth.step2')}</span>
           <span>→</span>
-          <span>3. Pronađi tim</span>
+          <span>{t('auth.step3')}</span>
         </div>
       </div>
       <div className="auth-card card">
         <h1 className="auth-title">🏀 TeamConnect</h1>
-        <h2>Kreiraj račun</h2>
+        <h2>{t('auth.createAccount')}</h2>
         
         {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Korisničko ime</label>
+            <label>{t('auth.username')}</label>
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
-              placeholder="Odaberi svoje korisničko ime"
+              placeholder={t('auth.chooseUsername')}
               required
               minLength={3}
             />
           </div>
 
           <div className="form-group">
-            <label>Email</label>
+            <label>{t('auth.email')}</label>
             <input
               type="email"
               name="email"
@@ -145,7 +144,7 @@ function Register() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Minimalno 6 znakova"
+              placeholder={t('auth.minChars', { n: 6 })}
               required
               minLength={6}
             />

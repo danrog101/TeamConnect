@@ -341,6 +341,15 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
               >
                 {linkCopied ? '✅ Kopirano!' : '🔗 Podijeli link'}
               </button>
+              <button
+                className="btn btn-primary btn-small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/team/${team.id}/chat`);
+                }}
+              >
+                💬 Chat
+              </button>
             </>
           ) : joined ? (
             <>
@@ -364,6 +373,15 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
                 }}
               >
                 {linkCopied ? '✅ Kopirano!' : '🔗 Podijeli link'}
+              </button>
+              <button
+                className="btn btn-primary btn-small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/team/${team.id}/chat`);
+                }}
+              >
+                💬 Chat
               </button>
             </>
           ) : isFull ? (

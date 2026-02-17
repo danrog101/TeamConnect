@@ -7,6 +7,7 @@ import './Auth.css';
 
 function Login() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -77,19 +78,19 @@ function Login() {
     <div className="auth-container">
       <div className="auth-card card">
         <h1 className="auth-title">🏀 TeamConnect</h1>
-        <h2>Dobrodošao/la natrag!</h2>
+        <h2>{t('auth.welcomeBack')}</h2>
 
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Email</label>
+            <label>{t('auth.email')}</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Tvoj email"
+              placeholder={t('auth.yourEmail')}
               required
             />
           </div>
@@ -101,27 +102,27 @@ function Login() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Tvoja lozinka"
+              placeholder={t('auth.yourPassword')}
               required
             />
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Prijavljivanje...' : 'Prijavi se'}
+            {loading ? t('auth.loggingIn') : t('auth.loginBtn')}
           </button>
         </form>
 
         <p className="auth-link">
-          <a href="/forgot-password">Zaboravili ste lozinku?</a>
+          <a href="/forgot-password">{t('forgotPw.title')}</a>
         </p>
 
         <p className="auth-link">
-          Nemaš račun? <a href="/">Registriraj se</a>
+          {t('auth.noAccount')} <a href="/register">{t('auth.registerBtn')}</a>
         </p>
 
-        <div className="support-info" style={{ marginTop: '20px', padding: '15px', background: '#f8fafc', borderRadius: '10px', textAlign: 'center' }}>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
-            Podrška: <a href="mailto:teamconnect0102@gmail.com" style={{ color: '#4f46e5' }}>teamconnect0102@gmail.com</a>
+        <div className="support-info">
+          <p>
+            {t('common.support')}: <a href="mailto:teamconnect0102@gmail.com">teamconnect0102@gmail.com</a>
           </p>
         </div>
       </div>

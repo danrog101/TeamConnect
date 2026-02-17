@@ -9,6 +9,7 @@ import './MyTeams.css';
 
 function MyTeams() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,48 +28,48 @@ function MyTeams() {
       setTeams(response.data || []);
     } catch (error) {
       console.error('Fetch teams error:', error);
-      setToast({ message: 'Greška pri učitavanju timova', type: 'error' });
+      setToast({ message: t('myTeams.loadError'), type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleLeaveTeam = async (teamId) => {
-    if (!window.confirm('Jeste li sigurni da želite napustiti ovaj tim?')) {
+    if (!window.confirm(t('myTeams.leaveConfirm'))) {
       return;
     }
 
     try {
       await teamsAPI.leave(teamId);
-      setToast({ message: 'Napustili ste tim', type: 'info' });
+      setToast({ message: t('myTeams.leftTeam'), type: 'info' });
       fetchMyTeams();
     } catch (error) {
       console.error('Leave team error:', error);
-      setToast({ message: 'Greška pri napuštanju tima', type: 'error' });
+      setToast({ message: t('myTeams.leaveError'), type: 'error' });
     }
   };
 
   const handleDeleteTeam = async (teamId) => {
-    if (!window.confirm('Jeste li sigurni da želite obrisati ovaj tim? Ova radnja se ne može poništiti!')) {
+    if (!window.confirm(t('myTeams.deleteConfirm'))) {
       return;
     }
 
     try {
       await teamsAPI.delete(teamId);
-      setToast({ message: 'Tim je obrisan', type: 'success' });
+      setToast({ message: t('myTeams.deleted'), type: 'success' });
       fetchMyTeams();
     } catch (error) {
       console.error('Delete team error:', error);
-      setToast({ message: 'Greška pri brisanju tima', type: 'error' });
+      setToast({ message: t('myTeams.deleteError'), type: 'error' });
     }
   };
 
-  const myCreatedTeams = teams.filter(t =>
-    t.creator?.id === currentUser.id || t.creator_id === currentUser.id
+  const myCreatedTeams = teams.filter(team =>
+    team.creator?.id === currentUser.id || team.creator_id === currentUser.id
   );
 
-  const myJoinedTeams = teams.filter(t =>
-    t.creator?.id !== currentUser.id && t.creator_id !== currentUser.id
+  const myJoinedTeams = teams.filter(team =>
+    team.creator?.id !== currentUser.id && team.creator_id !== currentUser.id
   );
 
   if (loading) {
