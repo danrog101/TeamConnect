@@ -78,7 +78,7 @@ function MyTeams() {
         <Navbar />
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Učitavanje timova...</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -90,24 +90,24 @@ function MyTeams() {
 
       <div className="my-teams-container">
         <div className="my-teams-header">
-          <h1>Moji Timovi</h1>
-          <p>Upravljaj svojim timovima</p>
+          <h1>{t('myTeams.title')}</h1>
+          <p>{t('myTeams.subtitle')}</p>
           <button className="btn btn-primary btn-large" onClick={() => navigate('/create-team')}>
-            + Kreiraj Novi Tim
+            {t('myTeams.createNew')}
           </button>
         </div>
 
         {teams.length === 0 ? (
           <div className="no-teams card">
             <span className="empty-icon">⚽</span>
-            <h2>Nemate timova</h2>
-            <p>Kreirajte novi tim ili pregledajte postojeće timove na Dashboardu</p>
+            <h2>{t('myTeams.noTeams')}</h2>
+            <p>{t('myTeams.noTeamsDesc')}</p>
             <div className="empty-actions">
               <button className="btn btn-primary" onClick={() => navigate('/create-team')}>
-                Kreiraj Tim
+                {t('nav.createTeam')}
               </button>
               <button className="btn btn-secondary" onClick={() => navigate('/dashboard')}>
-                Pregledaj Timove
+                {t('myTeams.browseTeams')}
               </button>
             </div>
           </div>
@@ -115,7 +115,7 @@ function MyTeams() {
           <>
             {myCreatedTeams.length > 0 && (
               <div className="teams-section">
-                <h2 className="section-title">Timovi koje sam kreirao ({myCreatedTeams.length})</h2>
+                <h2 className="section-title">{t('teams.createdTeams')} ({myCreatedTeams.length})</h2>
                 <div className="teams-grid">
                   {myCreatedTeams.map(team => (
                     <TeamCard
@@ -132,7 +132,7 @@ function MyTeams() {
 
             {myJoinedTeams.length > 0 && (
               <div className="teams-section">
-                <h2 className="section-title">Timovi kojima sam se pridružio ({myJoinedTeams.length})</h2>
+                <h2 className="section-title">{t('teams.joinedTeams')} ({myJoinedTeams.length})</h2>
                 <div className="teams-grid">
                   {myJoinedTeams.map(team => (
                     <TeamCard

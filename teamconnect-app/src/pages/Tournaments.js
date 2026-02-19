@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
@@ -132,6 +133,17 @@ function Tournaments() {
     };
     checkReminders();
   }, []);
+
+  useEffect(() => {
+    if (showCreateModal || showRegisterModal || showTeamsModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showCreateModal, showRegisterModal, showTeamsModal]);
 
   const loadTournaments = async () => {
     try {
@@ -540,7 +552,7 @@ function Tournaments() {
       </div>
 
       {/* CREATE MODAL - SVE */}
-      {showCreateModal && (
+      {showCreateModal && ReactDOM.createPortal(
         <div className="modal-overlay" onClick={() => { setShowCreateModal(false); setCitySearch(''); }}>
           <div className="create-tournament-modal" onClick={(e) => e.stopPropagation()}>
             <h2>🏆 Kreiraj novi turnir</h2>
@@ -865,11 +877,12 @@ function Tournaments() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* REGISTER MODAL */}
-      {showRegisterModal && selectedTournament && (
+      {showRegisterModal && selectedTournament && ReactDOM.createPortal(
         <div className="modal-overlay" onClick={() => setShowRegisterModal(false)}>
           <div className="create-tournament-modal" onClick={(e) => e.stopPropagation()}>
             <h2>🏆 Prijavi tim na {selectedTournament.name}</h2>
@@ -928,11 +941,12 @@ function Tournaments() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* TEAMS MODAL */}
-      {showTeamsModal && (
+      {showTeamsModal && ReactDOM.createPortal(
         <div className="modal-overlay" onClick={() => setShowTeamsModal(false)}>
           <div className="teams-modal" onClick={(e) => e.stopPropagation()}>
             <h2>👥 Prijavljeni timovi</h2>
@@ -971,7 +985,8 @@ function Tournaments() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}

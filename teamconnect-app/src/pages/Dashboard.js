@@ -238,26 +238,26 @@ function Dashboard() {
           <h1>{t('dashboard.availableTeams')}</h1>
           <p>{t('dashboard.findTeam')}</p>
           <button className="btn btn-primary btn-large" onClick={() => navigate('/create-team')}>
-            + Kreiraj novi tim
+            {t('dashboard.createNewTeam')}
           </button>
         </div>
 
         <div className="filters-section card">
-          <h3>🔍 Filtriraj timove</h3>
+          <h3>🔍 {t('dashboard.filterTeams')}</h3>
           <div className="filters-grid">
             <div className="filter-group">
-              <label>Sport</label>
+              <label>{t('teams.sport')}</label>
               <select 
                 value={filters.sport} 
                 onChange={(e) => handleFilterChange('sport', e.target.value)}
               >
-                <option value="">Svi sportovi</option>
-                <optgroup label="Popularni">
+                <option value="">{t('dashboard.allSports')}</option>
+                <optgroup label={t('dashboard.popular')}>
                   {sportsList.filter(s => s.popular).map(sport => (
                     <option key={sport.id} value={sport.name}>{sport.name}</option>
                   ))}
                 </optgroup>
-                <optgroup label="Ostali">
+                <optgroup label={t('dashboard.other')}>
                   {sportsList.filter(s => !s.popular).map(sport => (
                     <option key={sport.id} value={sport.name}>{sport.name}</option>
                   ))}
@@ -266,12 +266,12 @@ function Dashboard() {
             </div>
 
             <div className="filter-group">
-              <label>Država</label>
+              <label>{t('createTeam.countryLabel')}</label>
               <select 
                 value={filters.country} 
                 onChange={(e) => handleFilterChange('country', e.target.value)}
               >
-                <option value="">Sve države</option>
+                <option value="">{t('dashboard.allCountries')}</option>
                 {countries.map(country => (
                   <option key={country} value={country}>{country}</option>
                 ))}
@@ -279,13 +279,13 @@ function Dashboard() {
             </div>
 
             <div className="filter-group">
-              <label>Grad</label>
+              <label>{t('createTeam.cityLabel')}</label>
               <select 
                 value={filters.city} 
                 onChange={(e) => handleFilterChange('city', e.target.value)}
                 disabled={!filters.country}
               >
-                <option value="">Svi gradovi</option>
+                <option value="">{t('dashboard.allCities')}</option>
                 {filters.country && europeanCities[filters.country]?.map(city => (
                   <option key={city} value={city}>{city}</option>
                 ))}
@@ -293,7 +293,7 @@ function Dashboard() {
             </div>
 
             <div className="filter-group">
-              <label>Datum</label>
+              <label>{t('teams.date')}</label>
               <input 
                 type="date"
                 value={filters.date}
@@ -306,7 +306,7 @@ function Dashboard() {
                 className="btn btn-secondary"
                 onClick={() => setFilters({ sport: '', country: '', city: '', date: '' })}
               >
-                Resetiraj filtere
+                {t('dashboard.resetFilters')}
               </button>
             )}
           </div>
@@ -369,14 +369,14 @@ function Dashboard() {
         {filteredTeams.length === 0 ? (
           <div className="no-teams card">
             <span className="empty-icon">⚽</span>
-            <h2>Nema timova</h2>
+            <h2>{t('dashboard.noTeams')}</h2>
             <p>
               {filters.sport || filters.country || filters.city || filters.date
-                ? 'Nema timova koji odgovaraju tvojim filterima. Pokušaj promijeniti kriterije.'
-                : 'Trenutno nema dostupnih timova. Budi prvi i kreiraj novi tim!'}
+                ? t('dashboard.noTeamsFiltered')
+                : t('dashboard.noTeamsEmpty')}
             </p>
             <button className="btn btn-primary" onClick={() => navigate('/create-team')}>
-              Kreiraj novi tim
+              {t('dashboard.createNewTeam')}
             </button>
           </div>
         ) : (

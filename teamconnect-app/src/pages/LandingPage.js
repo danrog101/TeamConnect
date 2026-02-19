@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 import './LandingPage.css';
 
 function LandingPage() {
@@ -8,49 +9,51 @@ function LandingPage() {
   const { t } = useLanguage();
 
   const features = [
-    { icon: '👥', title: 'Pronađi Suigrače', desc: 'Povezuj se s igračima u svom gradu koji dijele tvoju strast za sportom.' },
-    { icon: '🏆', title: 'Turniri', desc: 'Kreiraj ili se prijavi na turnire. Natječi se i osvoji nagrade!' },
-    { icon: '🏟️', title: 'Sportski Tereni', desc: 'Pronađi savršen teren za svoju utakmicu s detaljnim informacijama.' },
-    { icon: '📊', title: 'Statistika', desc: 'Prati svoju statistiku, ocjene i napredak kroz vrijeme.' },
-    { icon: '💬', title: 'Tim Chat', desc: 'Komuniciraj s timom u realnom vremenu i organiziraj utakmice.' },
-    { icon: '🎬', title: 'Video Isječci', desc: 'Dijeli najbolje trenutke sa svojih utakmica.' },
+    { icon: '👥', title: t('landing.featureFindPlayers'), desc: t('landing.featureFindPlayersDesc') },
+    { icon: '🏆', title: t('landing.featureTournaments'), desc: t('landing.featureTournamentsDesc') },
+    { icon: '🏟️', title: t('landing.featureFields'), desc: t('landing.featureFieldsDesc') },
+    { icon: '📊', title: t('landing.featureStats'), desc: t('landing.featureStatsDesc') },
+    { icon: '💬', title: t('landing.featureChat'), desc: t('landing.featureChatDesc') },
+    { icon: '🎬', title: t('landing.featureVideo'), desc: t('landing.featureVideoDesc') },
   ];
 
   return (
     <div className="landing-page">
       {/* Hero Section */}
       <section className="hero-section">
+        <div className="landing-language-selector">
+          <LanguageSelector />
+        </div>
         <div className="hero-content">
-          <div className="hero-badge">🏀 Sportska platforma #1</div>
+          <div className="hero-badge">{t('landing.badge')}</div>
           <h1>
-            Pronađi svoj tim.
+            {t('landing.heroTitle1')}
             <br />
-            <span className="hero-highlight">Igraj. Pobijedi.</span>
+            <span className="hero-highlight">{t('landing.heroTitle2')}</span>
           </h1>
           <p className="hero-description">
-            TeamConnect povezuje sportaše i rekreativce po lokaciji i sportu.
-            Pronađi suigrače, pridruži se timovima ili organiziraj vlastite sportske događaje.
+            {t('landing.heroDesc')}
           </p>
           <div className="hero-actions">
             <button className="btn btn-primary btn-large" onClick={() => navigate('/register')}>
-              Započni besplatno
+              {t('landing.startFree')}
             </button>
             <button className="btn btn-ghost btn-large" onClick={() => navigate('/login')}>
-              Već imam račun
+              {t('landing.haveAccount')}
             </button>
           </div>
           <div className="hero-stats">
             <div className="stat-item">
               <span className="stat-number">🏅</span>
-              <span className="stat-label">Timovi</span>
+              <span className="stat-label">{t('landing.teams')}</span>
             </div>
             <div className="stat-item">
               <span className="stat-number">🏆</span>
-              <span className="stat-label">Turniri</span>
+              <span className="stat-label">{t('landing.tournaments')}</span>
             </div>
             <div className="stat-item">
               <span className="stat-number">🏟️</span>
-              <span className="stat-label">Tereni</span>
+              <span className="stat-label">{t('landing.fields')}</span>
             </div>
           </div>
         </div>
@@ -58,8 +61,8 @@ function LandingPage() {
 
       {/* Features Section */}
       <section className="features-section">
-        <h2>Sve što trebaš na jednom mjestu</h2>
-        <p className="section-subtitle">TeamConnect ti pomaže pronaći igrače, organizirati utakmice i pratiti svoj napredak.</p>
+        <h2>{t('landing.featuresTitle')}</h2>
+        <p className="section-subtitle">{t('landing.featuresSubtitle')}</p>
         <div className="features-grid">
           {features.map((feature, idx) => (
             <div key={idx} className="feature-card card">
@@ -73,40 +76,40 @@ function LandingPage() {
 
       {/* How It Works */}
       <section className="how-it-works-section">
-        <h2>Kako funkcionira?</h2>
+        <h2>{t('landing.howItWorks')}</h2>
         <div className="steps-grid">
           <div className="step-card">
             <div className="step-number">1</div>
-            <h3>Registriraj se</h3>
-            <p>Kreiraj besplatan račun u samo par sekundi.</p>
+            <h3>{t('landing.step1Title')}</h3>
+            <p>{t('landing.step1Desc')}</p>
           </div>
           <div className="step-card">
             <div className="step-number">2</div>
-            <h3>Odaberi sport</h3>
-            <p>Odaberi svoj omiljeni sport i lokaciju.</p>
+            <h3>{t('landing.step2Title')}</h3>
+            <p>{t('landing.step2Desc')}</p>
           </div>
           <div className="step-card">
             <div className="step-number">3</div>
-            <h3>Pronađi tim</h3>
-            <p>Pridruži se postojećem timu ili kreiraj svoj vlastiti!</p>
+            <h3>{t('landing.step3Title')}</h3>
+            <p>{t('landing.step3Desc')}</p>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="cta-section">
-        <h2>Spreman za igru?</h2>
-        <p>Pridruži se TeamConnect zajednici i pronađi svoje suigrače već danas!</p>
+        <h2>{t('landing.ctaTitle')}</h2>
+        <p>{t('landing.ctaDesc')}</p>
         <button className="btn btn-primary btn-large" onClick={() => navigate('/register')}>
-          Kreiraj račun besplatno
+          {t('landing.ctaButton')}
         </button>
       </section>
 
       {/* Footer */}
       <footer className="landing-footer">
-        <p>© 2025 TeamConnect. Sva prava pridržana.</p>
+        <p>{t('landing.copyright')}</p>
         <p>
-          Podrška: <a href="mailto:teamconnect0102@gmail.com">teamconnect0102@gmail.com</a>
+          {t('landing.support')}: <a href="mailto:teamconnect0102@gmail.com">teamconnect0102@gmail.com</a>
         </p>
       </footer>
     </div>

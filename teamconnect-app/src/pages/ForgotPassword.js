@@ -18,6 +18,7 @@ const SECURITY_QUESTIONS = {
 function ForgotPassword() {
 
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   const [step, setStep] = useState(1); // 1: email, 2: code, 3: new password, 'security': security question flow
   const [email, setEmail] = useState('');
@@ -44,11 +45,11 @@ function ForgotPassword() {
       const response = await authAPI.forgotPassword({ email });
 
       if (response.data.success) {
-        setToast({ message: 'Kod je poslan na vaš email!', type: 'success' });
+        setToast({ message: t('forgotPw.codeSent'), type: 'success' });
         setStep(2);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Greška pri slanju koda');
+      setError(err.response?.data?.message || t('forgotPw.sendError'));
     } finally {
       setLoading(false);
     }
@@ -60,7 +61,7 @@ function ForgotPassword() {
     setError('');
 
     if (code.length !== 6) {
-      setError('Kod mora imati 6 znamenki!');
+      setError(t('forgotPw.codeMustBe6'));
       return;
     }
 
@@ -71,11 +72,11 @@ function ForgotPassword() {
 
       if (response.data.success) {
         setResetToken(response.data.resetToken);
-        setToast({ message: 'Kod je ispravan!', type: 'success' });
+        setToast({ message: t('forgotPw.codeValid'), type: 'success' });
         setStep(3);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Neispravan kod');
+      setError(err.response?.data?.message || t('forgotPw.invalidCode'));
     } finally {
       setLoading(false);
     }
@@ -87,12 +88,12 @@ function ForgotPassword() {
     setError('');
 
     if (newPassword.length < 6) {
-      setError('Lozinka mora imati najmanje 6 znakova!');
+      setError(t('auth.passwordTooShort'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Lozinke se ne podudaraju!');
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
@@ -102,11 +103,11 @@ function ForgotPassword() {
       const response = await authAPI.resetPassword({ resetToken, newPassword });
 
       if (response.data.success) {
-        setToast({ message: 'Lozinka je uspješno promijenjena!', type: 'success' });
+        setToast({ message: t('forgotPw.passwordChanged'), type: 'success' });
         setTimeout(() => navigate('/login'), 2000);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Greška pri promjeni lozinke');
+      setError(err.response?.data?.message || t('forgotPw.resetError'));
     } finally {
       setLoading(false);
     }
@@ -126,7 +127,7 @@ function ForgotPassword() {
         setSecurityStep(2);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Korisnik nije pronađen ili nema sigurnosno pitanje');
+      setError(err.response?.data?.message || t('forgotPw.userNotFound'));
     } finally {
       setLoading(false);
     }
@@ -146,11 +147,11 @@ function ForgotPassword() {
 
       if (response.data.success) {
         setResetToken(response.data.resetToken);
-        setToast({ message: 'Odgovor je ispravan!', type: 'success' });
+        setToast({ message: t('forgotPw.answerCorrect'), type: 'success' });
         setSecurityStep(3);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Neispravan odgovor');
+      setError(err.response?.data?.message || t('forgotPw.invalidAnswer'));
     } finally {
       setLoading(false);
     }
@@ -162,12 +163,12 @@ function ForgotPassword() {
     setError('');
 
     if (newPassword.length < 6) {
-      setError('Lozinka mora imati najmanje 6 znakova!');
+      setError(t('auth.passwordTooShort'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Lozinke se ne podudaraju!');
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
@@ -177,11 +178,11 @@ function ForgotPassword() {
       const response = await authAPI.resetPassword({ resetToken, newPassword });
 
       if (response.data.success) {
-        setToast({ message: 'Lozinka je uspješno promijenjena!', type: 'success' });
+        setToast({ message: t('forgotPw.passwordChanged'), type: 'success' });
         setTimeout(() => navigate('/login'), 2000);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Greška pri promjeni lozinke');
+      setError(err.response?.data?.message || t('forgotPw.resetError'));
     } finally {
       setLoading(false);
     }
@@ -189,13 +190,13 @@ function ForgotPassword() {
 
   const getTitle = () => {
     if (step === 'security') {
-      if (securityStep === 1) return 'Sigurnosno pitanje';
-      if (securityStep === 2) return 'Odgovorite na pitanje';
-      return 'Nova lozinka';
+      if (securityStep === 1) return t('forgotPw.securityQuestion');
+      if (securityStep === 2) return t('forgotPw.answerQuestion');
+      return t('forgotPw.newPassword');
     }
-    if (step === 1) return 'Zaboravljena lozinka';
-    if (step === 2) return 'Unesite kod';
-    return 'Nova lozinka';
+    if (step === 1) return t('forgotPw.title');
+    if (step === 2) return t('forgotPw.enterCode');
+    return t('forgotPw.newPassword');
   };
 
   return (
@@ -230,37 +231,37 @@ function ForgotPassword() {
 
         {step === 1 && (
           <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-            Unesite email adresu vašeg računa i poslat ćemo vam kod za resetiranje lozinke.
+            {t('forgotPw.emailDesc')}
           </p>
         )}
 
         {step === 2 && (
           <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-            Unesite 6-znamenkasti kod koji ste primili na <strong>{email}</strong>
+            {t('forgotPw.codeDesc')} <strong>{email}</strong>
           </p>
         )}
 
         {step === 3 && (
           <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-            Unesite novu lozinku za vaš račun.
+            {t('forgotPw.newPasswordDesc')}
           </p>
         )}
 
         {step === 'security' && securityStep === 1 && (
           <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-            Unesite email adresu vašeg računa da biste dobili sigurnosno pitanje.
+            {t('forgotPw.securityEmailDesc')}
           </p>
         )}
 
         {step === 'security' && securityStep === 2 && (
           <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-            Odgovorite na sigurnosno pitanje za račun <strong>{securityEmail}</strong>
+            {t('forgotPw.securityAnswerDesc')} <strong>{securityEmail}</strong>
           </p>
         )}
 
         {step === 'security' && securityStep === 3 && (
           <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-            Unesite novu lozinku za vaš račun.
+            {t('forgotPw.newPasswordDesc')}
           </p>
         )}
 
@@ -282,7 +283,7 @@ function ForgotPassword() {
               </div>
 
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? 'Slanje...' : 'Pošalji kod'}
+                {loading ? t('forgotPw.sending') : t('forgotPw.sendCode')}
               </button>
             </form>
 
@@ -292,7 +293,7 @@ function ForgotPassword() {
                 onClick={() => { setStep('security'); setError(''); }}
                 style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
               >
-                Ili koristite sigurnosno pitanje
+                {t('forgotPw.useSecurityQuestion')}
               </button>
             </p>
           </>
@@ -314,7 +315,7 @@ function ForgotPassword() {
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Provjera...' : 'Potvrdi kod'}
+              {loading ? t('forgotPw.verifying') : t('forgotPw.verifyCode')}
             </button>
 
             <button
@@ -323,7 +324,7 @@ function ForgotPassword() {
               onClick={() => setStep(1)}
               style={{ marginTop: '10px' }}
             >
-              Pošalji novi kod
+              {t('forgotPw.sendNewCode')}
             </button>
           </form>
         )}
@@ -332,7 +333,7 @@ function ForgotPassword() {
         {step === 3 && (
           <form onSubmit={handleResetPassword}>
             <div className="form-group">
-              <label>Nova lozinka</label>
+              <label>{t('forgotPw.newPassword')}</label>
               <input
                 type="password"
                 value={newPassword}
@@ -371,7 +372,7 @@ function ForgotPassword() {
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Spremanje...' : 'Spremi novu lozinku'}
+              {loading ? t('common.saving') : t('forgotPw.saveNewPassword')}
             </button>
           </form>
         )}
@@ -392,7 +393,7 @@ function ForgotPassword() {
               </div>
 
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? 'Traženje...' : 'Dohvati pitanje'}
+                {loading ? t('forgotPw.fetching') : t('forgotPw.fetchQuestion')}
               </button>
             </form>
 
@@ -402,7 +403,7 @@ function ForgotPassword() {
                 onClick={() => { setStep(1); setError(''); }}
                 style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
               >
-                Ili koristite email kod
+                {t('forgotPw.useEmailCode')}
               </button>
             </p>
           </>
@@ -423,7 +424,7 @@ function ForgotPassword() {
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Provjera...' : 'Potvrdi odgovor'}
+              {loading ? t('forgotPw.verifying') : t('forgotPw.confirmAnswer')}
             </button>
 
             <button
@@ -432,7 +433,7 @@ function ForgotPassword() {
               onClick={() => { setSecurityStep(1); setError(''); }}
               style={{ marginTop: '10px' }}
             >
-              Natrag
+              {t('common.back')}
             </button>
           </form>
         )}
@@ -441,7 +442,7 @@ function ForgotPassword() {
         {step === 'security' && securityStep === 3 && (
           <form onSubmit={handleSecurityResetPassword}>
             <div className="form-group">
-              <label>Nova lozinka</label>
+              <label>{t('forgotPw.newPassword')}</label>
               <input
                 type="password"
                 value={newPassword}
@@ -480,17 +481,17 @@ function ForgotPassword() {
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Spremanje...' : 'Spremi novu lozinku'}
+              {loading ? t('common.saving') : t('forgotPw.saveNewPassword')}
             </button>
           </form>
         )}
 
         <p className="auth-link" style={{ marginTop: '20px' }}>
-          <a href="/login">Povratak na prijavu</a>
+          <a href="/login">{t('forgotPw.backToLogin')}</a>
         </p>
 
         <div className="support-info">
-          <p>Trebate pomoć? Kontaktirajte nas:</p>
+          <p>{t('forgotPw.needHelp')}</p>
           <a href="mailto:teamconnect0102@gmail.com">teamconnect0102@gmail.com</a>
         </div>
       </div>

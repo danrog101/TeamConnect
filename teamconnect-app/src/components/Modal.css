@@ -1,14 +1,11 @@
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal-backdrop);
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -27,7 +24,10 @@
   padding: 40px;
   max-width: 450px;
   width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  z-index: var(--z-modal);
   animation: slideUp 0.3s ease-out;
 }
 
@@ -44,13 +44,13 @@
 
 .modal-content h2 {
   margin: 0 0 15px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.5rem;
 }
 
 .modal-content p {
   margin: 0 0 30px 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   line-height: 1.6;
 }
@@ -72,12 +72,12 @@
 }
 
 .btn-cancel {
-  background: #e0e0e0;
-  color: #333;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .btn-cancel:hover {
-  background: #d0d0d0;
+  background: var(--border-primary);
 }
 
 .btn-confirm {

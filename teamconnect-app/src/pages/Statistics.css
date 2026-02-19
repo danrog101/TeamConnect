@@ -1,6 +1,6 @@
 .statistics-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+  background: var(--bg-primary);
 }
 
 .statistics-container {
@@ -11,7 +11,6 @@
 
 .statistics-header {
   text-align: center;
-  color: white;
   margin-bottom: 40px;
   animation: fadeInDown 0.6s ease-out;
 }
@@ -30,14 +29,16 @@
 .statistics-header h1 {
   font-size: 3.5rem;
   margin-bottom: 15px;
-  text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.4);
   font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .statistics-header p {
   font-size: 1.4rem;
-  opacity: 0.95;
-  text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.3);
+  color: var(--text-secondary);
 }
 
 .time-range-selector {
@@ -61,26 +62,26 @@
 
 .time-btn {
   padding: 12px 30px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 2px solid var(--border-primary);
   border-radius: 25px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  backdrop-filter: blur(10px);
 }
 
 .time-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-tertiary);
   transform: translateY(-2px);
+  color: var(--text-primary);
 }
 
 .time-btn.active {
-  background: white;
-  color: #667eea;
-  border-color: white;
-  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+  background: var(--gradient-primary);
+  color: white;
+  border-color: transparent;
+  box-shadow: var(--shadow-md);
 }
 
 .overview-stats {
@@ -112,7 +113,7 @@
 
 .stat-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+  box-shadow: var(--shadow-xl);
 }
 
 .stat-icon {
@@ -121,14 +122,14 @@
 
 .stat-content h3 {
   margin: 0 0 5px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 2.5rem;
   font-weight: 800;
 }
 
 .stat-content p {
   margin: 0;
-  color: #666;
+  color: var(--text-tertiary);
   font-size: 0.95rem;
   text-transform: uppercase;
 }
@@ -183,10 +184,10 @@
 .top-performances h2,
 .predictions-section h2 {
   margin: 0 0 25px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.8rem;
   padding-bottom: 15px;
-  border-bottom: 3px solid #667eea;
+  border-bottom: 3px solid var(--color-primary);
 }
 
 .form-visualization {
@@ -247,7 +248,7 @@
   display: flex;
   justify-content: space-around;
   padding: 20px;
-  background: #f9f9f9;
+  background: var(--bg-tertiary);
   border-radius: 12px;
 }
 
@@ -259,14 +260,14 @@
 }
 
 .summary-label {
-  color: #666;
+  color: var(--text-tertiary);
   font-size: 0.9rem;
 }
 
 .summary-value {
   font-size: 2rem;
   font-weight: 800;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .performance-chart {
@@ -276,7 +277,7 @@
   gap: 15px;
   height: 300px;
   padding: 20px;
-  background: #f9f9f9;
+  background: var(--bg-tertiary);
   border-radius: 12px;
 }
 
@@ -290,7 +291,7 @@
 
 .month-label {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-tertiary);
   font-weight: 600;
   writing-mode: horizontal-tb;
   text-align: center;
@@ -319,7 +320,7 @@
 
 .month-matches {
   font-size: 0.8rem;
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .position-stats {
@@ -334,7 +335,8 @@
 }
 
 .position-item {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   padding: 25px;
   border-radius: 15px;
   transition: all 0.3s;
@@ -342,7 +344,7 @@
 
 .position-item:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 .position-header {
@@ -358,7 +360,7 @@
 
 .position-header h3 {
   margin: 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.3rem;
 }
 
@@ -377,14 +379,14 @@
   display: block;
   font-size: 2rem;
   font-weight: 800;
-  color: #667eea;
+  color: var(--color-primary);
   margin-bottom: 5px;
 }
 
 .pos-stat-label {
   display: block;
   font-size: 0.8rem;
-  color: #666;
+  color: var(--text-tertiary);
   text-transform: uppercase;
 }
 
@@ -433,26 +435,27 @@
   gap: 20px;
   align-items: center;
   padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: 15px;
   transition: all 0.3s;
 }
 
 .performance-item:hover {
   transform: translateX(10px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 .performance-rank {
   font-size: 2rem;
   font-weight: 800;
-  color: #667eea;
+  color: var(--color-primary);
   text-align: center;
 }
 
 .performance-details h4 {
   margin: 0 0 8px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.2rem;
 }
 
@@ -460,18 +463,18 @@
   margin: 5px 0;
   font-size: 1.5rem;
   font-weight: 800;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .performance-match {
   margin: 5px 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
 .performance-date {
   margin: 5px 0;
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 0.85rem;
 }
 
@@ -486,7 +489,7 @@
 }
 
 .predictions-subtitle {
-  color: #666;
+  color: var(--text-tertiary);
   margin: -15px 0 25px 0;
   font-size: 1rem;
 }
@@ -499,7 +502,8 @@
 }
 
 .prediction-card {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   padding: 25px;
   border-radius: 15px;
   transition: all 0.3s;
@@ -507,12 +511,12 @@
 
 .prediction-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 .prediction-card h4 {
   margin: 0 0 20px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.3rem;
   text-align: center;
 }
@@ -533,7 +537,7 @@
 .prediction-label {
   min-width: 80px;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -567,7 +571,7 @@
   min-width: 50px;
   text-align: right;
   font-weight: 800;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .prediction-recommendation {
@@ -595,7 +599,7 @@
 
 .prediction-disclaimer {
   text-align: center;
-  color: #999;
+  color: var(--text-tertiary);
   font-style: italic;
   padding: 20px;
 }

@@ -141,7 +141,7 @@
 .notification-dot {
   width: 10px;
   height: 10px;
-  background: #ef4444;
+  background: var(--color-error);
   border-radius: 50%;
   display: inline-block;
   margin-left: 8px;
@@ -226,7 +226,7 @@
 }
 
 .status-indicator.online {
-  background: #10b981;
+  background: var(--color-success);
 }
 
 .status-indicator.offline {
@@ -407,15 +407,15 @@
 }
 
 .result-badge.win {
-  background: #10b981;
+  background: var(--color-success);
 }
 
 .result-badge.loss {
-  background: #ef4444;
+  background: var(--color-error);
 }
 
 .result-badge.draw {
-  background: #f59e0b;
+  background: var(--color-warning);
 }
 
 .match-score {

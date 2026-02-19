@@ -138,7 +138,7 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label>Lozinka</label>
+            <label>{t('auth.password')}</label>
             <input
               type="password"
               name="password"
@@ -151,26 +151,26 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label>Potvrdi lozinku</label>
+            <label>{t('auth.confirmPassword')}</label>
             <input
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Ponovno upiši lozinku"
+              placeholder={t('auth.reenterPassword')}
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Spol</label>
+            <label>{t('auth.gender')}</label>
             <select
               name="gender"
               value={formData.gender}
               onChange={handleChange}
               required
             >
-              <option value="">-- Odaberi spol --</option>
+              <option value="">{t('auth.selectGender')}</option>
               {genderOptions.map(option => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
@@ -178,46 +178,46 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label>Sigurnosno pitanje</label>
+            <label>{t('auth.securityQuestion')}</label>
             <select
               name="securityQuestion"
               value={formData.securityQuestion}
               onChange={handleChange}
               required
             >
-              <option value="">-- Odaberi sigurnosno pitanje --</option>
-              <option value="pet">Kako se zove vaš prvi ljubimac?</option>
-              <option value="city">U kojem ste gradu rođeni?</option>
-              <option value="school">Kako se zvala vaša osnovna škola?</option>
-              <option value="team">Koji je vaš omiljeni sportski tim?</option>
-              <option value="food">Koja je vaša omiljena hrana?</option>
+              <option value="">{t('auth.selectSecurityQuestion')}</option>
+              <option value="pet">{t('auth.securityQuestions.pet')}</option>
+              <option value="city">{t('auth.securityQuestions.city')}</option>
+              <option value="school">{t('auth.securityQuestions.school')}</option>
+              <option value="team">{t('auth.securityQuestions.team')}</option>
+              <option value="food">{t('auth.securityQuestions.food')}</option>
             </select>
           </div>
 
           <div className="form-group">
-            <label>Odgovor na sigurnosno pitanje</label>
+            <label>{t('auth.securityAnswer')}</label>
             <input
               type="text"
               name="securityAnswer"
               value={formData.securityAnswer}
               onChange={handleChange}
-              placeholder="Vaš odgovor..."
+              placeholder={t('auth.yourAnswer')}
               required
             />
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Registracija...' : 'Registriraj se'}
+            {loading ? t('auth.registering') : t('auth.registerBtn')}
           </button>
         </form>
 
         <p className="auth-link">
-          Već imaš račun? <a href="/login">Prijavi se</a>
+          {t('auth.hasAccount')} <a href="/login">{t('auth.loginBtn')}</a>
         </p>
 
         <div className="support-info">
           <p>
-            Podrška: <a href="mailto:teamconnect0102@gmail.com">teamconnect0102@gmail.com</a>
+            {t('common.support')}: <a href="mailto:teamconnect0102@gmail.com">teamconnect0102@gmail.com</a>
           </p>
         </div>
       </div>
