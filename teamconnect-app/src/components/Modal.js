@@ -24,10 +24,10 @@ function Modal({ isOpen, onClose, onConfirm, title, message, confirmText, cancel
         <p>{message}</p>
         <div className="modal-actions">
           <button className="btn btn-cancel" onClick={onClose}>
-            {cancelText || 'Odustani'}
+            {cancelText || t('common.cancel')}
           </button>
           <button className="btn btn-confirm" onClick={onConfirm}>
-            {confirmText || 'Potvrdi'}
+            {confirmText || t('common.confirm')}
           </button>
         </div>
       </div>

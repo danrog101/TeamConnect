@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import Modal from '../components/Modal';
 import { getAllSports } from '../data/sports';
 import { API_URL } from '../config';
 import './Statistics.css';
@@ -12,6 +13,7 @@ function Statistics() {
   const [stats, setStats] = useState(null);
   const [selectedSport, setSelectedSport] = useState('');
   const [toast, setToast] = useState(null);
+  const [confirmDeleteMatch, setConfirmDeleteMatch] = useState(null);
   const [showAddMatchModal, setShowAddMatchModal] = useState(false);
   const [showEditStatsModal, setShowEditStatsModal] = useState(false);
   
@@ -165,10 +167,13 @@ function Statistics() {
     }
   };
 
-  const handleDeleteMatch = async (matchId) => {
-    if (!window.confirm('Jesi li siguran da želiš obrisati ovu utakmicu?')) {
-      return;
-    }
+  const handleDeleteMatch = (matchId) => {
+    setConfirmDeleteMatch(matchId);
+  };
+
+  const confirmDeleteMatchAction = async () => {
+    const matchId = confirmDeleteMatch;
+    setConfirmDeleteMatch(null);
 
     try {
       const token = localStorage.getItem('token');
@@ -183,12 +188,12 @@ function Statistics() {
       );
 
       if (response.ok) {
-        setToast({ message: 'Utakmica obrisana', type: 'info' });
+        setToast({ message: t('statistics.matchDeleted'), type: 'info' });
         loadStats();
       }
     } catch (error) {
       console.error('Delete match error:', error);
-      setToast({ message: 'Greška pri brisanju utakmice', type: 'error' });
+      setToast({ message: t('statistics.matchDeleteError'), type: 'error' });
     }
   };
 
@@ -578,6 +583,14 @@ function Statistics() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={!!confirmDeleteMatch}
+        onClose={() => setConfirmDeleteMatch(null)}
+        onConfirm={confirmDeleteMatchAction}
+        title={t('statistics.deleteMatchConfirm')}
+        message={t('statistics.deleteMatchConfirm')}
+      />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

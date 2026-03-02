@@ -2,17 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import Modal from '../components/Modal';
 import { API_URL } from '../config';
 import { useLanguage } from '../i18n/LanguageContext';
 import './Notifications.css';
 
 function Notifications() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(false);
 
   useEffect(() => {
     loadNotifications();
@@ -40,7 +43,7 @@ function Notifications() {
       }
     } catch (error) {
       console.error('Load notifications error:', error);
-      setToast({ message: 'Greška pri učitavanju notifikacija', type: 'error' });
+      setToast({ message: t('notifications.loadError'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -76,18 +79,20 @@ function Notifications() {
         }
       });
 
-      setToast({ message: '✅ Sve notifikacije označene kao pročitane', type: 'success' });
+      setToast({ message: t('notifications.allMarkedRead'), type: 'success' });
       loadNotifications();
     } catch (error) {
       console.error('Mark all as read error:', error);
-      setToast({ message: 'Greška pri označavanju notifikacija', type: 'error' });
+      setToast({ message: t('notifications.markError'), type: 'error' });
     }
   };
 
   const handleDeleteAll = async () => {
-    if (!window.confirm('Jesi li siguran da želiš obrisati sve notifikacije?')) {
-      return;
-    }
+    setConfirmModal(true);
+  };
+
+  const confirmDeleteAll = async () => {
+    setConfirmModal(false);
 
     try {
       const token = localStorage.getItem('token');
@@ -98,11 +103,11 @@ function Notifications() {
         }
       });
 
-      setToast({ message: 'Sve notifikacije obrisane', type: 'info' });
+      setToast({ message: t('notifications.allDeleted'), type: 'info' });
       loadNotifications();
     } catch (error) {
       console.error('Delete all error:', error);
-      setToast({ message: 'Greška pri brisanju notifikacija', type: 'error' });
+      setToast({ message: t('notifications.deleteError'), type: 'error' });
     }
   };
 
@@ -130,7 +135,7 @@ function Notifications() {
         <Navbar />
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Učitavanje notifikacija...</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -142,20 +147,20 @@ function Notifications() {
       
       <div className="notifications-container">
         <div className="notifications-page-header">
-          <h1>🔔 Notifikacije</h1>
+          <h1>{'🔔 ' + t('notifications.title')}</h1>
           
           <div className="notifications-actions">
             <button 
               className="btn btn-secondary"
               onClick={handleMarkAllAsRead}
             >
-              Označi sve
+              {t('notifications.markAll')}
             </button>
             <button 
               className="btn btn-danger"
               onClick={handleDeleteAll}
             >
-              Obriši sve
+              {t('notifications.deleteAll')}
             </button>
           </div>
         </div>
@@ -165,21 +170,21 @@ function Notifications() {
             className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
             onClick={() => setFilter('all')}
           >
-            Sve
+            {t('notifications.filterAll')}
           </button>
           <button 
             className={`filter-btn ${filter === 'unread' ? 'active' : ''}`}
             onClick={() => setFilter('unread')}
           >
-            Nepročitane
+            {t('notifications.filterUnread')}
           </button>
         </div>
 
         {notifications.length === 0 ? (
           <div className="no-notifications-page card">
             <span className="empty-icon">🔔</span>
-            <h3>Nemaš notifikacija</h3>
-            <p>Kada se nešto dogodi, vidjet ćeš to ovdje</p>
+            <h3>{t('notifications.noNotifications')}</h3>
+            <p>{t('notifications.noNotificationsDesc')}</p>
           </div>
         ) : (
           <div className="notifications-list-page">
@@ -202,13 +207,21 @@ function Notifications() {
                 </div>
 
                 {!notification.read && (
-                  <div className="notification-card-unread-badge">NOVO</div>
+                  <div className="notification-card-unread-badge">{t('notifications.newBadge')}</div>
                 )}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={confirmModal}
+        onClose={() => setConfirmModal(false)}
+        onConfirm={confirmDeleteAll}
+        title={t('notifications.deleteAll')}
+        message={t('notifications.deleteConfirm')}
+      />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

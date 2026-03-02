@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import Modal from '../components/Modal';
 import { API_URL } from '../config';
 import './VideoHighlights.css';
 import { useLanguage } from '../i18n/LanguageContext'; 
@@ -14,6 +15,7 @@ function VideoHighlights() {
   const [toast, setToast] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   
   const [uploadForm, setUploadForm] = useState({
     title: '',
@@ -185,10 +187,13 @@ function VideoHighlights() {
     }
   };
 
-  const handleDelete = async (videoId) => {
-    if (!window.confirm('Jesi li siguran da želiš obrisati ovaj video?')) {
-      return;
-    }
+  const handleDelete = (videoId) => {
+    setConfirmDelete(videoId);
+  };
+
+  const confirmDeleteVideo = async () => {
+    const videoId = confirmDelete;
+    setConfirmDelete(null);
 
     try {
       const token = localStorage.getItem('token');
@@ -492,6 +497,14 @@ function VideoHighlights() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={confirmDeleteVideo}
+        title="🗑️ Obriši video"
+        message="Jesi li siguran da želiš obrisati ovaj video?"
+      />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

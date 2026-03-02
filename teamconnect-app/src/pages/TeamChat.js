@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import Modal from '../components/Modal';
 import { getSocket } from '../utils/socket';
 import { API_URL } from '../config';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -10,9 +11,10 @@ import './TeamChat.css';
 function TeamChat() {
   const { teamId } = useParams();
   const navigate = useNavigate();
-
+  const { t } = useLanguage();
 
   const [messages, setMessages] = useState([]);
+  const [confirmDeleteMsg, setConfirmDeleteMsg] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -168,8 +170,13 @@ function TeamChat() {
     );
   };
 
-  const handleDeleteMessage = async (messageId) => {
-    if (!window.confirm('Obriši poruku?')) return;
+  const handleDeleteMessage = (messageId) => {
+    setConfirmDeleteMsg(messageId);
+  };
+
+  const confirmDeleteMessage = async () => {
+    const messageId = confirmDeleteMsg;
+    setConfirmDeleteMsg(null);
 
     try {
       const token = localStorage.getItem('token');
@@ -340,6 +347,14 @@ function TeamChat() {
           </form>
         </div>
       </div>
+
+      <Modal
+        isOpen={!!confirmDeleteMsg}
+        onClose={() => setConfirmDeleteMsg(null)}
+        onConfirm={confirmDeleteMessage}
+        title={t('chat.deleteMessage')}
+        message={t('chat.deleteMessage')}
+      />
 
       {toast && (
         <Toast

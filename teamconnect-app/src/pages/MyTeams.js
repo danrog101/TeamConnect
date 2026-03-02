@@ -4,6 +4,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import Navbar from '../components/Navbar';
 import TeamCard from '../components/TeamCard';
 import Toast from '../components/Toast';
+import Modal from '../components/Modal';
 import { teamsAPI } from '../services/api';
 import './MyTeams.css';
 
@@ -14,6 +15,7 @@ function MyTeams() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({ open: false, type: null, teamId: null });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -35,33 +37,36 @@ function MyTeams() {
   };
 
   const handleLeaveTeam = async (teamId) => {
-    if (!window.confirm(t('myTeams.leaveConfirm'))) {
-      return;
-    }
+    setConfirmModal({ open: true, type: 'leave', teamId });
+  };
 
-    try {
-      await teamsAPI.leave(teamId);
-      setToast({ message: t('myTeams.leftTeam'), type: 'info' });
-      fetchMyTeams();
-    } catch (error) {
-      console.error('Leave team error:', error);
-      setToast({ message: t('myTeams.leaveError'), type: 'error' });
+  const handleConfirmAction = async () => {
+    const { type, teamId } = confirmModal;
+    setConfirmModal({ open: false, type: null, teamId: null });
+
+    if (type === 'leave') {
+      try {
+        await teamsAPI.leave(teamId);
+        setToast({ message: t('myTeams.leftTeam'), type: 'info' });
+        fetchMyTeams();
+      } catch (error) {
+        console.error('Leave team error:', error);
+        setToast({ message: t('myTeams.leaveError'), type: 'error' });
+      }
+    } else if (type === 'delete') {
+      try {
+        await teamsAPI.delete(teamId);
+        setToast({ message: t('myTeams.deleted'), type: 'success' });
+        fetchMyTeams();
+      } catch (error) {
+        console.error('Delete team error:', error);
+        setToast({ message: t('myTeams.deleteError'), type: 'error' });
+      }
     }
   };
 
   const handleDeleteTeam = async (teamId) => {
-    if (!window.confirm(t('myTeams.deleteConfirm'))) {
-      return;
-    }
-
-    try {
-      await teamsAPI.delete(teamId);
-      setToast({ message: t('myTeams.deleted'), type: 'success' });
-      fetchMyTeams();
-    } catch (error) {
-      console.error('Delete team error:', error);
-      setToast({ message: t('myTeams.deleteError'), type: 'error' });
-    }
+    setConfirmModal({ open: true, type: 'delete', teamId });
   };
 
   const myCreatedTeams = teams.filter(team =>
@@ -148,6 +153,14 @@ function MyTeams() {
           </>
         )}
       </div>
+
+      <Modal
+        isOpen={confirmModal.open}
+        onClose={() => setConfirmModal({ open: false, type: null, teamId: null })}
+        onConfirm={handleConfirmAction}
+        title={confirmModal.type === 'delete' ? t('teams.deleteTeam') : t('teams.leaveTeam')}
+        message={confirmModal.type === 'delete' ? t('myTeams.deleteConfirm') : t('myTeams.leaveConfirm')}
+      />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

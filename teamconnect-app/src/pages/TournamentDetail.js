@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import Modal from '../components/Modal';
 import { API_URL } from '../config';
 import './TournamentDetail.css';
 import BracketGenerator from '../components/Bracketgenerator';
@@ -13,6 +14,7 @@ function TournamentDetail() {
   const [tournament, setTournament] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
   const [toast, setToast] = useState(null);
+  const [confirmUnregister, setConfirmUnregister] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [isUserRegistered, setIsUserRegistered] = useState(false);
@@ -71,10 +73,12 @@ function TournamentDetail() {
     }
   };
 
-  const handleUnregisterTeam = async () => {
-    if (!window.confirm('Jesi li siguran/a da želiš odjaviti tim sa turnira?')) {
-      return;
-    }
+  const handleUnregisterTeam = () => {
+    setConfirmUnregister(true);
+  };
+
+  const confirmUnregisterAction = async () => {
+    setConfirmUnregister(false);
 
     try {
       const token = localStorage.getItem('token');
@@ -406,6 +410,14 @@ function TournamentDetail() {
           )}
         </div>
       </div>
+
+      <Modal
+        isOpen={confirmUnregister}
+        onClose={() => setConfirmUnregister(false)}
+        onConfirm={confirmUnregisterAction}
+        title="Odjava s turnira"
+        message="Jesi li siguran/a da želiš odjaviti tim sa turnira?"
+      />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

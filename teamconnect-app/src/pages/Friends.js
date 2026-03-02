@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import Modal from '../components/Modal';
 import { API_URL } from '../config';
 import { useLanguage } from '../i18n/LanguageContext';
 import './Friends.css';
  
 function Friends() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [activeTab, setActiveTab] = useState('friends');
   const [friends, setFriends] = useState([]);
@@ -19,6 +21,7 @@ function Friends() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [friendRequestMessage, setFriendRequestMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({ open: false, friendId: null });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -90,7 +93,7 @@ function Friends() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim() || searchQuery.trim().length < 2) {
-      setToast({ message: 'Upiši barem 2 znaka!', type: 'error' });
+      setToast({ message: t('friends.searchMinChars'), type: 'error' });
       return;
     }
 
@@ -123,11 +126,11 @@ function Friends() {
         console.log('✅ Search results:', data.length);
       } else {
         const errorData = await res.json();
-        setToast({ message: errorData.message || 'Greška pri pretrazi', type: 'error' });
+        setToast({ message: errorData.message || t('friends.searchError'), type: 'error' });
       }
     } catch (error) {
       console.error('❌ Search error:', error);
-      setToast({ message: 'Greška pri pretrazi', type: 'error' });
+      setToast({ message: t('friends.searchError'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -169,17 +172,17 @@ function Friends() {
       const data = await res.json();
 
       if (res.ok) {
-        setToast({ message: '✉️ Zahtjev poslan!', type: 'success' });
+        setToast({ message: t('friends.requestSent'), type: 'success' });
         setShowMessageModal(false);
         setFriendRequestMessage('');
         setSelectedUser(null);
         handleSearch(); // refresh search results
       } else {
-        setToast({ message: data.message || 'Greška pri slanju zahtjeva', type: 'error' });
+        setToast({ message: data.message || t('friends.sendError'), type: 'error' });
       }
     } catch (error) {
       console.error('❌ Send request error:', error);
-      setToast({ message: 'Greška pri slanju zahtjeva', type: 'error' });
+      setToast({ message: t('friends.sendError'), type: 'error' });
     }
   };
 
@@ -210,11 +213,11 @@ function Friends() {
         loadRequests();
         loadFriends();
       } else {
-        setToast({ message: data.message || 'Greška pri prihvaćanju', type: 'error' });
+        setToast({ message: data.message || t('friends.acceptError'), type: 'error' });
       }
     } catch (error) {
       console.error('❌ Accept request error:', error);
-      setToast({ message: 'Greška pri prihvaćanju zahtjeva', type: 'error' });
+      setToast({ message: t('friends.acceptError'), type: 'error' });
     }
   };
 
@@ -239,19 +242,22 @@ function Friends() {
       }
 
       if (res.ok) {
-        setToast({ message: 'Zahtjev odbijen', type: 'info' });
+        setToast({ message: t('friends.rejected'), type: 'info' });
         loadRequests();
       }
     } catch (error) {
       console.error('❌ Reject request error:', error);
-      setToast({ message: 'Greška pri odbijanju zahtjeva', type: 'error' });
+      setToast({ message: t('friends.rejectError'), type: 'error' });
     }
   };
 
   const handleRemoveFriend = async (friendId) => {
-    if (!window.confirm('Jesi li siguran/a da želiš ukloniti prijatelja?')) {
-      return;
-    }
+    setConfirmModal({ open: true, friendId });
+  };
+
+  const confirmRemoveFriend = async () => {
+    const friendId = confirmModal.friendId;
+    setConfirmModal({ open: false, friendId: null });
 
     try {
       const token = localStorage.getItem('token');
@@ -273,12 +279,12 @@ function Friends() {
       }
 
       if (res.ok) {
-        setToast({ message: 'Prijatelj uklonjen', type: 'info' });
+        setToast({ message: t('friends.friendRemoved'), type: 'info' });
         loadFriends();
       }
     } catch (error) {
       console.error('❌ Remove friend error:', error);
-      setToast({ message: 'Greška pri uklanjanju prijatelja', type: 'error' });
+      setToast({ message: t('friends.removeError'), type: 'error' });
     }
   };
 
@@ -306,19 +312,19 @@ function Friends() {
       <div className="friends-container">
         {/* Header */}
         <div className="friends-header">
-          <h1>👥 Prijatelji</h1>
-          <p>Povežite se s igračima</p>
+          <h1>{'👥 ' + t('friends.title')}</h1>
+          <p>{t('friends.subtitle')}</p>
         </div>
 
         {/* Search */}
         <div className="search-section card">
-          <h3>🔍 Pretraži korisnike</h3>
+          <h3>{'🔍 ' + t('friends.searchUsers')}</h3>
           <div className="search-bar">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Pretraži po korisničkom imenu ili emailu..."
+              placeholder={t('friends.searchPlaceholder')}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               disabled={loading}
             />
@@ -327,7 +333,7 @@ function Friends() {
               onClick={handleSearch}
               disabled={loading}
             >
-              {loading ? 'Tražim...' : 'Pretraži'}
+              {loading ? t('common.searching') : t('common.search')}
             </button>
           </div>
         </div>
@@ -338,13 +344,13 @@ function Friends() {
             className={`tab ${activeTab === 'friends' ? 'active' : ''}`}
             onClick={() => setActiveTab('friends')}
           >
-            Prijatelji ({friends.length})
+            {t('friends.friendsTab')} ({friends.length})
           </button>
           <button
             className={`tab ${activeTab === 'requests' ? 'active' : ''}`}
             onClick={() => setActiveTab('requests')}
           >
-            Zahtjevi ({requests.length})
+            {t('friends.requestsTab')} ({requests.length})
             {requests.length > 0 && <span className="notification-dot"></span>}
           </button>
           {searchResults.length > 0 && (
@@ -352,7 +358,7 @@ function Friends() {
               className={`tab ${activeTab === 'search' ? 'active' : ''}`}
               onClick={() => setActiveTab('search')}
             >
-              Rezultati ({searchResults.length})
+              {t('friends.resultsTab')} ({searchResults.length})
             </button>
           )}
         </div>
@@ -365,8 +371,8 @@ function Friends() {
               {friends.length === 0 ? (
                 <div className="empty-state card">
                   <span className="empty-icon">👥</span>
-                  <h3>Nemaš prijatelja</h3>
-                  <p>Pretraži korisnike i dodaj ih u prijatelje!</p>
+                  <h3>{t('friends.noFriends')}</h3>
+                  <p>{t('friends.noFriendsDesc')}</p>
                 </div>
               ) : (
                 <div className="friends-grid">
@@ -389,13 +395,13 @@ function Friends() {
                           className="btn btn-secondary btn-small"
                           onClick={() => navigate(`/profile/${friend.id}`)}
                         >
-                          Vidi profil
+                          {t('friends.viewProfile')}
                         </button>
                         <button
                           className="btn btn-danger btn-small"
                           onClick={() => handleRemoveFriend(friend.id)}
                         >
-                          Ukloni
+                          {t('friends.removeFriend')}
                         </button>
                       </div>
                     </div>
@@ -411,8 +417,8 @@ function Friends() {
               {requests.length === 0 ? (
                 <div className="empty-state card">
                   <span className="empty-icon">📭</span>
-                  <h3>Nemaš novih zahtjeva</h3>
-                  <p>Kada te netko doda, vidjet ćeš to ovdje</p>
+                  <h3>{t('friends.noRequests')}</h3>
+                  <p>{t('friends.noRequestsDesc')}</p>
                 </div>
               ) : (
                 <div className="requests-grid">
@@ -436,13 +442,13 @@ function Friends() {
                           className="btn btn-primary"
                           onClick={() => handleAcceptRequest(request.id)}
                         >
-                          ✓ Prihvati
+                          {'✓ ' + t('friends.accept')}
                         </button>
                         <button
                           className="btn btn-secondary"
                           onClick={() => handleRejectRequest(request.id)}
                         >
-                          ✕ Odbij
+                          {'✕ ' + t('friends.reject')}
                         </button>
                       </div>
                     </div>
@@ -458,8 +464,8 @@ function Friends() {
               {searchResults.length === 0 ? (
                 <div className="empty-state card">
                   <span className="empty-icon">🔍</span>
-                  <h3>Nema rezultata</h3>
-                  <p>Pokušaj s drugim pojmom za pretragu</p>
+                  <h3>{t('friends.noResults')}</h3>
+                  <p>{t('friends.noResultsDesc')}</p>
                 </div>
               ) : (
                 <div className="search-results-grid">
@@ -478,22 +484,22 @@ function Friends() {
                       <div className="result-actions">
                         {user.isFriend ? (
                           <button className="btn btn-disabled" disabled>
-                            ✓ Već prijatelji
+                            {'✓ ' + t('friends.alreadyFriends')}
                           </button>
                         ) : user.requestSent ? (
                           <button className="btn btn-disabled" disabled>
-                            ✉️ Zahtjev poslan
+                            {'✉️ ' + t('friends.requestAlreadySent')}
                           </button>
                         ) : user.id === currentUser.id ? (
                           <button className="btn btn-disabled" disabled>
-                            👤 To si ti
+                            {'👤 ' + t('friends.itsYou')}
                           </button>
                         ) : (
                           <button
                             className="btn btn-primary"
                             onClick={() => handleSendFriendRequest(user)}
                           >
-                            + Dodaj prijatelja
+                            {'+ ' + t('friends.addFriend')}
                           </button>
                         )}
                       </div>
@@ -510,15 +516,15 @@ function Friends() {
       {showMessageModal && selectedUser && (
         <div className="modal-overlay" onClick={() => setShowMessageModal(false)}>
           <div className="friend-message-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>✉️ Dodaj prijatelja</h2>
-            <p>Pošalji zahtjev korisniku <strong>{selectedUser.username}</strong></p>
+            <h2>{'✉️ ' + t('friends.addFriendTitle')}</h2>
+            <p>{t('friends.sendRequestTo')} <strong>{selectedUser.username}</strong></p>
 
             <div className="form-group">
-              <label>Poruka (opcionalno)</label>
+              <label>{t('friends.messageOptional')}</label>
               <textarea
                 value={friendRequestMessage}
                 onChange={(e) => setFriendRequestMessage(e.target.value)}
-                placeholder="Napiši kratku poruku..."
+                placeholder={t('friends.messagePlaceholder')}
                 rows="3"
                 maxLength={200}
               />
@@ -533,15 +539,23 @@ function Friends() {
                   setSelectedUser(null);
                 }}
               >
-                Odustani
+                {t('common.cancel')}
               </button>
               <button className="btn btn-primary" onClick={confirmSendRequest}>
-                Pošalji zahtjev
+                {t('friends.sendRequest')}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={confirmModal.open}
+        onClose={() => setConfirmModal({ open: false, friendId: null })}
+        onConfirm={confirmRemoveFriend}
+        title={t('friends.removeFriend')}
+        message={t('friends.removeFriendConfirm')}
+      />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
