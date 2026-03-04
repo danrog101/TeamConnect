@@ -239,8 +239,8 @@ function VideoHighlights() {
     const diffMs = now - date;
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffDays === 0) return 'Danas';
-    if (diffDays === 1) return 'Jučer';
+    if (diffDays === 0) return t('chat.today');
+    if (diffDays === 1) return t('chat.yesterday');
     if (diffDays < 7) return `Prije ${diffDays} dana`;
     if (diffDays < 30) return `Prije ${Math.floor(diffDays / 7)} tjedana`;
     return date.toLocaleDateString('hr-HR');
@@ -275,7 +275,7 @@ function VideoHighlights() {
             className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
             onClick={() => setFilter('all')}
           >
-            Svi videi
+            {t('common.all')}
           </button>
           <button 
             className={`filter-btn ${filter === 'goal' ? 'active' : ''}`}
@@ -389,7 +389,7 @@ function VideoHighlights() {
                         className="btn btn-danger btn-small"
                         onClick={() => handleDelete(highlight._id)}
                       >
-                        🗑️ Obriši
+                        {'🗑️ ' + t('common.delete')}
                       </button>
                     )}
                   </div>
@@ -484,7 +484,7 @@ function VideoHighlights() {
                 onClick={() => setShowUploadModal(false)}
                 disabled={isUploading}
               >
-                Odustani
+                {t('common.cancel')}
               </button>
               <button 
                 className="btn btn-primary"

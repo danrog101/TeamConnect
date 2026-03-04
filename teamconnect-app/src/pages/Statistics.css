@@ -135,7 +135,7 @@
 }
 
 .win-card {
-  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
 }
 
 .win-card .stat-content h3,
@@ -153,7 +153,7 @@
 }
 
 .draw-card {
-  background: linear-gradient(135deg, #ff9800, #ffa726);
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
 }
 
 .draw-card .stat-content h3,
@@ -211,7 +211,7 @@
 }
 
 .form-win {
-  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
 }
 
 .form-loss {
@@ -219,7 +219,7 @@
 }
 
 .form-draw {
-  background: linear-gradient(135deg, #ff9800, #ffa726);
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
 }
 
 .form-icon {
@@ -408,7 +408,7 @@
 }
 
 .midfielder {
-  background: linear-gradient(90deg, #4caf50, #66bb6a);
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
 }
 
 .defender {
@@ -416,7 +416,7 @@
 }
 
 .goalkeeper {
-  background: linear-gradient(90deg, #ff9800, #ffa726);
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
 }
 
 .top-performances {
@@ -556,11 +556,11 @@
 }
 
 .win-fill {
-  background: linear-gradient(90deg, #4caf50, #66bb6a);
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
 }
 
 .draw-fill {
-  background: linear-gradient(90deg, #ff9800, #ffa726);
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
 }
 
 .loss-fill {
@@ -583,12 +583,12 @@
 }
 
 .rec-positive {
-  color: #4caf50;
+  color: #3b82f6;
   background: rgba(76, 175, 80, 0.1);
 }
 
 .rec-neutral {
-  color: #ff9800;
+  color: #f59e0b;
   background: rgba(255, 152, 0, 0.1);
 }
 

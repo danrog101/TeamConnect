@@ -45,18 +45,18 @@ function FieldMap() {
   const countries = Object.keys(europeanCities).sort((a, b) => a.localeCompare(b, 'hr'));
 
   const availableFacilities = [
-    { id: 'parking', name: 'Parking', icon: '🅿️' },
-    { id: 'shower', name: 'Tuš', icon: '🚿' },
-    { id: 'locker', name: 'Svlačionice', icon: '🚪' },
-    { id: 'lighting', name: 'Rasvjeta', icon: '💡' },
-    { id: 'wifi', name: 'WiFi', icon: '📶' },
-    { id: 'ac', name: 'Klima', icon: '❄️' },
-    { id: 'cafe', name: 'Kafić', icon: '☕' },
-    { id: 'restaurant', name: 'Restoran', icon: '🍽️' },
-    { id: 'stands', name: 'Tribine', icon: '🏟️' },
-    { id: 'sound', name: 'Ozvučenje', icon: '🔊' },
-    { id: 'equipment', name: 'Oprema za najam', icon: '🎽' },
-    { id: 'firstaid', name: 'Prva pomoć', icon: '🏥' }
+    { id: 'parking', name: t('facilityNames.parking'), icon: '🅿️' },
+    { id: 'shower', name: t('facilityNames.shower'), icon: '🚿' },
+    { id: 'locker', name: t('facilityNames.locker'), icon: '🚪' },
+    { id: 'lighting', name: t('facilityNames.lighting'), icon: '💡' },
+    { id: 'wifi', name: t('facilityNames.wifi'), icon: '📶' },
+    { id: 'ac', name: t('facilityNames.ac'), icon: '❄️' },
+    { id: 'cafe', name: t('facilityNames.cafe'), icon: '☕' },
+    { id: 'restaurant', name: t('facilityNames.restaurant'), icon: '🍽️' },
+    { id: 'stands', name: t('facilityNames.stands'), icon: '🏟️' },
+    { id: 'sound', name: t('facilityNames.sound'), icon: '🔊' },
+    { id: 'equipment', name: t('facilityNames.equipment'), icon: '🎽' },
+    { id: 'firstaid', name: t('facilityNames.firstaid'), icon: '🏥' }
   ];
 
   // ============ EFFECTS ============
@@ -97,7 +97,7 @@ function FieldMap() {
 
     const totalImages = selectedImages.length + files.length;
     if (totalImages > 5) {
-      setToast({ message: 'Maksimalno 5 slika!', type: 'error' });
+      setToast({ message: t('errors.maxImages').replace('{n}', '5'), type: 'error' });
       return;
     }
 
@@ -212,7 +212,7 @@ function FieldMap() {
       const token = localStorage.getItem('token');
 
       if (!token) {
-        setToast({ message: 'Morate biti prijavljeni!', type: 'error' });
+        setToast({ message: t('messages.loginRequired'), type: 'error' });
         setIsUploading(false);
         return;
       }
@@ -298,7 +298,7 @@ function FieldMap() {
   };
 
   const getAvailabilityColor = (availability) => {
-    return availability === 'Dostupno' ? '#4caf50' : '#f44336';
+    return availability === 'Dostupno' ? '#3b82f6' : '#f44336';
   };
 
   const getFieldImage = (field) => {
@@ -340,13 +340,13 @@ function FieldMap() {
       <div className="field-map-container">
         {/* HEADER */}
         <div className="map-header">
-          <h1>Mapa Terena</h1>
-          <p>Pronadi savrseni teren za svoju utakmicu</p>
+          <h1>{t('fields.title')}</h1>
+          <p>{t('fields.subtitle')}</p>
           <button
             className="btn btn-primary btn-large"
             onClick={() => setShowAddFieldModal(true)}
           >
-            + Dodaj novi teren
+            {'+ ' + t('fields.addField')}
           </button>
         </div>
 
@@ -356,7 +356,7 @@ function FieldMap() {
             <div className="add-field-modal" onClick={(e) => e.stopPropagation()}>
               {/* Modal Header */}
               <div className="modal-header">
-                <h2>Dodaj novi teren</h2>
+                <h2>{t('fields.addField')}</h2>
                 <button className="modal-close" onClick={handleCloseModal}>&times;</button>
               </div>
 
@@ -364,32 +364,32 @@ function FieldMap() {
               <div className="form-steps">
                 <div className={`step ${formStep >= 1 ? 'active' : ''} ${formStep > 1 ? 'completed' : ''}`}>
                   <div className="step-number">1</div>
-                  <span>Osnovne informacije</span>
+                  <span>{t('fields.basicInfo')}</span>
                 </div>
                 <div className="step-line"></div>
                 <div className={`step ${formStep >= 2 ? 'active' : ''} ${formStep > 2 ? 'completed' : ''}`}>
                   <div className="step-number">2</div>
-                  <span>Lokacija</span>
+                  <span>{t('fields.locationInfo')}</span>
                 </div>
                 <div className="step-line"></div>
                 <div className={`step ${formStep >= 3 ? 'active' : ''} ${formStep > 3 ? 'completed' : ''}`}>
                   <div className="step-number">3</div>
-                  <span>Slike i sadrzaji</span>
+                  <span>{t('fields.imagesAndFacilities')}</span>
                 </div>
                 <div className="step-line"></div>
                 <div className={`step ${formStep >= 4 ? 'active' : ''}`}>
                   <div className="step-number">4</div>
-                  <span>Pregled</span>
+                  <span>{t('fields.review')}</span>
                 </div>
               </div>
 
               {/* Step 1: Basic Info */}
               {formStep === 1 && (
                 <div className="form-step-content">
-                  <h3>Osnovne informacije o terenu</h3>
+                  <h3>{t('fields.basicInfo')}</h3>
 
                   <div className="form-group">
-                    <label>Naziv terena *</label>
+                    <label>{t('fields.fieldName') + ' *'}</label>
                     <input
                       type="text"
                       value={fieldForm.name}
@@ -406,13 +406,13 @@ function FieldMap() {
                       onChange={(e) => setFieldForm({ ...fieldForm, sport: e.target.value })}
                       className="form-select"
                     >
-                      <option value="">Odaberi sport</option>
-                      <optgroup label="Popularni sportovi">
+                      <option value="">{t('createTeam.selectSport')}</option>
+                      <optgroup label={t('createTeam.popularSports')}>
                         {sportsList.filter(s => s.popular).map(sport => (
                           <option key={sport.id} value={sport.name}>{sport.name}</option>
                         ))}
                       </optgroup>
-                      <optgroup label="Ostali sportovi">
+                      <optgroup label={t('createTeam.otherSports')}>
                         {sportsList.filter(s => !s.popular).map(sport => (
                           <option key={sport.id} value={sport.name}>{sport.name}</option>
                         ))}
@@ -422,7 +422,7 @@ function FieldMap() {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Cijena (EUR/h)</label>
+                      <label>{t('fields.price') + ' (' + t('fields.pricePerHour') + ')'}</label>
                       <input
                         type="number"
                         value={fieldForm.price}
@@ -435,14 +435,14 @@ function FieldMap() {
                     </div>
 
                     <div className="form-group">
-                      <label>Dostupnost</label>
+                      <label>{t('fields.availability')}</label>
                       <select
                         value={fieldForm.availability}
                         onChange={(e) => setFieldForm({ ...fieldForm, availability: e.target.value })}
                         className="form-select"
                       >
-                        <option value="Dostupno">Dostupno</option>
-                        <option value="Zauzeto">Zauzeto</option>
+                        <option value="Dostupno">{t('fields.available')}</option>
+                        <option value="Zauzeto">{t('fields.unavailable')}</option>
                       </select>
                     </div>
                   </div>
@@ -463,11 +463,11 @@ function FieldMap() {
               {/* Step 2: Location */}
               {formStep === 2 && (
                 <div className="form-step-content">
-                  <h3>Lokacija terena</h3>
+                  <h3>{t('fields.locationInfo')}</h3>
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Drzava *</label>
+                      <label>{t('fields.country') + ' *'}</label>
                       <select
                         value={fieldForm.country}
                         onChange={(e) => setFieldForm({ ...fieldForm, country: e.target.value, city: '' })}
@@ -480,7 +480,7 @@ function FieldMap() {
                     </div>
 
                     <div className="form-group">
-                      <label>Grad *</label>
+                      <label>{t('fields.city') + ' *'}</label>
                       <select
                         value={fieldForm.city}
                         onChange={(e) => setFieldForm({ ...fieldForm, city: e.target.value })}
@@ -495,7 +495,7 @@ function FieldMap() {
                   </div>
 
                   <div className="form-group">
-                    <label>Adresa *</label>
+                    <label>{t('fields.address') + ' *'}</label>
                     <input
                       type="text"
                       value={fieldForm.address}
@@ -558,7 +558,7 @@ function FieldMap() {
               {/* Step 3: Images & Facilities */}
               {formStep === 3 && (
                 <div className="form-step-content">
-                  <h3>Slike i sadrzaji</h3>
+                  <h3>{t('fields.imagesAndFacilities')}</h3>
 
                   <div className="form-group">
                     <label>Slike terena * (max 5)</label>
@@ -637,7 +637,7 @@ function FieldMap() {
                       </div>
                       <div className="review-row">
                         <span>Dostupnost:</span>
-                        <strong style={{ color: fieldForm.availability === 'Dostupno' ? '#4caf50' : '#f44336' }}>
+                        <strong style={{ color: fieldForm.availability === 'Dostupno' ? '#3b82f6' : '#f44336' }}>
                           {fieldForm.availability}
                         </strong>
                       </div>
@@ -754,7 +754,7 @@ function FieldMap() {
                   onChange={(e) => setFilter({ ...filter, sport: e.target.value })}
                   className="form-select"
                 >
-                  <option value="">Svi sportovi</option>
+                  <option value="">{t('dashboard.allSports')}</option>
                   {getUniqueSports().map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
@@ -766,7 +766,7 @@ function FieldMap() {
                   onChange={(e) => setFilter({ ...filter, city: e.target.value })}
                   className="form-select"
                 >
-                  <option value="">Svi gradovi</option>
+                  <option value="">{t('dashboard.allCities')}</option>
                   {getUniqueCities().map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
@@ -776,12 +776,12 @@ function FieldMap() {
                   className="btn btn-secondary btn-block"
                   onClick={() => setFilter({ sport: '', city: '' })}
                 >
-                  Resetiraj filtere
+                  {t('dashboard.resetFilters')}
                 </button>
               )}
 
               <div className="filter-results">
-                <span>{filteredFields.length} terena pronadeno</span>
+                <span>{filteredFields.length} {t('fields.fieldsFound')}</span>
               </div>
             </div>
 
@@ -790,18 +790,18 @@ function FieldMap() {
               {loading ? (
                 <div className="loading-state">
                   <div className="spinner"></div>
-                  <p>Ucitavanje terena...</p>
+                  <p>{t('common.loading')}</p>
                 </div>
               ) : filteredFields.length === 0 ? (
                 <div className="no-fields">
                   <span className="empty-icon">🏟️</span>
-                  <h4>Nema terena</h4>
+                  <h4>{t('fields.noFields')}</h4>
                   <p>Nema terena s ovim filterima ili jos nema dodanih terena.</p>
                   <button
                     className="btn btn-primary"
                     onClick={() => setShowAddFieldModal(true)}
                   >
-                    Dodaj prvi teren
+                    {t('fields.addField')}
                   </button>
                 </div>
               ) : (
@@ -819,7 +819,7 @@ function FieldMap() {
                         className="field-availability"
                         style={{ background: getAvailabilityColor(field.availability) }}
                       >
-                        {field.availability || 'Dostupno'}
+                        {field.availability || t('fields.available')}
                       </div>
                     </div>
 
@@ -880,7 +880,7 @@ function FieldMap() {
                       className="detail-availability"
                       style={{ background: getAvailabilityColor(selectedField.availability) }}
                     >
-                      {selectedField.availability || 'Dostupno'}
+                      {selectedField.availability || t('fields.available')}
                     </span>
                   </div>
 
@@ -892,14 +892,14 @@ function FieldMap() {
                     <div className="detail-info-item">
                       <span className="detail-icon">📍</span>
                       <div>
-                        <strong>Adresa</strong>
+                        <strong>{t('fields.address')}</strong>
                         <p>{selectedField.address}, {selectedField.city}</p>
                       </div>
                     </div>
                     <div className="detail-info-item">
                       <span className="detail-icon">💰</span>
                       <div>
-                        <strong>Cijena</strong>
+                        <strong>{t('fields.price')}</strong>
                         <p>{selectedField.price ? `${selectedField.price} EUR/h` : 'Na upit'}</p>
                       </div>
                     </div>
@@ -914,7 +914,7 @@ function FieldMap() {
                       <div className="detail-info-item">
                         <span className="detail-icon">📞</span>
                         <div>
-                          <strong>Telefon</strong>
+                          <strong>{t('fields.phone')}</strong>
                           <p><a href={`tel:${selectedField.phone}`}>{selectedField.phone}</a></p>
                         </div>
                       </div>
@@ -932,7 +932,7 @@ function FieldMap() {
                       <div className="detail-info-item">
                         <span className="detail-icon">🌐</span>
                         <div>
-                          <strong>Web</strong>
+                          <strong>{t('fields.website')}</strong>
                           <p><a href={selectedField.website} target="_blank" rel="noopener noreferrer">{selectedField.website}</a></p>
                         </div>
                       </div>
@@ -941,7 +941,7 @@ function FieldMap() {
 
                   {selectedField.facilities && selectedField.facilities.length > 0 && (
                     <div className="detail-facilities">
-                      <h4>Sadrzaji</h4>
+                      <h4>{t('fields.facilities')}</h4>
                       <div className="facilities-list">
                         {selectedField.facilities.map((facility, idx) => (
                           <div key={idx} className="facility-item">
@@ -965,7 +965,7 @@ function FieldMap() {
                         );
                       }}
                     >
-                      Navigiraj do terena
+                      {t('fields.getDirections')}
                     </button>
                     {(selectedField.email || selectedField.phone) && (
                       <button
@@ -978,7 +978,7 @@ function FieldMap() {
                           }
                         }}
                       >
-                        📩 Kontaktiraj za rezervaciju
+                        {'📩 ' + t('fields.contact')}
                       </button>
                     )}
                   </div>
@@ -987,8 +987,8 @@ function FieldMap() {
             ) : (
               <div className="map-placeholder">
                 <div className="map-icon">🏟️</div>
-                <h3>Odaberi teren</h3>
-                <p>Klikni na teren s liste za prikaz detalja</p>
+                <h3>{t('fields.selectField')}</h3>
+                <p>{t('fields.clickToViewDetails')}</p>
               </div>
             )}
           </div>

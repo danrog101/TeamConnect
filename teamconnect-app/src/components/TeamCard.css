@@ -104,7 +104,7 @@
 /* Amateur Badge */
 .team-amateur-badge {
   padding: 6px 14px;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
@@ -391,7 +391,7 @@
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border-radius: var(--radius-lg);
   margin-bottom: 20px;
-  border-left: 4px solid #22c55e;
+  border-left: 4px solid #3b82f6;
 }
 
 [data-theme="dark"] .user-rating-preview {
@@ -407,7 +407,7 @@
 .user-rating-preview .rating-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #22c55e;
+  color: #3b82f6;
 }
 
 /* Join Modal */

@@ -52,7 +52,7 @@ function ActivityFeed() {
       }
     } catch (error) {
       console.error('Load activities error:', error);
-      setToast({ message: 'Greška pri učitavanju aktivnosti', type: 'error' });
+      setToast({ message: t('activities.loadError'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -89,64 +89,64 @@ function ActivityFeed() {
   };
 
   const getActivityText = (activity) => {
-    const username = activity.user?.username || 'Korisnik';
+    const username = activity.user?.username || t('common.unknown');
 
     switch (activity.type) {
       case 'team_created':
         return (
           <>
-            <strong>{username}</strong> je kreirao tim{' '}
+            <strong>{username}</strong> {t('activities.teamCreated')}{' '}
             <span className="highlight">{activity.team_name}</span>
           </>
         );
       case 'team_joined':
         return (
           <>
-            <strong>{username}</strong> se pridružio timu{' '}
+            <strong>{username}</strong> {t('activities.teamJoined')}{' '}
             <span className="highlight">{activity.team_name}</span>
           </>
         );
       case 'match_played':
         return (
           <>
-            <strong>{username}</strong> je odigrao utakmicu protiv{' '}
+            <strong>{username}</strong> {t('activities.matchPlayed')}{' '}
             <span className="highlight">{activity.opponent}</span>
           </>
         );
       case 'match_won':
         return (
           <>
-            <strong>{username}</strong> je pobijedio{' '}
-            <span className="highlight">{activity.opponent}</span> rezultatom{' '}
+            <strong>{username}</strong> {t('activities.matchWon')}{' '}
+            <span className="highlight">{activity.opponent}</span> {t('activities.scoreResult')}{' '}
             <span className="highlight">{activity.score}</span>
           </>
         );
       case 'video_uploaded':
         return (
           <>
-            <strong>{username}</strong> je uploadao video{' '}
+            <strong>{username}</strong> {t('activities.videoUploaded')}{' '}
             <span className="highlight">{activity.video_title}</span>
           </>
         );
       case 'tournament_created':
         return (
           <>
-            <strong>{username}</strong> je kreirao turnir{' '}
+            <strong>{username}</strong> {t('activities.tournamentCreated')}{' '}
             <span className="highlight">{activity.tournament_name}</span>
           </>
         );
       case 'tournament_joined':
         return (
           <>
-            <strong>{username}</strong> se prijavio na turnir{' '}
-            <span className="highlight">{activity.tournament_name}</span> s timom{' '}
+            <strong>{username}</strong> {t('activities.tournamentJoined')}{' '}
+            <span className="highlight">{activity.tournament_name}</span> {t('activities.withTeam')}{' '}
             <span className="highlight">{activity.team_name}</span>
           </>
         );
       case 'field_added':
         return (
           <>
-            <strong>{username}</strong> je dodao teren{' '}
+            <strong>{username}</strong> {t('activities.fieldAdded')}{' '}
             <span className="highlight">{activity.field_name}</span>
           </>
         );
@@ -154,34 +154,34 @@ function ActivityFeed() {
         return (
           <>
             <strong>{username}</strong> i{' '}
-            <strong>{activity.friend_name}</strong> su sada prijatelji
+            <strong>{activity.friend_name}</strong> {t('activities.friendAdded')}
           </>
         );
       case 'achievement_unlocked':
         return (
           <>
-            <strong>{username}</strong> je otključao achievement{' '}
+            <strong>{username}</strong> {t('activities.achievementUnlocked')}{' '}
             <span className="highlight">{activity.achievement_name}</span>
           </>
         );
       case 'rank_up':
         return (
           <>
-            <strong>{username}</strong> je napredovao iz{' '}
+            <strong>{username}</strong> {t('activities.rankUp')}{' '}
             <span className="highlight">{activity.old_rank}</span> u{' '}
-            <span className="highlight">{activity.new_rank}</span> rank
+            <span className="highlight">{activity.new_rank}</span>
           </>
         );
       case 'goal_scored':
         return (
           <>
-            <strong>{username}</strong> je postigao gol
+            <strong>{username}</strong> {t('activities.goalScored')}
           </>
         );
       default:
         return (
           <>
-            <strong>{username}</strong> je napravio nešto
+            <strong>{username}</strong> {t('activities.didSomething')}
           </>
         );
     }
@@ -195,10 +195,10 @@ function ActivityFeed() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Upravo sada';
-    if (diffMins < 60) return `Prije ${diffMins} min`;
-    if (diffHours < 24) return `Prije ${diffHours}h`;
-    if (diffDays < 7) return `Prije ${diffDays} dana`;
+    if (diffMins < 1) return t('activities.justNow');
+    if (diffMins < 60) return t('activities.minutesAgo').replace('{n}', diffMins);
+    if (diffHours < 24) return t('activities.hoursAgo').replace('{n}', diffHours);
+    if (diffDays < 7) return t('activities.daysAgo').replace('{n}', diffDays);
     return date.toLocaleDateString('hr-HR');
   };
 
@@ -208,7 +208,7 @@ function ActivityFeed() {
         <Navbar />
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Učitavanje aktivnosti...</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -220,8 +220,8 @@ function ActivityFeed() {
       
       <div className="activity-feed-container">
         <div className="activity-feed-header">
-          <h1>📰 Aktivnosti</h1>
-          <p>Vidi što se događa u TeamConnect zajednici</p>
+          <h1>{'📰 ' + t('activities.title')}</h1>
+          <p>{t('activities.subtitle')}</p>
         </div>
 
         <div className="activity-filters card">
@@ -229,31 +229,31 @@ function ActivityFeed() {
             className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
             onClick={() => handleFilterChange('all')}
           >
-            Sve aktivnosti
+            {t('activities.allActivities')}
           </button>
           <button 
             className={`filter-btn ${filter === 'team_created' ? 'active' : ''}`}
             onClick={() => handleFilterChange('team_created')}
           >
-            👥 Timovi
+            {'👥 ' + t('activities.teamsFilter')}
           </button>
           <button 
             className={`filter-btn ${filter === 'match_won' ? 'active' : ''}`}
             onClick={() => handleFilterChange('match_won')}
           >
-            ⚽ Utakmice
+            {'⚽ ' + t('activities.matchesFilter')}
           </button>
           <button 
             className={`filter-btn ${filter === 'video_uploaded' ? 'active' : ''}`}
             onClick={() => handleFilterChange('video_uploaded')}
           >
-            📹 Videi
+            {'📹 ' + t('activities.videosFilter')}
           </button>
           <button 
             className={`filter-btn ${filter === 'tournament_created' ? 'active' : ''}`}
             onClick={() => handleFilterChange('tournament_created')}
           >
-            🏆 Turniri
+            {'🏆 ' + t('activities.tournamentsFilter')}
           </button>
           <button 
             className={`filter-btn ${filter === 'rank_up' ? 'active' : ''}`}
@@ -266,8 +266,8 @@ function ActivityFeed() {
         {activities.length === 0 ? (
           <div className="no-activities card">
             <span className="empty-icon">📰</span>
-            <h3>Nema aktivnosti</h3>
-            <p>Kada ti ili tvoji prijatelji nešto napravite, vidjet ćeš to ovdje!</p>
+            <h3>{t('activities.noActivities')}</h3>
+            <p>{t('activities.noActivitiesDesc')}</p>
           </div>
         ) : (
           <>
@@ -301,7 +301,7 @@ function ActivityFeed() {
                   onClick={loadMore}
                   disabled={loading}
                 >
-                  {loading ? 'Učitavanje...' : 'Učitaj više'}
+                  {loading ? t('common.loading') : t('activities.loadMore')}
                 </button>
               </div>
             )}

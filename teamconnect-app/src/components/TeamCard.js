@@ -101,7 +101,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
     const percentage = (currentPlayers / maxPlayers) * 100;
     if (percentage >= 90) return '#f44336';
     if (percentage >= 70) return '#ff9800';
-    return '#4caf50';
+    return '#3b82f6';
   };
 
   const handleAction = (action, teamId) => {

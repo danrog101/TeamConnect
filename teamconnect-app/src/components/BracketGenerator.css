@@ -63,7 +63,7 @@
 }
 
 .match-team.winner {
-  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
   color: white;
   font-weight: 800;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
@@ -147,7 +147,7 @@
   display: inline-block;
   width: 20px;
   height: 20px;
-  background: #4caf50;
+  background: #3b82f6;
   border-radius: 4px;
 }
 

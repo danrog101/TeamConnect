@@ -210,7 +210,7 @@ function ForgotPassword() {
             {[1, 2, 3].map(s => (
               <div key={s} style={{
                 width: '40px', height: '4px', borderRadius: '2px',
-                background: s <= step ? 'var(--color-primary, #22c55e)' : 'var(--border-primary, #e2e8f0)',
+                background: s <= step ? 'var(--color-primary, #3b82f6)' : 'var(--border-primary, #bfdbfe)',
                 transition: 'background 0.3s'
               }} />
             ))}
@@ -222,7 +222,7 @@ function ForgotPassword() {
             {[1, 2, 3].map(s => (
               <div key={s} style={{
                 width: '40px', height: '4px', borderRadius: '2px',
-                background: s <= securityStep ? 'var(--color-primary, #22c55e)' : 'var(--border-primary, #e2e8f0)',
+                background: s <= securityStep ? 'var(--color-primary, #3b82f6)' : 'var(--border-primary, #bfdbfe)',
                 transition: 'background 0.3s'
               }} />
             ))}
@@ -349,11 +349,11 @@ function ForgotPassword() {
                       className="strength-fill" 
                       style={{ 
                         width: `${Math.min(100, (newPassword.length / 12) * 50 + (/[A-Z]/.test(newPassword) ? 15 : 0) + (/[0-9]/.test(newPassword) ? 15 : 0) + (/[^A-Za-z0-9]/.test(newPassword) ? 20 : 0))}%`,
-                        background: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#22c55e'
+                        background: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#3b82f6'
                       }} 
                     />
                   </div>
-                  <small style={{ color: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#22c55e' }}>
+                  <small style={{ color: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#3b82f6' }}>
                     {newPassword.length < 6 ? 'Preslaba' : newPassword.length < 10 ? 'Srednja jakost' : 'Jaka lozinka'}
                   </small>
                 </div>
@@ -458,11 +458,11 @@ function ForgotPassword() {
                       className="strength-fill" 
                       style={{ 
                         width: `${Math.min(100, (newPassword.length / 12) * 50 + (/[A-Z]/.test(newPassword) ? 15 : 0) + (/[0-9]/.test(newPassword) ? 15 : 0) + (/[^A-Za-z0-9]/.test(newPassword) ? 20 : 0))}%`,
-                        background: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#22c55e'
+                        background: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#3b82f6'
                       }} 
                     />
                   </div>
-                  <small style={{ color: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#22c55e' }}>
+                  <small style={{ color: newPassword.length < 6 ? '#ef4444' : newPassword.length < 10 ? '#f59e0b' : '#3b82f6' }}>
                     {newPassword.length < 6 ? 'Preslaba' : newPassword.length < 10 ? 'Srednja jakost' : 'Jaka lozinka'}
                   </small>
                 </div>

@@ -153,7 +153,7 @@ function Tournaments() {
       setTournaments(data);
     } catch (error) {
       console.error('❌ Load tournaments error:', error);
-      setToast({ message: 'Greška pri učitavanju turnira', type: 'error' });
+      setToast({ message: t('tournaments.loadError'), type: 'error' });
       setTournaments([]);
     }
   };
@@ -190,25 +190,25 @@ function Tournaments() {
   };
 
   const getGenderCategoryLabel = (category) => {
-    const labels = { male: 'Muški', female: 'Ženski', mix: 'Mješoviti' };
-    return labels[category] || 'Mješoviti';
+    const labels = { male: t('tournaments.genderMale'), female: t('tournaments.genderFemale'), mix: t('tournaments.genderMix') };
+    return labels[category] || t('tournaments.genderMix');
   };
 
   const handleCreateTournament = async () => {
     console.log('🚀 Creating tournament with data:', formData);
 
     if (!formData.name || !formData.sport || !formData.city || !formData.startDate || !formData.endDate || !formData.location) {
-      setToast({ message: 'Molimo popunite sva obavezna polja!', type: 'error' });
+      setToast({ message: t('tournaments.fillRequired'), type: 'error' });
       return;
     }
 
     if (new Date(formData.endDate) < new Date(formData.startDate)) {
-      setToast({ message: 'Datum završetka ne može biti prije datuma početka!', type: 'error' });
+      setToast({ message: t('tournaments.endBeforeStart'), type: 'error' });
       return;
     }
 
     if (parseInt(formData.maxPlayersPerTeam) < parseInt(formData.minPlayersPerTeam)) {
-      setToast({ message: 'Maksimalan broj natjecatelja mora biti veći ili jednak minimumu!', type: 'error' });
+      setToast({ message: t('tournaments.maxPlayersError'), type: 'error' });
       return;
     }
 
@@ -242,15 +242,15 @@ function Tournaments() {
           max_skill_level: '',
           amateur_only: false
         });
-        setToast({ message: 'Turnir uspješno kreiran! 🏆', type: 'success' });
+        setToast({ message: t('tournaments.createSuccess'), type: 'success' });
         loadTournaments();
       } else {
         console.error('Create tournament error:', response);
-        setToast({ message: response.message || 'Greška pri kreiranju turnira', type: 'error' });
+        setToast({ message: response.message || t('tournaments.createError'), type: 'error' });
       }
     } catch (error) {
       console.error('Create tournament error:', error);
-      setToast({ message: 'Greška pri kreiranju turnira', type: 'error' });
+      setToast({ message: t('tournaments.createError'), type: 'error' });
     }
   };
 
@@ -272,7 +272,7 @@ function Tournaments() {
     console.log('🚀 Registering team:', registerData);
 
     if (!registerData.teamName) {
-      setToast({ message: 'Molimo unesite naziv tima!', type: 'error' });
+      setToast({ message: t('tournaments.enterTeamName'), type: 'error' });
       return;
     }
 
@@ -300,12 +300,12 @@ function Tournaments() {
       setRegisterData({ teamName: '', players: [] });
       
       // ✅ FIXED: Toast notifikacija
-      setToast({ message: '✅ Tim uspješno prijavljen na turnir!', type: 'success' });
+      setToast({ message: t('tournaments.registerSuccess'), type: 'success' });
       
       loadTournaments();
     } catch (error) {
       console.error('Register team error:', error);
-      const errorMessage = error.response?.data?.message || 'Greška pri prijavi tima';
+      const errorMessage = error.response?.data?.message || t('tournaments.registerError');
       setToast({ message: errorMessage, type: 'error' });
     }
   };
@@ -322,9 +322,9 @@ function Tournaments() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      active: { text: 'Aktivan', color: '#4caf50' },
-      upcoming: { text: 'Nadolazeći', color: '#ff9800' },
-      finished: { text: 'Završen', color: '#999' }
+      active: { text: t('tournaments.active'), color: '#3b82f6' },
+      upcoming: { text: t('tournaments.upcoming'), color: '#ff9800' },
+      finished: { text: t('tournaments.finished'), color: '#999' }
     };
     return badges[status] || badges.upcoming;
   };
@@ -349,10 +349,10 @@ function Tournaments() {
       
       <div className="tournaments-container">
         <div className="tournaments-header">
-          <h1>🏆 Turniri</h1>
+          <h1>{'🏆 ' + t('tournaments.title')}</h1>
           <p>Natjecanja, pobjednici, slava!</p>
           <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-            + Kreiraj turnir
+            {'+ ' + t('tournaments.createTournament')}
           </button>
         </div>
 
@@ -361,29 +361,29 @@ function Tournaments() {
             className={`tab ${activeTab === 'active' ? 'active' : ''}`}
             onClick={() => setActiveTab('active')}
           >
-            U tijeku ({filterTournaments('active').length})
+            {t('tournaments.active')} ({filterTournaments('active').length})
           </button>
           <button 
             className={`tab ${activeTab === 'upcoming' ? 'active' : ''}`}
             onClick={() => setActiveTab('upcoming')}
           >
-            Uskoro ({filterTournaments('upcoming').length})
+            {t('tournaments.upcoming')} ({filterTournaments('upcoming').length})
           </button>
           <button 
             className={`tab ${activeTab === 'finished' ? 'active' : ''}`}
             onClick={() => setActiveTab('finished')}
           >
-            Završeni ({filterTournaments('finished').length})
+            {t('tournaments.finished')} ({filterTournaments('finished').length})
           </button>
         </div>
 
         <div className="filters-section card" style={{ marginBottom: '20px' }}>
-          <h3>🔍 Filtriraj turnire</h3>
+          <h3>{'🔍 ' + t('common.filter')}</h3>
           <div className="filters-grid">
             <div className="filter-group">
               <label>Sport</label>
               <select value={filters.sport} onChange={(e) => setFilters({...filters, sport: e.target.value})}>
-                <option value="">Svi sportovi</option>
+                <option value="">{t('dashboard.allSports')}</option>
                 {sportsList.map(sport => (
                   <option key={sport.id} value={sport.name}>{sport.name}</option>
                 ))}
@@ -392,7 +392,7 @@ function Tournaments() {
             <div className="filter-group">
               <label>Grad</label>
               <select value={filters.city} onChange={(e) => setFilters({...filters, city: e.target.value})}>
-                <option value="">Svi gradovi</option>
+                <option value="">{t('dashboard.allCities')}</option>
                 {[...new Set(tournaments.map(t => t.city).filter(Boolean))].sort().map(city => (
                   <option key={city} value={city}>{city}</option>
                 ))}
@@ -400,7 +400,7 @@ function Tournaments() {
             </div>
             {(filters.sport || filters.city) && (
               <button className="btn btn-secondary" onClick={() => setFilters({ sport: '', city: '' })}>
-                Resetiraj filtere
+                {t('dashboard.resetFilters')}
               </button>
             )}
           </div>
@@ -410,14 +410,14 @@ function Tournaments() {
           {filteredTournaments.length === 0 ? (
             <div className="empty-tournaments card">
               <span className="empty-icon">🏆</span>
-              <h2>Nema turnira</h2>
+              <h2>{t('tournaments.noTournaments')}</h2>
               <p>
                 {activeTab === 'active' && 'Trenutno nema aktivnih turnira.'}
                 {activeTab === 'upcoming' && 'Nema nadolazećih turnira.'}
                 {activeTab === 'finished' && 'Nema završenih turnira.'}
               </p>
               <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-                Kreiraj prvi turnir
+                {t('tournaments.createTournament')}
               </button>
             </div>
           ) : (
@@ -470,7 +470,7 @@ function Tournaments() {
 
                   {tournament.registered_teams_list && tournament.registered_teams_list.length > 0 && (
                     <div className="registered-teams-preview">
-                      <p><strong>Prijavljeni timovi:</strong></p>
+                      <p><strong>{t('tournaments.registeredTeams')}:</strong></p>
                       <div className="teams-chips">
                         {tournament.registered_teams_list.slice(0, 3).map((team, idx) => (
                           <span key={idx} className="team-chip">{team.team_name}</span>
@@ -499,14 +499,14 @@ function Tournaments() {
                         className="btn btn-primary"
                         onClick={() => handleOpenRegister(tournament)}
                       >
-                        Prijavi tim
+                        {t('tournaments.registerTeam')}
                       </button>
                     ) : (
                       <button
                         className="btn btn-warning"
                         onClick={() => handleOpenRegister(tournament)}
                       >
-                        Lista čekanja
+                        {t('tournaments.waitlistTag')}
                       </button>
                     )}
                     <button
@@ -555,7 +555,7 @@ function Tournaments() {
       {showCreateModal && ReactDOM.createPortal(
         <div className="modal-overlay" onClick={() => { setShowCreateModal(false); setCitySearch(''); }}>
           <div className="create-tournament-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>🏆 Kreiraj novi turnir</h2>
+            <h2>{'🏆 ' + t('tournaments.createTournament')}</h2>
             
             <div className="modal-form">
               <div className="form-group">
@@ -574,13 +574,13 @@ function Tournaments() {
                 <div className="form-group">
                   <label>Sport *</label>
                   <select name="sport" value={formData.sport} onChange={handleChange}>
-                    <option value="">Odaberi</option>
-                    <optgroup label="Popularni">
+                    <option value="">{t('common.select')}</option>
+                    <optgroup label={t('dashboard.popular')}>
                       {sportsList.filter(s => s.popular).map(sport => (
                         <option key={sport.id} value={sport.name}>{sport.name}</option>
                       ))}
                     </optgroup>
-                    <optgroup label="Ostali">
+                    <optgroup label={t('dashboard.other')}>
                       {sportsList.filter(s => !s.popular).map(sport => (
                         <option key={sport.id} value={sport.name}>{sport.name}</option>
                       ))}
@@ -729,8 +729,8 @@ function Tournaments() {
                 <div className="form-group">
                   <label>Format</label>
                   <select name="format" value={formData.format} onChange={handleChange}>
-                    <option value="knockout">Knockout (Eliminacije)</option>
-                    <option value="league">Liga (Svi protiv svih)</option>
+                    <option value="knockout">{t('tournaments.knockout')}</option>
+                    <option value="league">{t('tournaments.league')}</option>
                   </select>
                 </div>
 
@@ -791,17 +791,17 @@ function Tournaments() {
                   value={formData.gender_category}
                   onChange={handleChange}
                 >
-                  <option value="mix">Mješoviti turnir</option>
-                  <option value="male">Muški turnir</option>
-                  <option value="female">Ženski turnir</option>
+                  <option value="mix">{t('tournaments.mixedTournament')}</option>
+                  <option value="male">{t('tournaments.maleTournament')}</option>
+                  <option value="female">{t('tournaments.femaleTournament')}</option>
                 </select>
                 <small style={{ color: '#666', fontSize: '12px' }}>
-                  Tip turnira - muški, ženski ili mješoviti
+                  {t('tournaments.categoryDesc')}
                 </small>
               </div>
 
               <div className="filter-section">
-                <h4>🎯 Filteri za igrače/timove</h4>
+                <h4>{'🎯 ' + t('tournaments.playerFilters')}</h4>
 
                 <div className="form-row">
                   <div className="form-group">
@@ -811,9 +811,9 @@ function Tournaments() {
                       value={formData.gender_preference}
                       onChange={handleChange}
                     >
-                      <option value="mix">Mješovito (svi)</option>
-                      <option value="male">Samo muškarci</option>
-                      <option value="female">Samo žene</option>
+                      <option value="mix">{t('tournaments.genderMix')}</option>
+                      <option value="male">{t('tournaments.genderMale')}</option>
+                      <option value="female">{t('tournaments.genderFemale')}</option>
                     </select>
                   </div>
 
@@ -869,10 +869,10 @@ function Tournaments() {
 
               <div className="modal-actions">
                 <button className="btn btn-secondary" onClick={() => { setShowCreateModal(false); setCitySearch(''); }}>
-                  Odustani
+                  {t('common.cancel')}
                 </button>
                 <button className="btn btn-primary" onClick={handleCreateTournament}>
-                  Kreiraj turnir
+                  {t('tournaments.createTournament')}
                 </button>
               </div>
             </div>
@@ -885,7 +885,7 @@ function Tournaments() {
       {showRegisterModal && selectedTournament && ReactDOM.createPortal(
         <div className="modal-overlay" onClick={() => setShowRegisterModal(false)}>
           <div className="create-tournament-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>🏆 Prijavi tim na {selectedTournament.name}</h2>
+            <h2>{'🏆 ' + t('tournaments.registerTeamOn')} {selectedTournament.name}</h2>
             
             <div className="modal-form">
               <div className="form-group">
@@ -930,13 +930,13 @@ function Tournaments() {
                   className="btn btn-secondary" 
                   onClick={() => setShowRegisterModal(false)}
                 >
-                  Odustani
+                  {t('common.cancel')}
                 </button>
                 <button 
                   className="btn btn-primary"
                   onClick={handleRegisterTeam}
                 >
-                  Prijavi tim
+                  {t('tournaments.registerTeam')}
                 </button>
               </div>
             </div>
@@ -949,17 +949,17 @@ function Tournaments() {
       {showTeamsModal && ReactDOM.createPortal(
         <div className="modal-overlay" onClick={() => setShowTeamsModal(false)}>
           <div className="teams-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>👥 Prijavljeni timovi</h2>
+            <h2>{'👥 ' + t('tournaments.registeredTeams')}</h2>
 
             {selectedTeamsList.length === 0 ? (
-              <p className="no-teams">Nema prijavljenih timova.</p>
+              <p className="no-teams">{t('tournaments.noRegisteredTeams')}</p>
             ) : (
               <div className="teams-list">
                 {selectedTeamsList.map((team, idx) => (
                   <div key={team.id || idx} className={`team-card-item ${team.is_waitlist ? 'waitlist' : ''}`}>
                     <div className="team-card-header">
                       <h4>{team.team_name}</h4>
-                      {team.is_waitlist && <span className="waitlist-tag">Lista čekanja</span>}
+                      {team.is_waitlist && <span className="waitlist-tag">{t('tournaments.waitlistTag')}</span>}
                     </div>
                     <div className="team-players">
                       {(team.players || []).map((player, pIdx) => (
@@ -972,7 +972,7 @@ function Tournaments() {
                       ))}
                     </div>
                     <div className="team-meta">
-                      Prijavljeno: {new Date(team.registered_at).toLocaleDateString('hr-HR')}
+                      {t('tournaments.registeredAt')} {new Date(team.registered_at).toLocaleDateString('hr-HR')}
                     </div>
                   </div>
                 ))}
@@ -981,7 +981,7 @@ function Tournaments() {
 
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={() => setShowTeamsModal(false)}>
-                Zatvori
+                {t('common.close')}
               </button>
             </div>
           </div>

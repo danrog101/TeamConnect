@@ -73,7 +73,7 @@ function SportRatingModal({ sport, onSubmit, onCancel, existingRatings = null })
     const colors = {
       1: '#9ca3af',
       2: '#f59e0b',
-      3: '#22c55e',
+      3: '#3b82f6',
       4: '#3b82f6',
       5: '#8b5cf6'
     };

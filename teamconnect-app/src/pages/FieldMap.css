@@ -223,7 +223,7 @@
 }
 
 .field-rating {
-  color: #ff9800;
+  color: #f59e0b;
   font-size: 0.85rem;
   font-weight: 600;
   white-space: nowrap;
@@ -381,7 +381,7 @@
 
 .detail-rating {
   padding: 8px 16px;
-  background: #ff9800;
+  background: #f59e0b;
   color: white;
   border-radius: var(--radius-full);
   font-weight: 600;

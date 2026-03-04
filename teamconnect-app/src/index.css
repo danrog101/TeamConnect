@@ -7,16 +7,16 @@
 /* ============ LIGHT THEME (DEFAULT) ============ */
 :root,
 [data-theme="light"] {
-  /* Brand Colors - Fresh Green Theme */
-  --color-primary: #22c55e;
-  --color-primary-hover: #16a34a;
-  --color-primary-light: #86efac;
-  --color-primary-bg: rgba(34, 197, 94, 0.12);
+  /* Brand Colors - Light Blue Theme */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-light: #93c5fd;
+  --color-primary-bg: rgba(59, 130, 246, 0.10);
 
-  /* Secondary Accent - Teal */
-  --color-accent: #14b8a6;
-  --color-accent-hover: #0d9488;
-  --color-accent-bg: rgba(20, 184, 166, 0.1);
+  /* Secondary Accent - Sky Blue */
+  --color-accent: #0ea5e9;
+  --color-accent-hover: #0284c7;
+  --color-accent-bg: rgba(14, 165, 233, 0.1);
 
   /* Semantic Colors */
   --color-success: #10b981;
@@ -29,47 +29,47 @@
   --color-info-bg: rgba(14, 165, 233, 0.1);
 
   /* Background Colors - Clean & Modern */
-  --bg-primary: #f0fdf4;
+  --bg-primary: #f0f7ff;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #ecfdf5;
+  --bg-tertiary: #e8f2ff;
   --bg-card: #ffffff;
   --bg-elevated: #ffffff;
   --bg-overlay: rgba(15, 23, 42, 0.6);
 
   /* Text Colors - High Contrast */
-  --text-primary: #14532d;
-  --text-secondary: #166534;
-  --text-tertiary: #6b7280;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
   --text-inverse: #ffffff;
 
   /* Border Colors */
-  --border-primary: #bbf7d0;
-  --border-secondary: #86efac;
+  --border-primary: #bfdbfe;
+  --border-secondary: #93c5fd;
   --border-focus: var(--color-primary);
 
-  /* Shadows - Soft Green Tinted */
-  --shadow-sm: 0 1px 2px rgba(34, 197, 94, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -1px rgba(34, 197, 94, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(34, 197, 94, 0.12), 0 4px 6px -2px rgba(34, 197, 94, 0.06);
-  --shadow-xl: 0 20px 25px -5px rgba(34, 197, 94, 0.15), 0 10px 10px -5px rgba(34, 197, 94, 0.06);
+  /* Shadows - Soft Blue Tinted */
+  --shadow-sm: 0 1px 2px rgba(59, 130, 246, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(59, 130, 246, 0.12), 0 4px 6px -2px rgba(59, 130, 246, 0.06);
+  --shadow-xl: 0 20px 25px -5px rgba(59, 130, 246, 0.15), 0 10px 10px -5px rgba(59, 130, 246, 0.06);
 
-  /* Navbar - Fresh Green Gradient */
-  --navbar-bg: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
+  /* Navbar - Blue Gradient */
+  --navbar-bg: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
   --navbar-text: #ffffff;
 }
 
 /* ============ DARK THEME ============ */
 [data-theme="dark"] {
-  /* Brand Colors - Green Theme for Dark Mode */
-  --color-primary: #4ade80;
-  --color-primary-hover: #86efac;
-  --color-primary-light: #22c55e;
-  --color-primary-bg: rgba(74, 222, 128, 0.2);
+  /* Brand Colors - Blue Theme for Dark Mode */
+  --color-primary: #60a5fa;
+  --color-primary-hover: #93c5fd;
+  --color-primary-light: #3b82f6;
+  --color-primary-bg: rgba(96, 165, 250, 0.2);
 
-  /* Secondary Accent - Teal */
-  --color-accent: #2dd4bf;
-  --color-accent-hover: #5eead4;
-  --color-accent-bg: rgba(45, 212, 191, 0.15);
+  /* Secondary Accent - Sky Blue */
+  --color-accent: #38bdf8;
+  --color-accent-hover: #7dd3fc;
+  --color-accent-bg: rgba(56, 189, 248, 0.15);
 
   /* Semantic Colors */
   --color-success: #4ade80;
@@ -81,23 +81,23 @@
   --color-info: #38bdf8;
   --color-info-bg: rgba(56, 189, 248, 0.15);
 
-  /* Background Colors - Rich Dark Green */
-  --bg-primary: #052e16;
-  --bg-secondary: #0f3d21;
-  --bg-tertiary: #166534;
-  --bg-card: #14532d;
-  --bg-elevated: #166534;
+  /* Background Colors - Rich Dark Blue */
+  --bg-primary: #0c1629;
+  --bg-secondary: #131d36;
+  --bg-tertiary: #1e2d4a;
+  --bg-card: #172035;
+  --bg-elevated: #1e2d4a;
   --bg-overlay: rgba(0, 0, 0, 0.8);
 
   /* Text Colors */
-  --text-primary: #f0fdf4;
-  --text-secondary: #bbf7d0;
-  --text-tertiary: #86efac;
-  --text-inverse: #052e16;
+  --text-primary: #f0f7ff;
+  --text-secondary: #bfdbfe;
+  --text-tertiary: #93c5fd;
+  --text-inverse: #0c1629;
 
   /* Border Colors */
-  --border-primary: #166534;
-  --border-secondary: #22c55e;
+  --border-primary: #1e3a5f;
+  --border-secondary: #3b82f6;
   --border-focus: var(--color-primary);
 
   /* Shadows */
@@ -106,15 +106,15 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
 
-  /* Navbar - Dark Green Gradient */
-  --navbar-bg: linear-gradient(135deg, #14532d 0%, #052e16 100%);
-  --navbar-text: #f0fdf4;
+  /* Navbar - Dark Blue Gradient */
+  --navbar-bg: linear-gradient(135deg, #1e3a5f 0%, #0c1629 100%);
+  --navbar-text: #f0f7ff;
 
   /* Color Aliases (for dark mode compatibility) */
   --primary: var(--color-primary);
   --primary-dark: var(--color-primary-hover);
   --primary-alpha: var(--color-primary-bg);
-  --gradient-primary: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
   --card-bg: var(--bg-card);
   --danger: var(--color-error);
 }
@@ -125,8 +125,8 @@
   --primary: var(--color-primary);
   --primary-dark: var(--color-primary-hover);
   --primary-alpha: var(--color-primary-bg);
-  --gradient-primary: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
-  --gradient-secondary: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
+  --gradient-secondary: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
   --card-bg: var(--bg-card);
   --danger: var(--color-error);
 
@@ -315,12 +315,12 @@ textarea {
 .btn-primary {
   background: var(--gradient-primary);
   color: var(--text-inverse);
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
 }
 
 .btn-primary:hover {
   background: var(--color-primary-hover);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.5);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
 }
 
 .btn-secondary {
@@ -335,11 +335,11 @@ textarea {
 .btn-success {
   background: var(--color-success);
   color: white;
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .btn-success:hover {
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .btn-danger {

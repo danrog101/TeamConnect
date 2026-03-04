@@ -68,7 +68,7 @@
 
 .hero-actions .btn-primary {
   background: white;
-  color: var(--color-primary, #22c55e);
+  color: var(--color-primary, #3b82f6);
   font-weight: 700;
   padding: 16px 32px;
   font-size: 1.05rem;
@@ -197,7 +197,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--color-primary, #22c55e);
+  background: var(--color-primary, #3b82f6);
   color: white;
   font-size: 1.5rem;
   font-weight: 800;
@@ -238,7 +238,7 @@
 
 .cta-section .btn-primary {
   background: white;
-  color: var(--color-primary, #22c55e);
+  color: var(--color-primary, #3b82f6);
   font-weight: 700;
   padding: 16px 32px;
   font-size: 1.05rem;

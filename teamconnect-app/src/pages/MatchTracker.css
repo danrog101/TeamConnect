@@ -51,7 +51,7 @@
 }
 
 .match-status-badge[data-status="live"] {
-  background: #4caf50;
+  background: #3b82f6;
   color: white;
   animation: pulse 2s infinite;
 }
@@ -62,7 +62,7 @@
 }
 
 .match-status-badge[data-status="scheduled"] {
-  background: #ff9800;
+  background: #f59e0b;
   color: white;
 }
 

@@ -24,7 +24,7 @@ function Statistics() {
     score: '',
     goalsScored: 0,
     assists: 0,
-    position: 'Napadač'
+    position: 'forward'
   });
 
   const [editForm, setEditForm] = useState({
@@ -85,12 +85,12 @@ function Statistics() {
 
   const handleAddMatch = async () => {
     if (!selectedSport) {
-      setToast({ message: 'Odaberi sport!', type: 'error' });
+      setToast({ message: t('statistics.selectSportFirst'), type: 'error' });
       return;
     }
 
     if (!matchForm.opponent || !matchForm.score) {
-      setToast({ message: 'Popuni sva obavezna polja!', type: 'error' });
+      setToast({ message: t('statistics.fillRequired'), type: 'error' });
       return;
     }
 
@@ -111,7 +111,7 @@ function Statistics() {
       const data = await response.json();
 
       if (response.ok) {
-        setToast({ message: '✅ Utakmica dodana!', type: 'success' });
+        setToast({ message: t('statistics.matchAdded'), type: 'success' });
         setShowAddMatchModal(false);
         setMatchForm({
           date: new Date().toISOString().split('T')[0],
@@ -120,7 +120,7 @@ function Statistics() {
           score: '',
           goalsScored: 0,
           assists: 0,
-          position: 'Napadač'
+          position: 'forward'
         });
         loadStats();
       } else {
@@ -128,13 +128,13 @@ function Statistics() {
       }
     } catch (error) {
       console.error('Add match error:', error);
-      setToast({ message: 'Greška pri dodavanju utakmice', type: 'error' });
+      setToast({ message: t('statistics.matchAddError'), type: 'error' });
     }
   };
 
   const handleEditStats = async () => {
     if (!selectedSport) {
-      setToast({ message: 'Odaberi sport!', type: 'error' });
+      setToast({ message: t('statistics.selectSportFirst'), type: 'error' });
       return;
     }
 
@@ -155,7 +155,7 @@ function Statistics() {
       const data = await response.json();
 
       if (response.ok) {
-        setToast({ message: '✅ Statistika ažurirana!', type: 'success' });
+        setToast({ message: t('statistics.statsUpdated'), type: 'success' });
         setShowEditStatsModal(false);
         loadStats();
       } else {
@@ -163,7 +163,7 @@ function Statistics() {
       }
     } catch (error) {
       console.error('Edit stats error:', error);
-      setToast({ message: 'Greška pri ažuriranju statistike', type: 'error' });
+      setToast({ message: t('statistics.statsUpdateError'), type: 'error' });
     }
   };
 
@@ -208,18 +208,18 @@ function Statistics() {
       
       <div className="statistics-container">
         <div className="statistics-header">
-          <h1>📊 Moja Statistika</h1>
-          <p>Prati svoj napredak i performanse</p>
+          <h1>{'📊 ' + t('statistics.title')}</h1>
+          <p>{t('statistics.subtitle')}</p>
         </div>
 
         <div className="stats-controls card">
           <div className="form-group">
-            <label>Odaberi sport</label>
+            <label>{t('statistics.selectSport')}</label>
             <select 
               value={selectedSport}
               onChange={(e) => setSelectedSport(e.target.value)}
             >
-              <option value="">-- Odaberi sport --</option>
+              <option value="">{t('statistics.selectSportDefault')}</option>
               {sportsList.map(sport => (
                 <option key={sport.id} value={sport.name}>{sport.name}</option>
               ))}
@@ -232,13 +232,13 @@ function Statistics() {
                 className="btn btn-primary"
                 onClick={() => setShowAddMatchModal(true)}
               >
-                + Dodaj utakmicu
+                {t('statistics.addMatch')}
               </button>
               <button 
                 className="btn btn-secondary"
                 onClick={() => setShowEditStatsModal(true)}
               >
-                ✏️ Uredi statistiku
+                {'✏️ ' + t('statistics.editStats')}
               </button>
             </div>
           )}
@@ -247,19 +247,19 @@ function Statistics() {
         {!selectedSport ? (
           <div className="empty-stats card">
             <span className="empty-icon">📊</span>
-            <h3>Odaberi sport</h3>
-            <p>Odaberi sport gore da vidiš svoju statistiku</p>
+            <h3>{t('statistics.noSportSelected')}</h3>
+            <p>{t('statistics.noSportSelectedDesc')}</p>
           </div>
         ) : !stats ? (
           <div className="empty-stats card">
             <span className="empty-icon">📊</span>
-            <h3>Nema statistike</h3>
-            <p>Dodaj svoju prvu utakmicu ili unesi statistiku ručno</p>
+            <h3>{t('statistics.noStats')}</h3>
+            <p>{t('statistics.noStatsDesc')}</p>
             <button 
               className="btn btn-primary"
               onClick={() => setShowAddMatchModal(true)}
             >
-              + Dodaj utakmicu
+              {t('statistics.addMatch')}
             </button>
           </div>
         ) : (
@@ -269,7 +269,7 @@ function Statistics() {
                 <div className="stat-icon">⚽</div>
                 <div className="stat-content">
                   <h3>{stats.totalMatches}</h3>
-                  <p>Ukupno utakmica</p>
+                  <p>{t('statistics.totalMatches')}</p>
                 </div>
               </div>
 
@@ -277,7 +277,7 @@ function Statistics() {
                 <div className="stat-icon">🏆</div>
                 <div className="stat-content">
                   <h3>{stats.wins}</h3>
-                  <p>Pobjede</p>
+                  <p>{t('statistics.wins')}</p>
                 </div>
               </div>
 
@@ -285,7 +285,7 @@ function Statistics() {
                 <div className="stat-icon">❌</div>
                 <div className="stat-content">
                   <h3>{stats.losses}</h3>
-                  <p>Porazi</p>
+                  <p>{t('statistics.losses')}</p>
                 </div>
               </div>
 
@@ -293,7 +293,7 @@ function Statistics() {
                 <div className="stat-icon">🤝</div>
                 <div className="stat-content">
                   <h3>{stats.draws}</h3>
-                  <p>Neriješeno</p>
+                  <p>{t('statistics.draws')}</p>
                 </div>
               </div>
 
@@ -301,7 +301,7 @@ function Statistics() {
                 <div className="stat-icon">📈</div>
                 <div className="stat-content">
                   <h3>{calculateWinRate()}%</h3>
-                  <p>Win Rate</p>
+                  <p>{t('statistics.winRate')}</p>
                 </div>
               </div>
 
@@ -309,7 +309,7 @@ function Statistics() {
                 <div className="stat-icon">⚽</div>
                 <div className="stat-content">
                   <h3>{stats.goalsScored}</h3>
-                  <p>Golovi</p>
+                  <p>{t('statistics.goals')}</p>
                 </div>
               </div>
 
@@ -317,7 +317,7 @@ function Statistics() {
                 <div className="stat-icon">🎯</div>
                 <div className="stat-content">
                   <h3>{stats.assists}</h3>
-                  <p>Asistencije</p>
+                  <p>{t('statistics.assists')}</p>
                 </div>
               </div>
 
@@ -325,14 +325,14 @@ function Statistics() {
                 <div className="stat-icon">🛡️</div>
                 <div className="stat-content">
                   <h3>{stats.cleanSheets}</h3>
-                  <p>Clean Sheets</p>
+                  <p>{t('statistics.cleanSheets')}</p>
                 </div>
               </div>
             </div>
 
             {stats.matchHistory && stats.matchHistory.length > 0 && (
               <div className="match-history card">
-                <h2>📅 Povijest utakmica</h2>
+                <h2>{'📅 ' + t('statistics.recentMatches')}</h2>
                 <div className="matches-list">
                   {stats.matchHistory.slice().reverse().map((match) => (
                     <div key={match._id} className="match-item">
@@ -341,9 +341,9 @@ function Statistics() {
                       </div>
                       <div className="match-details">
                         <div className={`match-result ${match.result}`}>
-                          {match.result === 'win' && '🏆 Pobjeda'}
-                          {match.result === 'loss' && '❌ Poraz'}
-                          {match.result === 'draw' && '🤝 Neriješeno'}
+                          {match.result === 'win' && ('🏆 ' + t('statistics.win'))}
+                          {match.result === 'loss' && ('❌ ' + t('statistics.loss'))}
+                          {match.result === 'draw' && ('🤝 ' + t('statistics.draw'))}
                         </div>
                         <div className="match-opponent">vs {match.opponent}</div>
                         <div className="match-score">{match.score}</div>
@@ -372,10 +372,10 @@ function Statistics() {
       {showAddMatchModal && (
         <div className="modal-overlay" onClick={() => setShowAddMatchModal(false)}>
           <div className="add-match-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>⚽ Dodaj utakmicu</h2>
+            <h2>{'⚽ ' + t('statistics.addMatchTitle')}</h2>
 
             <div className="form-group">
-              <label>Datum *</label>
+              <label>{t('statistics.dateLabel')}</label>
               <input
                 type="date"
                 value={matchForm.date}
@@ -385,7 +385,7 @@ function Statistics() {
             </div>
 
             <div className="form-group">
-              <label>Protivnik *</label>
+              <label>{t('statistics.opponentLabel')}</label>
               <input
                 type="text"
                 value={matchForm.opponent}
@@ -396,19 +396,19 @@ function Statistics() {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Rezultat *</label>
+                <label>{t('statistics.resultLabel')}</label>
                 <select
                   value={matchForm.result}
                   onChange={(e) => setMatchForm({ ...matchForm, result: e.target.value })}
                 >
-                  <option value="win">🏆 Pobjeda</option>
-                  <option value="loss">❌ Poraz</option>
-                  <option value="draw">🤝 Neriješeno</option>
+                  <option value="win">{'🏆 ' + t('statistics.win')}</option>
+                  <option value="loss">{'❌ ' + t('statistics.loss')}</option>
+                  <option value="draw">{'🤝 ' + t('statistics.draw')}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label>Rezultat *</label>
+                <label>{t('statistics.scoreLabel')}</label>
                 <input
                   type="text"
                   value={matchForm.score}
@@ -420,7 +420,7 @@ function Statistics() {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Golovi</label>
+                <label>{t('statistics.goalsLabel')}</label>
                 <input
                   type="number"
                   value={matchForm.goalsScored}
@@ -430,7 +430,7 @@ function Statistics() {
               </div>
 
               <div className="form-group">
-                <label>Asistencije</label>
+                <label>{t('statistics.assistsLabel')}</label>
                 <input
                   type="number"
                   value={matchForm.assists}
@@ -441,15 +441,15 @@ function Statistics() {
             </div>
 
             <div className="form-group">
-              <label>Pozicija</label>
+              <label>{t('statistics.positionLabel')}</label>
               <select
                 value={matchForm.position}
                 onChange={(e) => setMatchForm({ ...matchForm, position: e.target.value })}
               >
-                <option value="Napadač">Napadač</option>
-                <option value="Vezni">Vezni</option>
-                <option value="Obrambeni">Obrambeni</option>
-                <option value="Golman">Golman</option>
+                <option value="forward">{t('statistics.positions.forward')}</option>
+                <option value="midfielder">{t('statistics.positions.midfielder')}</option>
+                <option value="defender">{t('statistics.positions.defender')}</option>
+                <option value="goalkeeper">{t('statistics.positions.goalkeeper')}</option>
               </select>
             </div>
 
@@ -458,13 +458,13 @@ function Statistics() {
                 className="btn btn-secondary"
                 onClick={() => setShowAddMatchModal(false)}
               >
-                Odustani
+                {t('common.cancel')}
               </button>
               <button 
                 className="btn btn-primary"
                 onClick={handleAddMatch}
               >
-                Dodaj utakmicu
+                {t('statistics.addMatch')}
               </button>
             </div>
           </div>
@@ -475,12 +475,12 @@ function Statistics() {
       {showEditStatsModal && (
         <div className="modal-overlay" onClick={() => setShowEditStatsModal(false)}>
           <div className="edit-stats-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>✏️ Uredi statistiku</h2>
-            <p>Ručno unesi ili ažuriraj svoju statistiku</p>
+            <h2>{'✏️ ' + t('statistics.editStatsTitle')}</h2>
+            <p>{t('statistics.editStatsDesc')}</p>
 
             <div className="form-row">
               <div className="form-group">
-                <label>Ukupno utakmica</label>
+                <label>{t('statistics.totalMatches')}</label>
                 <input
                   type="number"
                   value={editForm.totalMatches}
@@ -490,7 +490,7 @@ function Statistics() {
               </div>
 
               <div className="form-group">
-                <label>Pobjede</label>
+                <label>{t('statistics.wins')}</label>
                 <input
                   type="number"
                   value={editForm.wins}
@@ -502,7 +502,7 @@ function Statistics() {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Porazi</label>
+                <label>{t('statistics.losses')}</label>
                 <input
                   type="number"
                   value={editForm.losses}
@@ -512,7 +512,7 @@ function Statistics() {
               </div>
 
               <div className="form-group">
-                <label>Neriješeno</label>
+                <label>{t('statistics.draws')}</label>
                 <input
                   type="number"
                   value={editForm.draws}
@@ -524,7 +524,7 @@ function Statistics() {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Golovi</label>
+                <label>{t('statistics.goals')}</label>
                 <input
                   type="number"
                   value={editForm.goalsScored}
@@ -534,7 +534,7 @@ function Statistics() {
               </div>
 
               <div className="form-group">
-                <label>Asistencije</label>
+                <label>{t('statistics.assists')}</label>
                 <input
                   type="number"
                   value={editForm.assists}
@@ -546,7 +546,7 @@ function Statistics() {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Clean Sheets</label>
+                <label>{t('statistics.cleanSheets')}</label>
                 <input
                   type="number"
                   value={editForm.cleanSheets}
@@ -556,7 +556,7 @@ function Statistics() {
               </div>
 
               <div className="form-group">
-                <label>Žuti kartoni</label>
+                <label>{t('statistics.yellowCards')}</label>
                 <input
                   type="number"
                   value={editForm.yellowCards}
@@ -571,13 +571,13 @@ function Statistics() {
                 className="btn btn-secondary"
                 onClick={() => setShowEditStatsModal(false)}
               >
-                Odustani
+                {t('common.cancel')}
               </button>
               <button 
                 className="btn btn-primary"
                 onClick={handleEditStats}
               >
-                Spremi promjene
+                {t('statistics.saveChanges')}
               </button>
             </div>
           </div>

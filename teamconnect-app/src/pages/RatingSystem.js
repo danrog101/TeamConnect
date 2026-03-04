@@ -70,16 +70,16 @@ function RatingSystem() {
       const data = await response.json();
 
       if (response.ok) {
-        setToast({ message: '✅ Ocjena uspješno spremljena!', type: 'success' });
+        setToast({ message: '✅ ' + t('rating.savedSuccess'), type: 'success' });
         setHasSelfRated(true);
         loadRatings();
         setActiveTab('leaderboard');
       } else {
-        setToast({ message: data.message || 'Greška pri spremanju ocjene', type: 'error' });
+        setToast({ message: data.message || t('rating.sportRatingError'), type: 'error' });
       }
     } catch (error) {
       console.error('Submit self-rating error:', error);
-      setToast({ message: 'Greška pri spremanju ocjene', type: 'error' });
+      setToast({ message: t('rating.sportRatingError'), type: 'error' });
     } finally {
       setSubmittingSelfRating(false);
     }
@@ -139,14 +139,14 @@ function RatingSystem() {
       const data = await response.json();
 
       if (response.ok) {
-        setToast({ message: '✅ Rating preračunat!', type: 'success' });
+        setToast({ message: '✅ ' + t('rating.recalculated'), type: 'success' });
         loadRatings();
       } else {
         setToast({ message: data.message, type: 'error' });
       }
     } catch (error) {
       console.error('Recalculate error:', error);
-      setToast({ message: 'Greška pri preračunavanju ratinga', type: 'error' });
+      setToast({ message: t('rating.recalculateError'), type: 'error' });
     }
   };
 
@@ -208,7 +208,7 @@ function RatingSystem() {
   const getRankColor = (rank) => {
     const colors = {
       beginner: '#9e9e9e',
-      intermediate: '#4caf50',
+      intermediate: '#3b82f6',
       advanced: '#ff9800',
       pro: '#e91e63',
       elite: '#9c27b0'
@@ -249,7 +249,7 @@ function RatingSystem() {
     return (
       <div className="rating-system-page">
         <Navbar />
-        <div className="loading">Učitavanje ratinga...</div>
+        <div className="loading">{t('rating.loadingRatings')}</div>
       </div>
     );
   }
@@ -260,8 +260,8 @@ function RatingSystem() {
       
       <div className="rating-container">
         <div className="rating-header">
-          <h1>⭐ Rating System</h1>
-          <p>Leaderboard najboljih igrača</p>
+          <h1>{'⭐ ' + t('rating.title')}</h1>
+          <p>{t('rating.leaderboard')}</p>
         </div>
 
         <div className="rating-tabs">
@@ -269,19 +269,19 @@ function RatingSystem() {
             className={`tab ${activeTab === 'leaderboard' ? 'active' : ''}`}
             onClick={() => setActiveTab('leaderboard')}
           >
-            🏆 Leaderboard
+            {'🏆 ' + t('rating.leaderboard')}
           </button>
           <button
             className={`tab ${activeTab === 'self-rating' ? 'active' : ''}`}
             onClick={() => setActiveTab('self-rating')}
           >
-            ⭐ {hasSelfRated ? 'Moja ocjena' : 'Ocijeni se'}
+            {'⭐ ' + (hasSelfRated ? t('rating.yourRating') : t('rating.rateYourself'))}
           </button>
           <button
             className={`tab ${activeTab === 'achievements' ? 'active' : ''}`}
             onClick={() => setActiveTab('achievements')}
           >
-            🎖️ Achievements
+            {'🎖️ ' + t('rating.achievements')}
           </button>
         </div>
 
@@ -290,13 +290,13 @@ function RatingSystem() {
           <>
             <div className="rating-filters card">
               <div className="filter-section">
-                <label>Skill Level:</label>
+                <label>{t('rating.level') + ':'}</label>
                 <div className="filter-buttons">
                   <button 
                     className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
                     onClick={() => setFilter('all')}
                   >
-                    Svi
+                    {t('common.all')}
                   </button>
                   <button 
                     className={`filter-btn ${filter === 'pro' ? 'active' : ''}`}
@@ -339,7 +339,7 @@ function RatingSystem() {
                 className="btn btn-secondary"
                 onClick={handleRecalculateRating}
               >
-                🔄 Preračunaj moj rating
+                {'🔄 ' + t('rating.recalculated')}
               </button>
             </div>
 
@@ -374,7 +374,7 @@ function RatingSystem() {
                       {player.rating?.overall != null ? (
                         <>
                           <div className="rating-overall">
-                            <span className="rating-label">Overall Rating</span>
+                            <span className="rating-label">{t('rating.overallRating')}</span>
                             <span className="rating-value">{player.rating.overall}</span>
                           </div>
 
@@ -384,7 +384,7 @@ function RatingSystem() {
                               <div className="stat-bar">
                                 <div
                                   className="stat-fill"
-                                  style={{ width: `${player.rating?.attack || 0}%`, background: '#4caf50' }}
+                                  style={{ width: `${player.rating?.attack || 0}%`, background: '#3b82f6' }}
                                 />
                               </div>
                               <span className="stat-value">{player.rating?.attack ?? '-'}</span>
@@ -447,18 +447,18 @@ function RatingSystem() {
         {activeTab === 'self-rating' && (
           <div className="self-rating-section">
             <div className="self-rating-card card">
-              <h2>{hasSelfRated ? '✅ Tvoja ocjena' : '⭐ Ocijeni se'}</h2>
+              <h2>{hasSelfRated ? '✅ ' + t('rating.yourRating') : '⭐ ' + t('rating.rateYourself')}</h2>
               <p className="self-rating-description">
                 {hasSelfRated
-                  ? 'Već si se ocijenio. Drugi igrači te sada mogu ocjenjivati na temelju tvojih performansi.'
-                  : 'Prije nego te drugi mogu ocijeniti, trebaš se sam ocijeniti. Budi iskren - to pomaže u stvaranju uravnoteženih timova!'
+                  ? t('rating.alreadyRatedDesc')
+                  : t('rating.rateBeforeOthers')
                 }
               </p>
 
               <div className="self-rating-form">
                 <div className="simple-rating-group">
                   <label className="simple-rating-label">
-                    Koja je tvoja razina vještine? (1-5)
+                    {t('rating.whatLevel')}
                   </label>
 
                   {/* ✅ SIMPLIFIED: Just 5 buttons */}
@@ -472,11 +472,11 @@ function RatingSystem() {
                       >
                         <span className="level-number">{level}</span>
                         <span className="level-label">
-                          {level === 1 && 'Amater'}
-                          {level === 2 && 'Početnik'}
-                          {level === 3 && 'Srednji'}
-                          {level === 4 && 'Napredan'}
-                          {level === 5 && 'Pro'}
+                          {level === 1 && t('rating.amateur')}
+                          {level === 2 && t('rating.beginner')}
+                          {level === 3 && t('rating.intermediate')}
+                          {level === 4 && t('rating.advanced')}
+                          {level === 5 && t('rating.pro')}
                         </span>
                         <span className="level-icon">
                           {level === 1 && '🌱'}
@@ -491,19 +491,19 @@ function RatingSystem() {
 
                   <div className="skill-level-description">
                     {selfRating === 1 && (
-                      <p>🌱 <strong>Amater (1/5)</strong> - Tek počinjem, učim osnove sporta</p>
+                      <p>{t('rating.amateurDesc')}</p>
                     )}
                     {selfRating === 2 && (
-                      <p>⭐ <strong>Početnik (2/5)</strong> - Znam osnove, igram rekreativno</p>
+                      <p>{t('rating.beginnerDesc')}</p>
                     )}
                     {selfRating === 3 && (
-                      <p>⭐⭐ <strong>Srednji (3/5)</strong> - Solidno igram, imam iskustva</p>
+                      <p>{t('rating.intermediateDesc')}</p>
                     )}
                     {selfRating === 4 && (
-                      <p>🔥 <strong>Napredan (4/5)</strong> - Igram u klubu ili na višoj razini</p>
+                      <p>{t('rating.advancedDesc')}</p>
                     )}
                     {selfRating === 5 && (
-                      <p>👑 <strong>Pro (5/5)</strong> - Profesionalni ili poluprofesionalni igrač</p>
+                      <p>{t('rating.proDesc')}</p>
                     )}
                   </div>
                 </div>
@@ -514,7 +514,7 @@ function RatingSystem() {
                     onClick={handleSubmitSelfRating}
                     disabled={submittingSelfRating}
                   >
-                    {submittingSelfRating ? 'Spremanje...' : '✅ Spremi ocjenu'}
+                    {submittingSelfRating ? t('common.saving') : '✅ ' + t('rating.saveRating')}
                   </button>
                 )}
               </div>
@@ -526,14 +526,14 @@ function RatingSystem() {
         {activeTab === 'achievements' && (
           <div className="achievements-section">
             <div className="achievements-header">
-              <h2>🏆 Moji Achievements</h2>
-              <p>Otkljućaj achievements igranjem utakmica i postizanjem ciljeva</p>
+              <h2>{'🏆 ' + t('rating.myAchievements')}</h2>
+              <p>{t('rating.achievementsDesc')}</p>
             </div>
 
             {achievements.length === 0 ? (
               <div className="no-achievements card">
                 <span className="empty-icon">🎖️</span>
-                <p>Još nemaš achievements. Igraj utakmice da ih otkljućaš!</p>
+                <p>{t('rating.noAchievements')}</p>
               </div>
             ) : (
               <div className="achievements-grid">
@@ -562,7 +562,7 @@ function RatingSystem() {
                     
                     {achievement.unlocked && (
                       <div className="achievement-unlocked">
-                        ✅ Otkljućano!
+                        {'✅ ' + t('rating.unlocked')}
                       </div>
                     )}
                   </div>

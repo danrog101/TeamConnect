@@ -129,7 +129,7 @@ function TournamentDetail() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      active: { text: 'U tijeku', color: '#4caf50' },
+      active: { text: 'U tijeku', color: '#3b82f6' },
       upcoming: { text: 'Uskoro', color: '#ff9800' },
       finished: { text: 'Završeno', color: '#999' }
     };
