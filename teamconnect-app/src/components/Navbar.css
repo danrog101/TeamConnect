@@ -46,22 +46,24 @@
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 8px;
+  padding: 6px 14px 6px 6px;
   background: none;
   border: none;
   color: var(--text-primary);
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.95rem;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
   white-space: nowrap;
 }
 
 .nav-link:hover {
   background: var(--bg-secondary);
-  color: var(--primary);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .nav-icon {
@@ -69,6 +71,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--color-primary-bg);
+  border: 1px solid var(--border-primary);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.nav-link:hover .nav-icon {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary);
+  color: #fff;
 }
 
 .admin-link {
@@ -217,15 +232,19 @@
 /* Mobile */
 @media (max-width: 1024px) {
   .navbar-menu {
-    gap: 4px;
+    gap: 2px;
   }
 
   .nav-link {
-    padding: 6px 12px;
-    font-size: 0.9rem;
+    padding: 4px 10px 4px 4px;
+    font-size: 0.85rem;
+    gap: 6px;
   }
-  
+
   .nav-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
     font-size: 1rem;
   }
 }
@@ -266,7 +285,19 @@
   .nav-link {
     width: 100%;
     justify-content: flex-start;
-    padding: 12px 16px;
+    padding: 10px 16px 10px 10px;
+    gap: 10px;
+    border-radius: var(--radius-sm);
+  }
+
+  .nav-link:hover {
+    transform: none;
+  }
+
+  .nav-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
   }
 
   .navbar-user {

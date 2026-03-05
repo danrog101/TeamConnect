@@ -109,7 +109,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
 
     if (!userId) {
       if (onShowNotification) {
-        onShowNotification('Molimo prijavite se kako biste pristupili ovoj funkciji!', 'error');
+        onShowNotification(t('teams.loginRequired'), 'error');
       }
       navigate('/login');
       return;
@@ -131,7 +131,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
   const handleJoinClick = async () => {
     if (!userId) {
       if (onShowNotification) {
-        onShowNotification('Molimo prijavite se kako biste pristupili ovoj funkciji!', 'error');
+        onShowNotification(t('teams.loginRequired'), 'error');
       }
       navigate('/login');
       return;
@@ -205,13 +205,13 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
       } else {
         const data = await response.json();
         if (onShowNotification) {
-          onShowNotification(data.message || 'Greška pri spremanju ocjene', 'error');
+          onShowNotification(data.message || t('teams.ratingError'), 'error');
         }
       }
     } catch (error) {
       console.error('Submit sport rating error:', error);
       if (onShowNotification) {
-        onShowNotification('Greška pri spremanju ocjene', 'error');
+        onShowNotification(t('teams.ratingError'), 'error');
       }
     }
   };
@@ -259,8 +259,8 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
       <div className="team-card-header">
         <div className="team-sport">{team.sport}</div>
         <div className="team-badges">
-          {isFull && <div className="team-full-badge">PUNO</div>}
-          {onWaitlist && <div className="team-waitlist-badge">📧 Na listi čekanja</div>}
+          {isFull && <div className="team-full-badge">{t('teams.full')}</div>}
+          {onWaitlist && <div className="team-waitlist-badge">📧 {t('teams.onWaitlist')}</div>}
           {(team.min_skill_level || team.max_skill_level) && (
             <div className="team-skill-badge">
               ⭐ Razina {team.min_skill_level || 1}-{team.max_skill_level || 5}
@@ -287,7 +287,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
 
       <div className="team-players">
         <div className="players-count">
-          Igrači: {team.current_players || 0}/{team.max_players || 0}
+          {t('teams.players')}: {team.current_players || 0}/{team.max_players || 0}
         </div>
         <div className="progress-bar">
           <div 
@@ -302,7 +302,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
 
       {team.waitlist && team.waitlist.length > 0 && (
         <div className="waitlist-info">
-          📧 {team.waitlist.length} {team.waitlist.length === 1 ? 'osoba' : 'osobe'} na listi čekanja
+          📧 {t('teams.personsWaiting', { n: team.waitlist.length })}
         </div>
       )}
 
@@ -313,19 +313,19 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
               className="btn btn-primary" 
               onClick={() => navigate('/login')}
             >
-              Prijavi se za pristup
+              {t('teams.loginToAccess')}
             </button>
           ) : creator ? (
             <>
               <button className="btn btn-secondary" disabled>
-                Kreator
+                {t('teams.creator')}
               </button>
               {onDelete && (
                 <button 
                   className="btn btn-danger" 
                   onClick={() => handleAction(onDelete, team.id)}
                 >
-                  Obriši
+                  {t('teams.deleteTeam')}
                 </button>
               )}
               <button
@@ -339,7 +339,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
                   });
                 }}
               >
-                {linkCopied ? '✅ Kopirano!' : '🔗 Podijeli link'}
+                {linkCopied ? ('✅ ' + t('teams.linkCopied')) : ('🔗 ' + t('teams.shareLink'))}
               </button>
               <button
                 className="btn btn-primary btn-small"
@@ -353,12 +353,15 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
             </>
           ) : joined ? (
             <>
+              <button className="btn btn-member" disabled>
+                {'✓ ' + t('teams.alreadyMember')}
+              </button>
               {onLeave && (
                 <button 
-                  className="btn btn-secondary" 
+                  className="btn btn-secondary btn-small" 
                   onClick={() => handleAction(onLeave, team.id)}
                 >
-                  Napusti tim
+                  {t('teams.leaveTeam')}
                 </button>
               )}
               <button
@@ -372,7 +375,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
                   });
                 }}
               >
-                {linkCopied ? '✅ Kopirano!' : '🔗 Podijeli link'}
+                {linkCopied ? ('✅ ' + t('teams.linkCopied')) : ('🔗 ' + t('teams.shareLink'))}
               </button>
               <button
                 className="btn btn-primary btn-small"
@@ -387,7 +390,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
           ) : isFull ? (
             onWaitlist ? (
               <button className="btn btn-disabled" disabled>
-                Na listi čekanja
+                {t('teams.onWaitlist')}
               </button>
             ) : (
               onJoinWaitlist && (
@@ -395,7 +398,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
                   className="btn btn-secondary" 
                   onClick={() => handleAction(onJoinWaitlist, team.id)}
                 >
-                  📧 Dodaj me na listu čekanja
+                  {'📧 ' + t('teams.joinWaitlist')}
                 </button>
               )
             )
@@ -406,7 +409,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
                 onClick={handleJoinClick}
                 disabled={checkingRating}
               >
-                {checkingRating ? 'Provjera...' : 'Pridruži se'}
+                {checkingRating ? t('teams.checking') : t('teams.joinTeam')}
               </button>
             )
           )}
@@ -414,31 +417,31 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
       )}
 
       <div className="team-creator">
-        Kreator: {team.creator?.username || 'Unknown'}
+        {t('teams.creator')}: {team.creator?.username || 'Unknown'}
       </div>
 
       {/* Show registered players section for creator - always visible and prominent */}
       {creator && (
         <div className="team-members-section creator-view">
           <div className="members-header">
-            <h4>Prijavljeni igrači ({team.current_players || 0}/{team.max_players || 0})</h4>
+            <h4>{t('teams.registeredPlayers')} ({team.current_players || 0}/{team.max_players || 0})</h4>
             <button
               className="btn btn-secondary btn-small"
               onClick={handleShowMembers}
             >
-              {showMembers ? 'Sakrij' : 'Prikaži'}
+              {showMembers ? t('teams.hidePlayers') : t('teams.showPlayers')}
             </button>
           </div>
 
           {showMembers && (
             <div className="team-members-list">
               {loadingMembers ? (
-                <p className="loading-text">Učitavanje...</p>
+                <p className="loading-text">{t('common.loading')}</p>
               ) : teamMembers.length === 0 ? (
                 <div className="empty-members">
                   <span className="empty-icon">👥</span>
-                  <p>Još nema prijavljenih igrača</p>
-                  <small>Podijeli link tima da privučeš igrače!</small>
+                  <p>{t('teams.noPlayersYet')}</p>
+                  <small>{t('teams.shareToAttract')}</small>
                 </div>
               ) : (
                 <ul>
@@ -477,23 +480,23 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
       {showJoinModal && (
         <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
           <div className="join-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Pridruži se timu</h3>
-            <p>Unesite poziciju na kojoj želite igrati (opcionalno)</p>
+            <h3>{t('teams.joinTeamTitle')}</h3>
+            <p>{t('teams.joinTeamDesc')}</p>
 
             {userSportRating && (
               <div className="user-rating-preview">
-                <span className="rating-label">Tvoja ocjena za {team.sport}:</span>
+                <span className="rating-label">{t('teams.yourRating')} {team.sport}:</span>
                 <span className="rating-value">{userSportRating.overallRating || userSportRating.overall_rating}</span>
               </div>
             )}
 
             <div className="form-group">
-              <label>Pozicija</label>
+              <label>{t('teams.position')}</label>
               <input
                 type="text"
                 value={joinPosition}
                 onChange={(e) => setJoinPosition(e.target.value)}
-                placeholder="npr. Napadač, Vratar, Centar..."
+                placeholder={t('teams.positionPlaceholder')}
               />
             </div>
 
@@ -502,13 +505,13 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
                 className="btn btn-secondary"
                 onClick={() => setShowJoinModal(false)}
               >
-                Odustani
+                {t('common.cancel')}
               </button>
               <button
                 className="btn btn-primary"
                 onClick={handleJoinConfirm}
               >
-                Pridruži se
+                {t('teams.joinTeam')}
               </button>
             </div>
           </div>

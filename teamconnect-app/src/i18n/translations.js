@@ -339,6 +339,9 @@ export const translations = {
       ratingError: 'Greška pri spremanju ocjene',
       personsWaiting: '{n} na listi čekanja',
       loginRequired: 'Molimo prijavite se kako biste pristupili ovoj funkciji!',
+      alreadyMember: 'Pridruženi ste',
+      checking: 'Provjera...',
+      chat: 'Chat',
     },
 
     // Chat
@@ -359,6 +362,7 @@ export const translations = {
       deleteMessage: 'Obriši poruku?',
       today: 'Danas',
       yesterday: 'Jučer',
+      back: 'Natrag',
     },
 
     // Notifications
@@ -1062,6 +1066,9 @@ export const translations = {
       ratingError: 'Error saving rating',
       personsWaiting: '{n} on waitlist',
       loginRequired: 'Please login to access this feature!',
+      alreadyMember: 'You are a member',
+      checking: 'Checking...',
+      chat: 'Chat',
     },
 
     // Chat
@@ -1082,6 +1089,7 @@ export const translations = {
       deleteMessage: 'Delete message?',
       today: 'Today',
       yesterday: 'Yesterday',
+      back: 'Back',
     },
 
     // Notifications

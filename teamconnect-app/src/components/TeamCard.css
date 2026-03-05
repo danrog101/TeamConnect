@@ -245,6 +245,17 @@
   box-shadow: none;
 }
 
+.btn-member {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1.5px solid var(--color-success);
+  font-weight: 600;
+  cursor: default;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+}
+
 /* Team Members Section (for creator) */
 .team-members-section {
   margin-top: 16px;
