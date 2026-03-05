@@ -25,7 +25,8 @@ import Statistics from './pages/Statistics';
 import VideoHighlights from './pages/VideoHighlights';
 import './App.css';
 import Notifications from './pages/Notifications';
-
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 // PrivateRoute component - checks token on each render
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -45,7 +46,8 @@ function App() {
           <Route path="/verify" element={<VerifyEmail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
           {/* Admin ruta */}
           <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
           
