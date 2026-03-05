@@ -1,4 +1,4 @@
-# TeamConnect – Đana Rogulj
+# TeamConnect 
 
 **Project:** TeamConnect – Connecting Teams for Sport  
 
