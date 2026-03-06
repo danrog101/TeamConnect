@@ -9,10 +9,7 @@ function Login() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -30,18 +27,16 @@ function Login() {
 
     try {
       const response = await authAPI.login(formData);
-
       console.log('✅ Login response:', response.data);
 
-      // ✅ Check if we got tokens
       if (!response.data.accessToken) {
         throw new Error('No access token received from server');
       }
 
-      // ✅ Clear old data first
+      // Clear old localStorage
       localStorage.clear();
 
-      // ✅ Save new tokens and user data
+      // Save new tokens and user
       localStorage.setItem('token', response.data.accessToken);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -49,28 +44,34 @@ function Login() {
       console.log('💾 Tokens saved to localStorage');
       console.log('👤 User:', response.data.user.username);
 
-      // ✅ Verify tokens were saved
-      const savedToken = localStorage.getItem('token');
-      if (!savedToken) {
-        throw new Error('Failed to save token to localStorage');
-      }
-
-      console.log('✅ Token verified in localStorage');
-
-      // ✅ IZMJENA - Koristi navigate umjesto window.location
-      // Dodaj delay da se osigura da je token spremljen
-      setTimeout(() => {
-        navigate('/dashboard', { replace: true });
-      }, 100);
+      // Navigate to dashboard
+      navigate('/dashboard', { replace: true });
 
     } catch (err) {
       console.error('❌ Login error:', err);
 
       const errorMessage = err.response?.data?.message || err.message || 'Greška pri prijavi';
+
+      // Handle unverified account
+      if (err.response?.status === 401 && errorMessage.toLowerCase().includes('verificiran')) {
+        setError('Vaš račun još nije verificiran. Provjerite email.');
+        setToast({ message: 'Vaš račun nije verificiran. Provjerite email.', type: 'error' });
+        return;
+      }
+
       setError(errorMessage);
       setToast({ message: errorMessage, type: 'error' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await authAPI.resendVerification({ email: formData.email });
+      setToast({ message: 'Verifikacijski email poslan', type: 'success' });
+    } catch (err) {
+      setToast({ message: err.response?.data?.message || 'Greška pri slanju emaila', type: 'error' });
     }
   };
 
@@ -111,6 +112,16 @@ function Login() {
             {loading ? t('auth.loggingIn') : t('auth.loginBtn')}
           </button>
         </form>
+
+        {/* Resend verification button */}
+        {error.includes('verificiran') && (
+          <button
+            className="btn btn-secondary resend-btn"
+            onClick={handleResendVerification}
+          >
+            Pošalji ponovno verifikacijski email
+          </button>
+        )}
 
         <p className="auth-link">
           <a href="/forgot-password">{t('forgotPw.title')}</a>
