@@ -94,57 +94,33 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, sport, location, gender } = req.body;
 
-    const { data: existingUsers, error: checkError } = await supabase
-      .from('users')
-      .select('email')
-      .eq('email', email);
+    // Registracija kroz Supabase Auth - automatski šalje verifikacijski email
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-    if (checkError) {
-      console.error('❌ Error checking existing users:', checkError);
-      return res.status(500).json({ message: 'Database error: ' + checkError.message });
+    if (authError) {
+      console.error('❌ Supabase auth error:', authError);
+      return res.status(400).json({ message: authError.message });
     }
 
-    if (existingUsers && existingUsers.length > 0) {
-      return res.status(400).json({ message: 'Email već postoji!' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const { data: newUser, error: insertError } = await supabase
+    // Spremi dodatne podatke u users tablicu
+    await supabase
       .from('users')
       .insert({
+        id: authData.user.id,
         username,
         email,
-        password: hashedPassword,
         gender: gender || null,
         sport: sport || null,
         location: location || null,
-        verification_code: verificationCode,
         is_verified: false
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('❌ Supabase insert error:', insertError);
-      return res.status(500).json({ 
-        message: 'Failed to create user: ' + insertError.message,
-        details: insertError.hint || insertError.details
       });
-    }
-
-    if (!newUser) {
-      console.error('❌ User creation returned null');
-      return res.status(500).json({ message: 'Failed to create user - no data returned' });
-    }
-
-    // Send verification email
-    await sendVerificationEmail(email, verificationCode);
 
     res.status(201).json({ 
-      message: 'Registracija uspješna! Provjeri email.',
-      userId: newUser.id
+      message: 'Registracija uspješna! Provjeri email za verifikaciju.',
+      userId: authData.user.id
     });
   } catch (error) {
     console.error('❌ Register error:', error);
@@ -278,31 +254,28 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email);
+    // Provjera kroz Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
 
-    if (error) {
-      return res.status(500).json({ message: 'Database error' });
-    }
-
-    if (!users || users.length === 0) {
+    if (authError) {
       return res.status(401).json({ message: 'Neispravna email adresa ili lozinka' });
     }
 
-    const userData = users[0];
-
-    if (!userData.is_verified) {
+    if (!authData.user.email_confirmed_at) {
       return res.status(401).json({ message: 'Molimo verificiraj email prije prijave!' });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, userData.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Neispravna email adresa ili lozinka' });
-    }
+    // Dohvati podatke iz users tablice
+    const { data: userData } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
 
-    const { accessToken, refreshToken } = generateTokens(userData.id);
+    const { accessToken, refreshToken } = generateTokens(authData.user.id);
 
     await supabase
       .from('users')
@@ -311,18 +284,18 @@ exports.login = async (req, res) => {
         refresh_token_expiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         last_active: new Date()
       })
-      .eq('id', userData.id);
+      .eq('id', authData.user.id);
 
     res.json({
       message: 'Login successful!',
       accessToken,
       refreshToken,
       user: {
-        id: userData.id,
-        email: userData.email,
-        username: userData.username,
-        avatar: userData.avatar,
-        sport: userData.sport
+        id: authData.user.id,
+        email: authData.user.email,
+        username: userData?.username,
+        avatar: userData?.avatar,
+        sport: userData?.sport
       }
     });
   } catch (error) {
