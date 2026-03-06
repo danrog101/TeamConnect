@@ -94,33 +94,48 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, sport, location, gender } = req.body;
 
-    // Registracija kroz Supabase Auth - automatski šalje verifikacijski email
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const { data: existingUsers, error: checkError } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', email);
 
-    if (authError) {
-      console.error('❌ Supabase auth error:', authError);
-      return res.status(400).json({ message: authError.message });
+    if (checkError) {
+      console.error('❌ Error checking existing users:', checkError);
+      return res.status(500).json({ message: 'Database error: ' + checkError.message });
     }
 
-    // Spremi dodatne podatke u users tablicu
-    await supabase
+    if (existingUsers && existingUsers.length > 0) {
+      return res.status(400).json({ message: 'Email već postoji!' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
-        id: authData.user.id,
         username,
         email,
+        password: hashedPassword,
         gender: gender || null,
         sport: sport || null,
         location: location || null,
+        verification_code: verificationCode,
         is_verified: false
-      });
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Supabase insert error:', insertError);
+      return res.status(500).json({ message: 'Failed to create user: ' + insertError.message });
+    }
+
+    await sendVerificationEmail(email, verificationCode);
 
     res.status(201).json({ 
-      message: 'Registracija uspješna! Provjeri email za verifikaciju.',
-      userId: authData.user.id
+      message: 'Registracija uspješna! Provjeri email.',
+      userId: newUser.id
     });
   } catch (error) {
     console.error('❌ Register error:', error);
