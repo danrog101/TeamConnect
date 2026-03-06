@@ -268,33 +268,37 @@ exports.resendVerificationCode = async (req, res) => {
 };
 
 // Login
+// Login
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Provjera kroz Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    // Dohvati korisnika iz users tablice
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email.toLowerCase().trim())
+      .single();
 
-    if (authError) {
+    if (error || !user) {
       return res.status(401).json({ message: 'Neispravna email adresa ili lozinka' });
     }
 
-    if (!authData.user.email_confirmed_at) {
+    // Provjeri lozinku
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      return res.status(401).json({ message: 'Neispravna email adresa ili lozinka' });
+    }
+
+    // Provjeri je li email verificiran
+    if (!user.is_verified) {
       return res.status(401).json({ message: 'Molimo verificiraj email prije prijave!' });
     }
 
-    // Dohvati podatke iz users tablice
-    const { data: userData } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authData.user.id)
-      .single();
+    // Generiraj tokene
+    const { accessToken, refreshToken } = generateTokens(user.id);
 
-    const { accessToken, refreshToken } = generateTokens(authData.user.id);
-
+    // Spremi refresh token u bazu
     await supabase
       .from('users')
       .update({ 
@@ -302,18 +306,19 @@ exports.login = async (req, res) => {
         refresh_token_expiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         last_active: new Date()
       })
-      .eq('id', authData.user.id);
+      .eq('id', user.id);
 
     res.json({
       message: 'Login successful!',
       accessToken,
       refreshToken,
       user: {
-        id: authData.user.id,
-        email: authData.user.email,
-        username: userData?.username,
-        avatar: userData?.avatar,
-        sport: userData?.sport
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        avatar: user.avatar,
+        sport: user.sport,
+        location: user.location
       }
     });
   } catch (error) {
