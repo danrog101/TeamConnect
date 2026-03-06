@@ -3,10 +3,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 
-// Initialize Resend (still needed for password reset)
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Function for generating access and refresh tokens
+// Generate access and refresh tokens
 const generateTokens = (userId) => {
   const accessToken = jwt.sign(
     { id: userId },
@@ -23,14 +22,10 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
-// Function for sending verification email with Resend (kept for password reset)
+// Send verification email
 const sendVerificationEmail = async (email, code) => {
-  console.log('🔍 DEBUG - sendVerificationEmail called');
-  console.log('🔍 DEBUG - Email parameter:', email);
-  console.log('🔍 DEBUG - Verification code:', code);
-
   try {
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: 'TeamConnect <onboarding@resend.dev>',
       to: email,
       subject: '🏀 TeamConnect - Verifikacijski kod',
@@ -49,27 +44,20 @@ const sendVerificationEmail = async (email, code) => {
 
     if (error) {
       console.error('❌ Resend error:', error);
-      console.log(`📧 Verification code for ${email}: ${code}`);
       return false;
     }
 
-    console.log(`✅ Email successfully sent to: ${email}`, data);
     return true;
   } catch (error) {
-    console.log(`❌ Email sending FAILED for ${email}`);
-    console.log(`📧 Verification code for ${email}: ${code}`);
-    console.error('Email error details:', error);
+    console.error('❌ Email sending failed:', error);
     return false;
   }
 };
 
-// Function for sending password reset email with Resend
+// Send password reset email
 const sendPasswordResetEmail = async (email, code) => {
-  console.log('🔍 DEBUG - sendPasswordResetEmail called');
-  console.log('🔍 DEBUG - Email parameter:', email);
-
   try {
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: 'TeamConnect <onboarding@resend.dev>',
       to: email,
       subject: '🔐 TeamConnect - Resetiranje lozinke',
@@ -89,32 +77,23 @@ const sendPasswordResetEmail = async (email, code) => {
 
     if (error) {
       console.error('❌ Resend error:', error);
-      console.log(`🔐 Reset code for ${email}: ${code}`);
       return false;
     }
 
-    console.log(`✅ Password reset email sent to: ${email}`, data);
     return true;
   } catch (error) {
-    console.log(`❌ Password reset email FAILED for ${email}`);
-    console.log(`🔐 Reset code for ${email}: ${code}`);
-    console.error('Email error details:', error);
+    console.error('❌ Password reset email failed:', error);
     return false;
   }
 };
 
 // ----------------- CONTROLLER FUNCTIONS -----------------
 
-// Registration - NO EMAIL VERIFICATION REQUIRED
+// Registration
 exports.register = async (req, res) => {
   try {
-    console.log('📥 Register request:', req.body);
-
     const { username, email, password, sport, location, gender } = req.body;
 
-    console.log('🔍 Extracted email from request:', email);
-
-    // Check if user exists
     const { data: existingUsers, error: checkError } = await supabase
       .from('users')
       .select('email')
@@ -126,17 +105,12 @@ exports.register = async (req, res) => {
     }
 
     if (existingUsers && existingUsers.length > 0) {
-      console.log('❌ User already exists:', { username, email });
       return res.status(400).json({ message: 'Email već postoji!' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Generate 6-digit code (kept for potential future use)
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Create user - ALREADY VERIFIED
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
@@ -147,12 +121,11 @@ exports.register = async (req, res) => {
         sport: sport || null,
         location: location || null,
         verification_code: verificationCode,
-        is_verified: true  // ✅ AUTOMATICALLY VERIFIED
+        is_verified: false
       })
       .select()
       .single();
 
-    // Check for insert error
     if (insertError) {
       console.error('❌ Supabase insert error:', insertError);
       return res.status(500).json({ 
@@ -166,35 +139,12 @@ exports.register = async (req, res) => {
       return res.status(500).json({ message: 'Failed to create user - no data returned' });
     }
 
-    console.log('✅ User created:', newUser.id);
-    console.log('✅ User email in database:', newUser.email);
-
-    // Generate tokens immediately (user is logged in right away!)
-    const { accessToken, refreshToken } = generateTokens(newUser.id);
-
-    // Save refresh token
-    await supabase
-      .from('users')
-      .update({ 
-        refresh_token: refreshToken,
-        refresh_token_expiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      })
-      .eq('id', newUser.id);
-
-    console.log('✅ User auto-logged in after registration');
+    // Send verification email
+    await sendVerificationEmail(email, verificationCode);
 
     res.status(201).json({ 
-      message: 'Registracija uspješna!',
-      accessToken,
-      refreshToken,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        username: newUser.username,
-        sport: newUser.sport,
-        location: newUser.location,
-        avatar: newUser.avatar
-      }
+      message: 'Registracija uspješna! Provjeri email.',
+      userId: newUser.id
     });
   } catch (error) {
     console.error('❌ Register error:', error);
@@ -202,11 +152,9 @@ exports.register = async (req, res) => {
   }
 };
 
-// Verification code (kept for legacy support but not used)
+// Verify email code
 exports.verifyCode = async (req, res) => {
   try {
-    console.log('📧 Verify request:', req.body);
-
     const { userId, code } = req.body;
 
     if (!userId) {
@@ -228,24 +176,20 @@ exports.verifyCode = async (req, res) => {
     }
 
     if (!users || users.length === 0) {
-      console.log('❌ User not found:', userId);
       return res.status(404).json({ message: 'Korisnik ne postoji' });
     }
 
     const userData = users[0];
 
     if (userData.is_verified) {
-      console.log('⚠️ User already verified:', userData.email);
       return res.status(400).json({ message: 'Email je već verificiran' });
     }
 
     if (userData.verification_code !== code.toString()) {
-      console.log('❌ Wrong code. Expected:', userData.verification_code, 'Got:', code);
       return res.status(400).json({ message: 'Neispravan verifikacijski kod!' });
     }
 
-    // Verification successful!
-    const { data: updatedUser, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from('users')
       .update({ 
         is_verified: true,
@@ -260,12 +204,8 @@ exports.verifyCode = async (req, res) => {
       return res.status(500).json({ message: 'Failed to verify user' });
     }
 
-    console.log('✅ User verified:', userData.email);
-
-    // Generate tokens
     const { accessToken, refreshToken } = generateTokens(userData.id);
 
-    // Update refresh token
     await supabase
       .from('users')
       .update({ 
@@ -281,6 +221,7 @@ exports.verifyCode = async (req, res) => {
       user: {
         id: userData.id,
         email: userData.email,
+        username: userData.username,
         sport: userData.sport,
         location: userData.location,
         avatar: userData.avatar
@@ -292,15 +233,15 @@ exports.verifyCode = async (req, res) => {
   }
 };
 
-// Resend verification code (kept for legacy support but not used)
+// Resend verification code
 exports.resendVerificationCode = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { userId } = req.body;
 
     const { data: users, error } = await supabase
       .from('users')
       .select('*')
-      .eq('email', email);
+      .eq('id', userId);
 
     if (error) {
       return res.status(500).json({ message: 'Database error' });
@@ -316,7 +257,6 @@ exports.resendVerificationCode = async (req, res) => {
       return res.status(400).json({ message: 'Email je već verificiran' });
     }
 
-    // Generate new code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     
     await supabase
@@ -324,12 +264,11 @@ exports.resendVerificationCode = async (req, res) => {
       .update({ verification_code: verificationCode })
       .eq('id', userData.id);
 
-    // Send email with Resend
-    await sendVerificationEmail(email, verificationCode);
+    await sendVerificationEmail(userData.email, verificationCode);
 
-    res.json({ message: 'New verification code sent!' });
+    res.json({ message: 'Novi kod je poslan!' });
   } catch (error) {
-    console.error('Resend code error:', error);
+    console.error('❌ Resend code error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -337,8 +276,6 @@ exports.resendVerificationCode = async (req, res) => {
 // Login
 exports.login = async (req, res) => {
   try {
-    console.log('📥 Login request:', req.body.email);
-
     const { email, password } = req.body;
 
     const { data: users, error } = await supabase
@@ -351,24 +288,22 @@ exports.login = async (req, res) => {
     }
 
     if (!users || users.length === 0) {
-      console.log('❌ User not found:', email);
       return res.status(401).json({ message: 'Neispravna email adresa ili lozinka' });
     }
 
     const userData = users[0];
 
-    // Note: Email verification check removed since all users are auto-verified now
+    if (!userData.is_verified) {
+      return res.status(401).json({ message: 'Molimo verificiraj email prije prijave!' });
+    }
 
     const isPasswordValid = await bcrypt.compare(password, userData.password);
     if (!isPasswordValid) {
-      console.log('❌ Wrong password for:', email);
       return res.status(401).json({ message: 'Neispravna email adresa ili lozinka' });
     }
 
-    // Generate tokens
     const { accessToken, refreshToken } = generateTokens(userData.id);
 
-    // Update refresh token and last active
     await supabase
       .from('users')
       .update({ 
@@ -377,8 +312,6 @@ exports.login = async (req, res) => {
         last_active: new Date()
       })
       .eq('id', userData.id);
-
-    console.log('✅ Login successful:', userData.email);
 
     res.json({
       message: 'Login successful!',
@@ -431,10 +364,8 @@ exports.refreshToken = async (req, res) => {
       return res.status(401).json({ message: 'Refresh token je istekao' });
     }
 
-    // Generate new tokens
     const tokens = generateTokens(userData.id);
 
-    // Update refresh token
     await supabase
       .from('users')
       .update({ 
@@ -448,7 +379,7 @@ exports.refreshToken = async (req, res) => {
       refreshToken: tokens.refreshToken
     });
   } catch (error) {
-    console.error('Refresh token error:', error);
+    console.error('❌ Refresh token error:', error);
     res.status(401).json({ message: 'Invalid refresh token' });
   }
 };
@@ -468,12 +399,12 @@ exports.logout = async (req, res) => {
 
     res.json({ message: 'Odjava uspješna' });
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error('❌ Logout error:', error);
     res.status(500).json({ message: 'Greška servera' });
   }
 };
 
-// Forgot password - send reset code
+// Forgot password
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -488,13 +419,12 @@ exports.forgotPassword = async (req, res) => {
       .eq('email', email.toLowerCase().trim());
 
     if (error) {
-      console.error('Database error:', error);
+      console.error('❌ Database error:', error);
       return res.status(500).json({ message: 'Greška baze podataka' });
     }
 
-    // Always return success to prevent email enumeration attacks
+    // Always return success to prevent email enumeration
     if (!users || users.length === 0) {
-      console.log('Forgot password attempted for non-existent email:', email);
       return res.json({
         message: 'Ako email postoji u sustavu, poslat ćemo vam kod za resetiranje.',
         success: true
@@ -502,27 +432,19 @@ exports.forgotPassword = async (req, res) => {
     }
 
     const userData = users[0];
-
-    // Generate 6-digit reset code
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store reset code in database
     const { error: updateError } = await supabase
       .from('users')
-      .update({
-        verification_code: resetCode
-      })
+      .update({ verification_code: resetCode })
       .eq('id', userData.id);
 
     if (updateError) {
-      console.error('Failed to store reset code:', updateError);
+      console.error('❌ Failed to store reset code:', updateError);
       return res.status(500).json({ message: 'Greška pri spremanju koda' });
     }
 
-    // Send reset email with Resend
     await sendPasswordResetEmail(email, resetCode);
-
-    console.log(`✅ Password reset code generated for: ${email}`);
 
     res.json({
       message: 'Ako email postoji u sustavu, poslat ćemo vam kod za resetiranje.',
@@ -530,7 +452,7 @@ exports.forgotPassword = async (req, res) => {
       email: email
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    console.error('❌ Forgot password error:', error);
     res.status(500).json({ message: 'Greška servera' });
   }
 };
@@ -556,11 +478,9 @@ exports.verifyResetCode = async (req, res) => {
     const userData = users[0];
 
     if (userData.verification_code !== code.toString()) {
-      console.log('Invalid reset code. Expected:', userData.verification_code, 'Got:', code);
       return res.status(400).json({ message: 'Neispravan kod za resetiranje' });
     }
 
-    // Generate a temporary token for password reset
     const resetToken = jwt.sign(
       { email: userData.email, id: userData.id, purpose: 'password_reset' },
       process.env.JWT_SECRET,
@@ -573,12 +493,12 @@ exports.verifyResetCode = async (req, res) => {
       resetToken
     });
   } catch (error) {
-    console.error('Verify reset code error:', error);
+    console.error('❌ Verify reset code error:', error);
     res.status(500).json({ message: 'Greška servera' });
   }
 };
 
-// Reset password with token
+// Reset password
 exports.resetPassword = async (req, res) => {
   try {
     const { resetToken, newPassword } = req.body;
@@ -591,7 +511,6 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Lozinka mora imati najmanje 6 znakova' });
     }
 
-    // Verify token
     let decoded;
     try {
       decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
@@ -603,10 +522,8 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Neispravan token' });
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password and clear reset code
     const { error } = await supabase
       .from('users')
       .update({
@@ -616,18 +533,16 @@ exports.resetPassword = async (req, res) => {
       .eq('email', decoded.email);
 
     if (error) {
-      console.error('Password update error:', error);
+      console.error('❌ Password update error:', error);
       return res.status(500).json({ message: 'Greška pri ažuriranju lozinke' });
     }
-
-    console.log(`✅ Password reset successful for: ${decoded.email}`);
 
     res.json({
       message: 'Lozinka je uspješno promijenjena! Možete se prijaviti.',
       success: true
     });
   } catch (error) {
-    console.error('Reset password error:', error);
+    console.error('❌ Reset password error:', error);
     res.status(500).json({ message: 'Greška servera' });
   }
 };
@@ -649,7 +564,7 @@ exports.getCurrentUser = async (req, res) => {
 
     res.json(userData);
   } catch (error) {
-    console.error('Get current user error:', error);
+    console.error('❌ Get current user error:', error);
     res.status(500).json({ message: 'Greška servera' });
   }
 };
@@ -673,7 +588,7 @@ exports.updateProfile = async (req, res) => {
 
     res.json(userData);
   } catch (error) {
-    console.error('Update profile error:', error);
+    console.error('❌ Update profile error:', error);
     res.status(500).json({ message: 'Greška servera' });
   }
 };
@@ -714,7 +629,29 @@ exports.changePassword = async (req, res) => {
 
     res.json({ message: 'Lozinka je uspješno promijenjena', user: updatedUser });
   } catch (error) {
-    console.error('Change password error:', error);
+    console.error('❌ Change password error:', error);
+    res.status(500).json({ message: 'Greška servera' });
+  }
+};
+
+// Delete account (GDPR)
+exports.deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId);
+
+    if (error) {
+      console.error('❌ Delete account error:', error);
+      return res.status(500).json({ message: 'Greška pri brisanju računa' });
+    }
+
+    res.json({ message: 'Račun je uspješno obrisan' });
+  } catch (error) {
+    console.error('❌ Delete account error:', error);
     res.status(500).json({ message: 'Greška servera' });
   }
 };
