@@ -23,15 +23,12 @@ import MatchTracker from './pages/MatchTracker';
 import Friends from './pages/Friends';
 import Statistics from './pages/Statistics';
 import VideoHighlights from './pages/VideoHighlights';
-import './App.css';
 import Notifications from './pages/Notifications';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
-// PrivateRoute component - checks token on each render
 import Footer from './components/Footer';
+import './App.css';
 
-// Na dnu, prije zadnjeg </div>:
-<Footer />
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" replace />;
@@ -47,64 +44,65 @@ function AdminRoute({ children }) {
 }
 
 function App() {
-
   return (
     <LanguageProvider>
-    <Router>
-      <div className="app">
-        <Routes>
-          {/* Javne rute */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verify" element={<VerifyEmail />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<Terms />} />
-          {/* Admin ruta */}
-          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-          
-          {/* Privatne rute */}
-          <Route path="/profile-setup" element={<PrivateRoute><ProfileSetup /></PrivateRoute>} />
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/create-team" element={<PrivateRoute><CreateTeam /></PrivateRoute>} />
-          <Route path="/my-teams" element={<PrivateRoute><MyTeams /></PrivateRoute>} />
-          <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
-          
-          {/* Profil - vlastiti i tuđi */}
-          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-          <Route path="/profile/:userId" element={<PrivateRoute><Profile /></PrivateRoute>} />
-          
-          <Route path="/activity" element={<AdminRoute><ActivityFeed /></AdminRoute>} />
-          
-          {/* Turniri */}
-          <Route path="/tournaments" element={<PrivateRoute><Tournaments /></PrivateRoute>} />
-          <Route path="/tournament/:id" element={<PrivateRoute><TournamentDetail /></PrivateRoute>} />
-          <Route path="/tournament/:id/register" element={<PrivateRoute><TournamentRegister /></PrivateRoute>} />
-          
-          {/* Rating System */}
-          <Route path="/ratings" element={<PrivateRoute><RatingSystem /></PrivateRoute>} />
-          
-          {/* Team Chat */}
-          <Route path="/team/:teamId/chat" element={<PrivateRoute><TeamChat /></PrivateRoute>} />
-          
-          {/* Field Map */}
-          <Route path="/fields" element={<PrivateRoute><FieldMap /></PrivateRoute>} />
-          
-          {/* Match Tracker */}
-          <Route path="/match/:matchId" element={<PrivateRoute><MatchTracker /></PrivateRoute>} />
-          
-          {/* Friends & Rivals */}
-          <Route path="/friends" element={<PrivateRoute><Friends /></PrivateRoute>} />
-          
-          {/* Statistics */}
-          <Route path="/statistics" element={<PrivateRoute><Statistics /></PrivateRoute>} />
-          
-          {/* Video Highlights */}
-          <Route path="/highlights" element={<PrivateRoute><VideoHighlights /></PrivateRoute>} />
-        </Routes>
-      </div>
-    </Router>
+      <Router>
+        <div className="app">
+          <Routes>
+            {/* Javne rute */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
+
+            {/* Admin ruta */}
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+
+            {/* Privatne rute */}
+            <Route path="/profile-setup" element={<PrivateRoute><ProfileSetup /></PrivateRoute>} />
+            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/create-team" element={<PrivateRoute><CreateTeam /></PrivateRoute>} />
+            <Route path="/my-teams" element={<PrivateRoute><MyTeams /></PrivateRoute>} />
+            <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
+
+            {/* Profil */}
+            <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+            <Route path="/profile/:userId" element={<PrivateRoute><Profile /></PrivateRoute>} />
+
+            <Route path="/activity" element={<AdminRoute><ActivityFeed /></AdminRoute>} />
+
+            {/* Turniri */}
+            <Route path="/tournaments" element={<PrivateRoute><Tournaments /></PrivateRoute>} />
+            <Route path="/tournament/:id" element={<PrivateRoute><TournamentDetail /></PrivateRoute>} />
+            <Route path="/tournament/:id/register" element={<PrivateRoute><TournamentRegister /></PrivateRoute>} />
+
+            {/* Rating */}
+            <Route path="/ratings" element={<PrivateRoute><RatingSystem /></PrivateRoute>} />
+
+            {/* Chat */}
+            <Route path="/team/:teamId/chat" element={<PrivateRoute><TeamChat /></PrivateRoute>} />
+
+            {/* Fields */}
+            <Route path="/fields" element={<PrivateRoute><FieldMap /></PrivateRoute>} />
+
+            {/* Match */}
+            <Route path="/match/:matchId" element={<PrivateRoute><MatchTracker /></PrivateRoute>} />
+
+            {/* Friends */}
+            <Route path="/friends" element={<PrivateRoute><Friends /></PrivateRoute>} />
+
+            {/* Statistics */}
+            <Route path="/statistics" element={<PrivateRoute><Statistics /></PrivateRoute>} />
+
+            {/* Video */}
+            <Route path="/highlights" element={<PrivateRoute><VideoHighlights /></PrivateRoute>} />
+          </Routes>
+          <Footer />
+        </div>
+      </Router>
     </LanguageProvider>
   );
 }

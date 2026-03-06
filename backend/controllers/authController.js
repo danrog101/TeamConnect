@@ -141,6 +141,9 @@ exports.register = async (req, res) => {
     console.error('❌ Register error:', error);
     res.status(500).json({ message: 'Server error: ' + error.message });
   }
+  setTimeout(() => {
+  window.location.href = '/verify-email';
+}, 1500);
 };
 
 // Verify email code
