@@ -137,29 +137,51 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
       return;
     }
 
-    // Check if team has skill requirements
-    const hasSkillRequirements = team.min_skill_level || team.max_skill_level;
+    setCheckingRating(true);
+    try {
+      const sportRating = await checkUserSportRating();
 
-    if (hasSkillRequirements) {
-      setCheckingRating(true);
-      try {
-        const sportRating = await checkUserSportRating();
+      if (!sportRating || !sportRating.hasRating) {
+        // User hasn't rated themselves for this sport - show rating modal
+        setCheckingRating(false);
+        setShowRatingModal(true);
+        return;
+      }
 
-        if (!sportRating || !sportRating.hasRating) {
-          // User hasn't rated themselves for this sport - show rating modal
+      // User has a rating — now check team requirements (if any)
+      setUserSportRating(sportRating);
+      
+      const isAmateur = team.min_skill_level === 1 || team.amateur_only;
+      const hasSkillRequirements = team.min_skill_level || team.max_skill_level;
+      
+      if (hasSkillRequirements && !isAmateur) {
+        const userLevel = sportRating.skill_level || Math.round((sportRating.overall_rating || 0) / 20);
+        
+        if (team.min_skill_level && userLevel < team.min_skill_level) {
           setCheckingRating(false);
-          setShowRatingModal(true);
+          if (onShowNotification) {
+            onShowNotification(
+              t('rating.teamRequiresLevel').replace('{level}', team.min_skill_level),
+              'error'
+            );
+          }
           return;
         }
-
-        // User has rating, proceed to join modal
-        setUserSportRating(sportRating);
-      } catch (error) {
-        console.error('Error checking rating:', error);
+        if (team.max_skill_level && userLevel > team.max_skill_level) {
+          setCheckingRating(false);
+          if (onShowNotification) {
+            onShowNotification(
+              t('rating.teamMaxLevel').replace('{level}', team.max_skill_level),
+              'error'
+            );
+          }
+          return;
+        }
       }
-      setCheckingRating(false);
+    } catch (error) {
+      console.error('Error checking rating:', error);
     }
-
+    setCheckingRating(false);
     setShowJoinModal(true);
   };
 
@@ -198,9 +220,46 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
       });
 
       if (response.ok) {
+        const data = await response.json();
         setShowRatingModal(false);
-        setUserSportRating(ratingData);
-        // Now proceed with joining
+        
+        // Store the rating result
+        const savedRating = {
+          hasRating: true,
+          sport: ratingData.sport,
+          overall_rating: ratingData.overallRating,
+          skill_level: ratingData.skillLevel
+        };
+        setUserSportRating(savedRating);
+
+        // Now check team skill requirements (reveal AFTER self-rating)
+        const isAmateur = team.min_skill_level === 1 || team.amateur_only;
+        const hasSkillRequirements = team.min_skill_level || team.max_skill_level;
+
+        if (hasSkillRequirements && !isAmateur) {
+          const userLevel = ratingData.skillLevel;
+
+          if (team.min_skill_level && userLevel < team.min_skill_level) {
+            if (onShowNotification) {
+              onShowNotification(
+                t('rating.teamRequiresLevel').replace('{level}', team.min_skill_level),
+                'error'
+              );
+            }
+            return;
+          }
+          if (team.max_skill_level && userLevel > team.max_skill_level) {
+            if (onShowNotification) {
+              onShowNotification(
+                t('rating.teamMaxLevel').replace('{level}', team.max_skill_level),
+                'error'
+              );
+            }
+            return;
+          }
+        }
+
+        // Rating meets requirements — proceed to join
         setShowJoinModal(true);
       } else {
         const data = await response.json();
@@ -472,7 +531,7 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
           sport={team.sport}
           onSubmit={handleSportRatingSubmit}
           onCancel={() => setShowRatingModal(false)}
-          existingRatings={userSportRating?.ratings}
+          existingRating={userSportRating?.skill_level}
         />
       )}
 
@@ -482,13 +541,6 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
           <div className="join-modal" onClick={(e) => e.stopPropagation()}>
             <h3>{t('teams.joinTeamTitle')}</h3>
             <p>{t('teams.joinTeamDesc')}</p>
-
-            {userSportRating && (
-              <div className="user-rating-preview">
-                <span className="rating-label">{t('teams.yourRating')} {team.sport}:</span>
-                <span className="rating-value">{userSportRating.overallRating || userSportRating.overall_rating}</span>
-              </div>
-            )}
 
             <div className="form-group">
               <label>{t('teams.position')}</label>

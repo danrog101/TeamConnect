@@ -33,6 +33,15 @@ function PrivateRoute({ children }) {
   return token ? children : <Navigate to="/login" replace />;
 }
 
+const ADMIN_EMAIL = 'teamconnect0102@gmail.com';
+
+function AdminRoute({ children }) {
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = token && user.email === ADMIN_EMAIL;
+  return isAdmin ? children : <Navigate to="/dashboard" replace />;
+}
+
 function App() {
 
   return (
@@ -49,7 +58,7 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
           {/* Admin ruta */}
-          <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           
           {/* Privatne rute */}
           <Route path="/profile-setup" element={<PrivateRoute><ProfileSetup /></PrivateRoute>} />
@@ -62,7 +71,7 @@ function App() {
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/profile/:userId" element={<PrivateRoute><Profile /></PrivateRoute>} />
           
-          <Route path="/activity" element={<PrivateRoute><ActivityFeed /></PrivateRoute>} />
+          <Route path="/activity" element={<AdminRoute><ActivityFeed /></AdminRoute>} />
           
           {/* Turniri */}
           <Route path="/tournaments" element={<PrivateRoute><Tournaments /></PrivateRoute>} />

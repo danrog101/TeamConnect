@@ -119,13 +119,13 @@
 
 .player-card:hover {
   transform: translateY(-5px) translateX(10px);
-  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
 }
 
 .player-rank {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #667eea;
+  color: var(--color-primary);
   min-width: 60px;
   text-align: center;
 }
@@ -134,12 +134,12 @@
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.5rem;
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
 }
 
 .player-info h3 {
@@ -168,7 +168,7 @@
 
 .rating-number {
   font-weight: 800;
-  color: #667eea;
+  color: var(--color-primary);
   font-size: 1.5rem;
 }
 
@@ -282,7 +282,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,7 +319,7 @@
 .rating-overall .rating-value {
   font-size: 2rem;
   font-weight: 800;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .rating-breakdown {
@@ -452,7 +452,7 @@
 
 .rating-value-display {
   margin-left: auto;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   color: white;
   padding: 5px 15px;
   border-radius: 20px;
@@ -476,9 +476,9 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
   transition: transform 0.2s;
 }
 
@@ -490,10 +490,10 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   cursor: pointer;
   border: none;
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
 }
 
 .rating-slider:disabled {
@@ -520,7 +520,7 @@
   align-items: center;
   gap: 15px;
   padding: 25px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   border-radius: 15px;
   color: white;
   font-size: 1.2rem;
@@ -622,7 +622,7 @@
 
 .achievement-item:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
 }
 
 .ach-icon {
@@ -1033,14 +1033,14 @@
 .skill-level-btn:hover:not(:disabled) {
   transform: translateY(-4px);
   border-color: var(--primary);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
 }
 
 .skill-level-btn.selected {
   background: var(--gradient-primary);
   border-color: var(--primary);
   transform: scale(1.05);
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
 }
 
 .skill-level-btn.selected .level-number,

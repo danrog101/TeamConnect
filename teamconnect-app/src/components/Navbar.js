@@ -33,7 +33,7 @@ function Navbar() {
       <div className="navbar-container">
         <div className="navbar-brand" onClick={() => navigate('/dashboard')}>
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="16" cy="16" r="14" fill="#667eea" stroke="#764ba2" strokeWidth="2"/>
+            <circle cx="16" cy="16" r="14" fill="var(--color-primary)" stroke="var(--color-accent)" strokeWidth="2"/>
             <path d="M12 10L20 16L12 22V10Z" fill="white"/>
           </svg>
           <span>TeamConnect</span>
@@ -87,10 +87,12 @@ function Navbar() {
             {t('nav.highlights')}
           </button>
           
-          <button className="nav-link" onClick={() => { navigate('/activity'); setShowMenu(false); }}>
-            <span className="nav-icon">📰</span>
-            {t('nav.activities')}
-          </button>
+          {isAdmin && (
+            <button className="nav-link" onClick={() => { navigate('/activity'); setShowMenu(false); }}>
+              <span className="nav-icon">📰</span>
+              {t('nav.activities')}
+            </button>
+          )}
 
           {isAdmin && (
             <button className="nav-link admin-link" onClick={() => { navigate('/admin'); setShowMenu(false); }}>
@@ -108,7 +110,7 @@ function Navbar() {
             </button>
             <button className="nav-link" onClick={() => { toggleTheme(); }}>
               <span className="nav-icon">{isDark ? '☀️' : '🌙'}</span>
-              {isDark ? 'Light Mode' : 'Dark Mode'}
+              {isDark ? t('nav.lightMode') : t('nav.darkMode')}
             </button>
             <button className="nav-link logout-link" onClick={() => { setShowMenu(false); confirmLogout(); }}>
               <span className="nav-icon">🚪</span>
@@ -122,7 +124,7 @@ function Navbar() {
           <button
             className="theme-toggle"
             onClick={toggleTheme}
-            title={isDark ? 'Prebaci na svijetli način' : 'Prebaci na tamni način'}
+            title={isDark ? t('nav.switchToLight') : t('nav.switchToDark')}
           >
             {isDark ? '☀️' : '🌙'}
           </button>

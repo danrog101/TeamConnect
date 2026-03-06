@@ -62,154 +62,70 @@
   font-size: 0.95rem;
 }
 
-.sport-rating-categories {
+.sport-rating-simple {
   padding: 24px 32px;
+}
+
+.skill-level-options {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.skill-level-btn {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-}
-
-.rating-category {
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  border: 1px solid var(--border-primary);
-  transition: all 0.2s;
-}
-
-.rating-category:hover {
-  border-color: var(--primary);
-}
-
-.category-header {
-  display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.category-icon {
-  font-size: 1.8rem;
-  width: 45px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-}
-
-.category-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.category-name {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 1.05rem;
-}
-
-.category-description {
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
-  margin-top: 2px;
-}
-
-/* 1-5 Rating Buttons */
-.category-rating-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.rating-level-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  gap: 6px;
+  padding: 16px 14px;
   border: 3px solid var(--border-primary);
+  border-radius: var(--radius-lg);
   background: var(--bg-secondary);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  min-width: 80px;
+  flex: 1;
 }
 
-.rating-level-btn:hover {
-  transform: scale(1.1);
-  border-color: var(--level-color, var(--primary));
+.skill-level-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-.rating-level-btn.selected {
-  color: white;
-  transform: scale(1.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+.skill-level-btn.selected {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
-.rating-level-btn .level-num {
-  font-size: 1.3rem;
-  font-weight: 700;
+.skill-level-btn .level-icon {
+  font-size: 1.5rem;
 }
 
-.rating-level-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-  padding: 0 4px;
-}
-
-.sport-rating-summary {
-  padding: 24px 32px;
-  background: var(--bg-tertiary);
-  border-top: 1px solid var(--border-primary);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.overall-rating,
-.skill-level {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.overall-label,
-.level-label {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.overall-value {
-  font-size: 2.5rem;
+.skill-level-btn .level-number {
+  font-size: 1.4rem;
   font-weight: 800;
 }
 
-.overall-stars {
-  display: flex;
-  gap: 4px;
-}
-
-.overall-stars .star {
-  font-size: 2rem;
-  transition: all 0.2s;
-}
-
-.overall-stars .star.filled {
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.level-badge {
-  padding: 8px 16px;
-  border-radius: var(--radius-full);
-  color: white;
+.skill-level-btn .level-label {
+  font-size: 0.75rem;
   font-weight: 600;
-  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.selected-level-description {
+  text-align: center;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.selected-level-description p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin: 0;
 }
 
 .sport-rating-actions {
@@ -243,22 +159,13 @@
     font-size: 1.3rem;
   }
 
-  .sport-rating-categories {
+  .sport-rating-simple {
     padding: 20px;
   }
 
-  .rating-category {
-    padding: 16px;
-  }
-
-  .category-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
-  }
-
-  .sport-rating-summary {
-    padding: 20px;
+  .skill-level-btn {
+    min-width: 60px;
+    padding: 12px 10px;
   }
 
   .sport-rating-actions {

@@ -1,7 +1,7 @@
 .video-highlights-page {
   min-height: 100vh;
   background: 
-    linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(14, 165, 233, 0.95) 100%),
     url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80') center/cover no-repeat fixed;
   background-blend-mode: overlay;
 }
@@ -89,7 +89,7 @@
 
 .filter-btn.active {
   background: white;
-  color: #667eea;
+  color: var(--color-primary);
   border-color: white;
   box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
 }
@@ -110,7 +110,7 @@
 
 .highlight-card:hover {
   transform: translateY(-12px);
-  box-shadow: 0 25px 60px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 25px 60px rgba(59, 130, 246, 0.5);
 }
 
 .highlight-thumbnail {
@@ -195,7 +195,7 @@
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  color: #667eea;
+  color: var(--color-primary);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
   transition: all 0.3s;
 }
@@ -212,7 +212,7 @@
 .highlight-category {
   display: inline-block;
   padding: 5px 12px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   color: white;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -339,7 +339,7 @@
   color: #333;
   font-size: 2rem;
   padding-bottom: 20px;
-  border-bottom: 3px solid #667eea;
+  border-bottom: 3px solid var(--color-primary);
 }
 
 .top-videos-list {
@@ -361,13 +361,13 @@
 
 .top-video-item:hover {
   transform: translateX(10px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
 }
 
 .top-rank {
   font-size: 2rem;
   font-weight: 800;
-  color: #667eea;
+  color: var(--color-primary);
   text-align: center;
 }
 
@@ -437,7 +437,7 @@
 .file-upload-label {
   display: block;
   padding: 50px;
-  border: 3px dashed #667eea;
+  border: 3px dashed var(--color-primary);
   border-radius: 15px;
   text-align: center;
   cursor: pointer;
@@ -446,7 +446,7 @@
 }
 
 .file-upload-label:hover {
-  border-color: #764ba2;
+  border-color: var(--color-accent);
   background: linear-gradient(135deg, #e8eaf6 0%, #b5c7f0 100%);
   transform: translateY(-3px);
 }
@@ -553,7 +553,7 @@
 .file-size {
   margin-top: 10px;
   font-weight: 700;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .upload-progress {
@@ -571,7 +571,7 @@
 
 .progress-fill-upload {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   transition: width 0.3s ease;
   display: flex;
   align-items: center;
@@ -582,7 +582,7 @@
 
 .progress-text {
   text-align: center;
-  color: #667eea;
+  color: var(--color-primary);
   font-weight: 700;
   font-size: 1.1rem;
 }

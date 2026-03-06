@@ -162,7 +162,7 @@
 }
 
 .rate-card {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
 }
 
 .rate-card .stat-content h3,

@@ -20,7 +20,7 @@
 .round-title {
   text-align: center;
   margin-bottom: 20px;
-  color: #667eea;
+  color: var(--color-primary);
   font-size: 1.3rem;
   font-weight: 800;
   padding: 10px;
@@ -47,8 +47,8 @@
 
 .bracket-match:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-  border-color: #667eea;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  border-color: var(--color-primary);
 }
 
 .match-team {
@@ -80,7 +80,7 @@
   font-weight: 800;
   min-width: 40px;
   text-align: center;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .match-team.winner .team-score {
@@ -99,7 +99,7 @@
   width: 100%;
   padding: 8px;
   margin-top: 10px;
-  background: #667eea;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -110,7 +110,7 @@
 }
 
 .btn-enter-score:hover {
-  background: #764ba2;
+  background: var(--color-accent);
   transform: translateY(-2px);
 }
 
@@ -126,7 +126,7 @@
   padding: 20px;
   background: #f9f9f9;
   border-radius: 10px;
-  border-left: 5px solid #667eea;
+  border-left: 5px solid var(--color-primary);
 }
 
 .bracket-legend h4 {

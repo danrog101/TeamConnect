@@ -471,16 +471,21 @@ exports.getSportRating = async (req, res) => {
 exports.submitSportRating = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { sport, ratings, overallRating, skillLevel } = req.body;
+    const { sport, overallRating, skillLevel } = req.body;
 
-    if (!sport || !ratings) {
-      return res.status(400).json({ message: 'Sport and ratings are required' });
+    if (!sport || overallRating === undefined || skillLevel === undefined) {
+      return res.status(400).json({ message: 'Sport, overallRating, and skillLevel are required' });
     }
 
-    // Validate all rating values are 0-100
-    const ratingValues = Object.values(ratings);
-    if (ratingValues.some(v => typeof v !== 'number' || v < 0 || v > 100)) {
-      return res.status(400).json({ message: 'All ratings must be between 0 and 100' });
+    const overall = parseInt(overallRating);
+    const level = parseInt(skillLevel);
+
+    if (isNaN(overall) || overall < 0 || overall > 100) {
+      return res.status(400).json({ message: 'Overall rating must be between 0 and 100' });
+    }
+
+    if (isNaN(level) || level < 1 || level > 5) {
+      return res.status(400).json({ message: 'Skill level must be between 1 and 5' });
     }
 
     // Check if user already has a rating for this sport
@@ -498,9 +503,8 @@ exports.submitSportRating = async (req, res) => {
       const { data, error } = await supabase
         .from('sport_ratings')
         .update({
-          ratings: ratings,
-          overall_rating: overallRating,
-          skill_level: skillLevel,
+          overall_rating: overall,
+          skill_level: level,
           updated_at: new Date().toISOString()
         })
         .eq('id', existing.id)
@@ -519,9 +523,8 @@ exports.submitSportRating = async (req, res) => {
         .insert({
           user_id: userId,
           sport: sport,
-          ratings: ratings,
-          overall_rating: overallRating,
-          skill_level: skillLevel
+          overall_rating: overall,
+          skill_level: level
         })
         .select()
         .single();
@@ -544,7 +547,7 @@ exports.submitSportRating = async (req, res) => {
       await supabase
         .from('users')
         .update({
-          skill_level_numeric: skillLevel,
+          skill_level_numeric: level,
           has_self_rated: true,
           self_rated_at: new Date().toISOString()
         })
@@ -552,7 +555,7 @@ exports.submitSportRating = async (req, res) => {
     }
 
     res.json({
-      message: 'Ocjena uspješno spremljena!',
+      message: 'Rating saved successfully!',
       sportRating: result
     });
   } catch (error) {

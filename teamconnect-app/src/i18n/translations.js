@@ -57,6 +57,10 @@ export const translations = {
       highlights: 'Video isječci',
       admin: 'Admin',
       notifications: 'Notifikacije',
+      lightMode: 'Svijetli mod',
+      darkMode: 'Tamni mod',
+      switchToLight: 'Prebaci na svijetli način',
+      switchToDark: 'Prebaci na tamni način',
     },
 
     // Auth
@@ -533,6 +537,8 @@ export const translations = {
       achievementsDesc: 'Otkljućaj achievements igranjem utakmica i postizanjem ciljeva',
       noAchievements: 'Još nemaš achievements. Igraj utakmice da ih otkljućaš!',
       unlocked: 'Otkljućano!',
+      teamRequiresLevel: 'Ovaj tim zahtijeva minimalnu razinu vještine: {level}',
+      teamMaxLevel: 'Ovaj tim zahtijeva maksimalnu razinu vještine: {level}',
     },
 
     // Fields
@@ -784,6 +790,10 @@ export const translations = {
       highlights: 'Highlights',
       admin: 'Admin',
       notifications: 'Notifications',
+      lightMode: 'Light Mode',
+      darkMode: 'Dark Mode',
+      switchToLight: 'Switch to light mode',
+      switchToDark: 'Switch to dark mode',
     },
 
     // Auth
@@ -1260,6 +1270,8 @@ export const translations = {
       achievementsDesc: 'Unlock achievements by playing matches and reaching goals',
       noAchievements: "No achievements yet. Play matches to unlock them!",
       unlocked: 'Unlocked!',
+      teamRequiresLevel: 'This team requires a minimum skill level of {level}',
+      teamMaxLevel: 'This team requires a maximum skill level of {level}',
     },
 
     // Fields

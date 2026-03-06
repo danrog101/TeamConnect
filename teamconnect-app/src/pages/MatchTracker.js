@@ -59,12 +59,12 @@ function MatchTracker() {
         setMatch(data);
       } else {
         const error = await response.json();
-        setToast({ message: error.message || 'Utakmica ne postoji', type: 'error' });
+        setToast({ message: error.message || t('match.notFound'), type: 'error' });
         setTimeout(() => navigate('/dashboard'), 2000);
       }
     } catch (error) {
       console.error('Fetch match error:', error);
-      setToast({ message: 'Greška pri učitavanju utakmice', type: 'error' });
+      setToast({ message: t('match.loadError'), type: 'error' });
     } finally {
       if (!silent) setLoading(false);
     }
