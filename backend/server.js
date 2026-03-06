@@ -6,6 +6,8 @@ const socketIo = require('socket.io');
 const helmet = require('helmet');
 const hpp = require('hpp');
 const morgan = require('morgan');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // ✅ DODAJ OVO - Cron job setup
@@ -21,6 +23,15 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
+// Sigurnost
+app.use(helmet());
+
+// Zaštita od spam loginova
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minuta
+  max: 100 // max 100 zahtjeva po IP-u
+});
+app.use(limiter);
 const server = http.createServer(app);
 
 // Socket.io setup - FIXED CORS
