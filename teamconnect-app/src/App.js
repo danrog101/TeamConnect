@@ -28,6 +28,10 @@ import Notifications from './pages/Notifications';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 // PrivateRoute component - checks token on each render
+import Footer from './components/Footer';
+
+// Na dnu, prije zadnjeg </div>:
+<Footer />
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" replace />;
