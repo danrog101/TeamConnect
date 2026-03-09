@@ -266,25 +266,25 @@ cron.schedule('0 2 * * *', async () => {
   console.log('🧹 Running auto-cleanup...');
   
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 30); // 30 days old
+  cutoffDate.setDate(cutoffDate.getDate()); 
   
   try {
     const { supabase } = require('./config/supabase');
     
     // Delete old finished tournaments
-    const { data: deletedTournaments } = await supabase
-      .from('tournaments')
-      .delete()
-      .lt('end_date', cutoffDate.toISOString().split('T')[0])
-      .eq('status', 'finished')
-      .select('id, name');
+   const today = new Date().toISOString().split('T')[0];
 
-    // Delete old teams (past their date)
-    const { data: deletedTeams } = await supabase
-      .from('teams')
-      .delete()
-      .lt('date', cutoffDate.toISOString().split('T')[0])
-      .select('id, name');
+const { data: deletedTournaments } = await supabase
+  .from('tournaments')
+  .delete()
+  .lt('end_date', today)
+  .select('id, name');
+
+const { data: deletedTeams } = await supabase
+  .from('teams')
+  .delete()
+  .lt('date', today)
+  .select('id, name');
 
     console.log('✅ Cleanup completed:', {
       tournaments: deletedTournaments?.length || 0,

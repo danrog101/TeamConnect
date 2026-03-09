@@ -588,102 +588,108 @@ exports.getAllSportRatings = async (req, res) => {
 };
 
 // Rate another player (only allowed if target has self-rated)
+// Rate another player - simplified 1-5 per sport
 exports.ratePlayer = async (req, res) => {
   try {
     const raterId = req.user.id;
-    const { targetUserId, attack, defense, teamwork, consistency } = req.body;
+    const { targetUserId, skillLevel, sport } = req.body;
 
     // Cannot rate yourself
     if (raterId === targetUserId) {
-      return res.status(400).json({ message: 'Cannot rate yourself. Use self-rating instead.' });
+      return res.status(400).json({ message: 'Ne možeš ocjeniti sebe. Koristi self-rating.' });
     }
 
-    // Check if target user has self-rated
+    if (!targetUserId || !skillLevel || !sport) {
+      return res.status(400).json({ message: 'targetUserId, skillLevel i sport su obavezni.' });
+    }
+
+    // Validate skill level (1-5)
+    const level = parseInt(skillLevel);
+    if (isNaN(level) || level < 1 || level > 5) {
+      return res.status(400).json({ message: 'Ocjena mora biti između 1 i 5' });
+    }
+
+    // Check if target user exists and has self-rated
     const { data: targetUser, error: targetError } = await supabase
       .from('users')
-      .select('has_self_rated, username')
+      .select('has_self_rated, username, rating_overall')
       .eq('id', targetUserId)
       .single();
 
     if (targetError || !targetUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Korisnik nije pronađen' });
     }
 
     if (!targetUser.has_self_rated) {
       return res.status(400).json({
-        message: `${targetUser.username} has not completed their self-rating yet. They must rate themselves first.`
+        message: `${targetUser.username} još nije ocijenio/la sebe. Moraju prvo ocijeniti sebe.`
       });
     }
 
-    // Validate ratings
-    const validateRating = (value) => {
-      const num = parseInt(value);
-      return !isNaN(num) && num >= 0 && num <= 100 ? num : null;
-    };
+    // Convert 1-5 to rating value (20, 40, 60, 80, 100)
+    const ratingValue = level * 20;
 
-    const ratings = {
-      attack: validateRating(attack),
-      defense: validateRating(defense),
-      teamwork: validateRating(teamwork),
-      consistency: validateRating(consistency)
-    };
+    // Average with existing rating
+    const currentOverall = targetUser.rating_overall || 0;
+    const newOverall = Math.round((currentOverall + ratingValue * 30) / 2);
 
-    if (Object.values(ratings).some(v => v === null)) {
-      return res.status(400).json({ message: 'All ratings must be between 0 and 100' });
-    }
-
-    // Store the peer rating (you may want to create a separate peer_ratings table for this)
-    // For now, we'll just update the user's ratings as an average with existing
-    const { data: currentRatings, error: fetchError } = await supabase
-      .from('users')
-      .select('rating_attack, rating_defense, rating_teamwork, rating_consistency, rating_overall')
-      .eq('id', targetUserId)
+    // Update sport_ratings table for this sport
+    const { data: existingSportRating } = await supabase
+      .from('sport_ratings')
+      .select('id, overall_rating, skill_level')
+      .eq('user_id', targetUserId)
+      .eq('sport', sport)
       .single();
 
-    if (fetchError) {
-      return res.status(500).json({ message: 'Failed to fetch current ratings' });
+    if (existingSportRating) {
+      // Average with existing sport rating
+      const newSportRating = Math.round((existingSportRating.overall_rating + ratingValue) / 2);
+      const newSkillLevel = Math.round((existingSportRating.skill_level + level) / 2);
+
+      await supabase
+        .from('sport_ratings')
+        .update({
+          overall_rating: newSportRating,
+          skill_level: newSkillLevel,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingSportRating.id);
+    } else {
+      await supabase
+        .from('sport_ratings')
+        .insert({
+          user_id: targetUserId,
+          sport,
+          overall_rating: ratingValue,
+          skill_level: level
+        });
     }
 
-    // Simple average (in production, you'd want a more sophisticated system)
-    const newRatings = {
-      rating_attack: Math.round((currentRatings.rating_attack + ratings.attack) / 2),
-      rating_defense: Math.round((currentRatings.rating_defense + ratings.defense) / 2),
-      rating_teamwork: Math.round((currentRatings.rating_teamwork + ratings.teamwork) / 2),
-      rating_consistency: Math.round((currentRatings.rating_consistency + ratings.consistency) / 2)
-    };
-
-    const newOverall = Math.round(
-      (newRatings.rating_attack + newRatings.rating_defense +
-       newRatings.rating_teamwork + newRatings.rating_consistency) / 4
-    ) * 30;
-
-    const { data: updatedUser, error: updateError } = await supabase
+    // Update user overall rating
+    const { error: updateError } = await supabase
       .from('users')
       .update({
-        ...newRatings,
         rating_overall: newOverall,
+        rating_attack: ratingValue,
+        rating_defense: ratingValue,
+        rating_teamwork: ratingValue,
+        rating_consistency: ratingValue,
         rating_last_updated: new Date().toISOString()
       })
-      .eq('id', targetUserId)
-      .select()
-      .single();
+      .eq('id', targetUserId);
 
     if (updateError) {
-      return res.status(500).json({ message: 'Failed to update rating' });
+      console.error('❌ Update rating error:', updateError);
+      return res.status(500).json({ message: 'Greška pri ažuriranju ocjene' });
     }
 
     res.json({
-      message: 'Rating submitted successfully!',
-      newRatings: {
-        attack: newRatings.rating_attack,
-        defense: newRatings.rating_defense,
-        teamwork: newRatings.rating_teamwork,
-        consistency: newRatings.rating_consistency,
-        overall: newOverall
-      }
+      message: 'Ocjena uspješno spremljena!',
+      skillLevel: level,
+      sport
     });
   } catch (error) {
-    console.error('Rate player error:', error);
+    console.error('❌ Rate player error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
