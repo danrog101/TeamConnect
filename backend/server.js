@@ -176,26 +176,68 @@ io.on('connection', (socket) => {
     console.log(`👤 Korisnik ${socket.id} left team ${teamId}`);
   });
 
-  socket.on('send_message', async (data) => {
-    try {
-      const { teamId, userId, text, type, location, imageUrl } = data;
-      
-      const message = {
-        user: userId,
+ socket.on('send_message', async (data) => {
+  try {
+    const { supabase } = require('./config/supabase');
+    const { teamId, userId, text, type, location, imageUrl } = data;
+
+    // Spremi poruku u Supabase
+    const { data: savedMessage, error } = await supabase
+      .from('team_messages')
+      .insert({
+        team_id: teamId,
+        user_id: userId,
         text,
         type: type || 'text',
-        location,
-        imageUrl,
-        createdAt: new Date()
-      };
+        location_lat: location?.latitude || null,
+        location_lng: location?.longitude || null,
+        image_url: imageUrl || null
+      })
+      .select(`
+        id,
+        team_id,
+        user_id,
+        text,
+        type,
+        location_lat,
+        location_lng,
+        image_url,
+        created_at,
+        user:users!team_messages_user_id_fkey(id, username, avatar)
+      `)
+      .single();
 
-      io.to(`team_${teamId}`).emit('new_message', message);
-      console.log(`💬 New message in team ${teamId}`);
-    } catch (error) {
-      console.error('Send message error:', error);
+    if (error) {
+      console.error('❌ Save message error:', error);
       socket.emit('error', { message: 'Failed to send message' });
+      return;
     }
-  });
+
+    // Formatiraj i pošalji svim članovima
+    const message = {
+      _id: savedMessage.id,
+      id: savedMessage.id,
+      text: savedMessage.text,
+      type: savedMessage.type,
+      location: savedMessage.location_lat ? {
+        latitude: savedMessage.location_lat,
+        longitude: savedMessage.location_lng
+      } : null,
+      createdAt: savedMessage.created_at,
+      user: {
+        _id: savedMessage.user?.id,
+        id: savedMessage.user?.id,
+        username: savedMessage.user?.username,
+        avatar: savedMessage.user?.avatar
+      }
+    };
+
+    io.to(`team_${teamId}`).emit('new_message', message);
+  } catch (error) {
+    console.error('❌ Send message error:', error);
+    socket.emit('error', { message: 'Failed to send message' });
+  }
+});
 
   socket.on('typing', (data) => {
     socket.to(`team_${data.teamId}`).emit('user_typing', {
