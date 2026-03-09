@@ -34,6 +34,7 @@ export const translations = {
       saving: 'Spremanje...',
       searching: 'Tražim...',
       unknown: 'Nepoznato',
+      sortBy: 'Sortiraj po',
     },
 
     // Navigation
@@ -212,6 +213,10 @@ export const translations = {
       waitlistError: 'Greška pri dodavanju na listu čekanja',
       popular: 'Popularni',
       other: 'Ostali',
+      today: 'Danas',
+      tomorrow: 'Sutra',
+      saturday: 'Subota',
+      sunday: 'Nedjelja',
     },
 
     // Create Team
@@ -539,6 +544,7 @@ export const translations = {
       unlocked: 'Otkljućano!',
       teamRequiresLevel: 'Ovaj tim zahtijeva minimalnu razinu vještine: {level}',
       teamMaxLevel: 'Ovaj tim zahtijeva maksimalnu razinu vještine: {level}',
+      noPlayersFiltered: 'Nema igrača s ovim filterima',
     },
 
     // Fields
@@ -571,6 +577,9 @@ export const translations = {
       fieldsFound: 'terena pronađeno',
       selectField: 'Odaberi teren',
       clickToViewDetails: 'Klikni na teren s liste za prikaz detalja',
+      filterFields: 'Filtriraj terene',
+      priceOnRequest: 'Cijena na upit',
+      notSpecified: 'Nije navedeno',
     },
 
     // Tournaments
@@ -767,6 +776,7 @@ export const translations = {
       saving: 'Saving...',
       searching: 'Searching...',
       unknown: 'Unknown',
+      sortBy: 'Sort by',
     },
 
     // Navigation
@@ -945,6 +955,10 @@ export const translations = {
       waitlistError: 'Error adding to waitlist',
       popular: 'Popular',
       other: 'Other',
+      today: 'Today',
+      tomorrow: 'Tomorrow',
+      saturday: 'Saturday',
+      sunday: 'Sunday',
     },
 
     // Create Team
@@ -1272,6 +1286,7 @@ export const translations = {
       unlocked: 'Unlocked!',
       teamRequiresLevel: 'This team requires a minimum skill level of {level}',
       teamMaxLevel: 'This team requires a maximum skill level of {level}',
+      noPlayersFiltered: 'No players match these filters',
     },
 
     // Fields
@@ -1304,6 +1319,9 @@ export const translations = {
       fieldsFound: 'fields found',
       selectField: 'Select Field',
       clickToViewDetails: 'Click on a field from the list to view details',
+      filterFields: 'Filter fields',
+      priceOnRequest: 'Price on request',
+      notSpecified: 'Not specified',
     },
 
     // Tournaments

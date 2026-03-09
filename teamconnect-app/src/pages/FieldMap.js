@@ -632,13 +632,13 @@ function FieldMap() {
                         <strong>{fieldForm.sport}</strong>
                       </div>
                       <div className="review-row">
-                        <span>Cijena:</span>
-                        <strong>{fieldForm.price ? `${fieldForm.price} EUR/h` : 'Nije navedeno'}</strong>
+                        <span>{t('fields.price')}:</span>
+                        <strong>{fieldForm.price ? `${fieldForm.price} EUR/h` : t('fields.notSpecified')}</strong>
                       </div>
                       <div className="review-row">
-                        <span>Dostupnost:</span>
-                        <strong style={{ color: fieldForm.availability === 'Dostupno' ? '#3b82f6' : '#f44336' }}>
-                          {fieldForm.availability}
+                        <span>{t('fields.availability')}:</span>
+                        <strong style={{ color: fieldForm.availability === 'Dostupno' ? 'var(--color-primary)' : 'var(--color-error)' }}>
+                          {fieldForm.availability === 'Dostupno' ? t('fields.available') : t('fields.unavailable')}
                         </strong>
                       </div>
                     </div>
@@ -745,7 +745,7 @@ function FieldMap() {
           {/* SIDEBAR */}
           <div className="fields-sidebar">
             <div className="sidebar-filters card">
-              <h3>Filtriraj terene</h3>
+              <h3>{t('fields.filterFields')}</h3>
 
               <div className="form-group">
                 <label>Sport</label>
@@ -833,7 +833,7 @@ function FieldMap() {
 
                       <p className="field-sport">{field.sport}</p>
                       <p className="field-location">📍 {field.city}{field.address ? `, ${field.address}` : ''}</p>
-                      <p className="field-price">💰 {field.price ? `${field.price} EUR/h` : 'Cijena na upit'}</p>
+                      <p className="field-price">💰 {field.price ? `${field.price} EUR/h` : t('fields.priceOnRequest')}</p>
 
                       {field.facilities && field.facilities.length > 0 && (
                         <div className="field-facilities">

@@ -11,7 +11,7 @@
 
 .rating-header {
   text-align: center;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 40px;
   animation: fadeInDown 0.6s ease-out;
 }
@@ -69,7 +69,7 @@
 .filter-section label {
   display: block;
   margin-bottom: 12px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 700;
   font-size: 1.1rem;
 }
@@ -82,8 +82,8 @@
 
 .filter-btn {
   padding: 10px 20px;
-  background: #f0f0f0;
-  border: 2px solid #e0e0e0;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-primary);
   border-radius: 25px;
   cursor: pointer;
   font-weight: 600;
@@ -91,7 +91,7 @@
 }
 
 .filter-btn:hover {
-  background: #e0e0e0;
+  background: var(--bg-tertiary);
   transform: translateY(-2px);
 }
 
@@ -144,7 +144,7 @@
 
 .player-info h3 {
   margin: 0 0 8px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.4rem;
 }
 
@@ -197,7 +197,7 @@
 .stat-value {
   font-size: 1.8rem;
   font-weight: 800;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .stat-label {
@@ -292,7 +292,7 @@
 .player-rating-details h4 {
   margin: 0 0 5px 0;
   font-size: 1.3rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .player-rating-location {
@@ -313,7 +313,7 @@
 
 .rating-label {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .rating-overall .rating-value {
@@ -343,7 +343,7 @@
 
 .stat-bar {
   height: 10px;
-  background: #e0e0e0;
+  background: var(--bg-tertiary);
   border-radius: 5px;
   overflow: hidden;
 }
@@ -356,7 +356,7 @@
 
 .rating-stat .stat-value {
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
   text-align: right;
   font-size: 0.95rem;
 }
@@ -413,7 +413,7 @@
 .self-rating-card h2 {
   margin: 0 0 15px 0;
   font-size: 2rem;
-  color: #333;
+  color: var(--text-primary);
   text-align: center;
 }
 
@@ -443,7 +443,7 @@
   margin-bottom: 15px;
   font-weight: 700;
   font-size: 1.1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .rating-icon {
@@ -548,8 +548,8 @@
 
 .rating-tabs .tab {
   padding: 12px 24px;
-  background: white;
-  border: 2px solid #e0e0e0;
+  background: var(--bg-card);
+  border: 2px solid var(--border-primary);
   border-radius: 25px;
   font-weight: 700;
   cursor: pointer;
@@ -598,7 +598,7 @@
 }
 
 .achievement-list h2 {
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 30px;
   font-size: 2rem;
   text-align: center;
@@ -631,7 +631,7 @@
 
 .achievement-item h4 {
   margin: 0 0 5px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.1rem;
 }
 

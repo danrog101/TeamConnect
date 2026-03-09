@@ -326,10 +326,10 @@ function RatingSystem() {
               </div>
 
               <div className="filter-section">
-                <label>Sortiraj po:</label>
+                <label>{t('common.sortBy')}:</label>
                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                   <option value="rating">Rating</option>
-                  <option value="position">Pozicija</option>
+                  <option value="position">{t('teams.position')}</option>
                 </select>
               </div>
             </div>
@@ -347,7 +347,7 @@ function RatingSystem() {
               {filteredPlayers.length === 0 ? (
                 <div className="empty-leaderboard card">
                   <span className="empty-icon">⭐</span>
-                  <p>Nema igrača s ovim filterima</p>
+                  <p>{t('rating.noPlayersFiltered')}</p>
                 </div>
               ) : (
                 filteredPlayers.map((player) => (

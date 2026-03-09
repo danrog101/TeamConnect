@@ -109,7 +109,7 @@
 
 .team-section h2 {
   margin: 0 0 20px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 2rem;
   font-weight: 800;
 }
@@ -189,7 +189,7 @@
 .match-timeline h3,
 .match-statistics h3 {
   margin: 0 0 25px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.5rem;
   padding-bottom: 15px;
   border-bottom: 3px solid var(--color-primary);
@@ -256,7 +256,7 @@
 
 .event-type {
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .event-player {
@@ -284,7 +284,7 @@
 
 .stat-label {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1rem;
   text-align: center;
 }
@@ -312,7 +312,7 @@
 
 .stat-bar {
   height: 30px;
-  background: #e0e0e0;
+  background: var(--bg-tertiary);
   border-radius: 15px;
   overflow: hidden;
   display: flex;
@@ -356,7 +356,7 @@
 
 .add-event-modal h2 {
   margin: 0 0 30px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 2rem;
 }
 

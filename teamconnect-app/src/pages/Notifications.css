@@ -90,7 +90,7 @@
 .notification-card-content h4 {
   margin: 0 0 10px 0;
   font-size: 1.2rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .notification-card-content p {

@@ -129,9 +129,9 @@ function TournamentDetail() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      active: { text: 'U tijeku', color: '#3b82f6' },
-      upcoming: { text: 'Uskoro', color: '#ff9800' },
-      finished: { text: 'Završeno', color: '#999' }
+      active: { text: t('tournaments.active'), color: 'var(--color-primary)' },
+      upcoming: { text: t('tournaments.upcoming'), color: 'var(--color-warning)' },
+      finished: { text: t('tournaments.finished'), color: 'var(--text-tertiary)' }
     };
     return badges[status] || badges.upcoming;
   };
@@ -140,7 +140,7 @@ function TournamentDetail() {
     return (
       <div className="tournament-detail-page">
         <Navbar />
-        <div className="loading">Učitavanje turnira...</div>
+        <div className="loading">{t('common.loading')}</div>
       </div>
     );
   }

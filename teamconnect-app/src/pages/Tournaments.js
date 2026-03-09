@@ -748,7 +748,7 @@ function Tournaments() {
                 </div>
 
                 <div className="form-group">
-                  <label>Naknada za dodatnog igrača (€)</label>
+                  <label>{t('tournaments.extraPlayerFee')}</label>
                   <input
                     type="number"
                     name="extraPlayerFee"
@@ -758,7 +758,7 @@ function Tournaments() {
                     step="0.01"
                     placeholder="0.00"
                   />
-                  <small style={{ color: '#666', fontSize: '12px' }}>Naknada za svakog igrača iznad minimuma</small>
+                  <small style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{t('tournaments.extraPlayerFeeDesc')}</small>
                 </div>
               </div>
 
@@ -785,7 +785,7 @@ function Tournaments() {
               </div>
 
               <div className="form-group">
-                <label>Kategorija turnira *</label>
+                <label>{t('tournaments.tournamentCategory')}</label>
                 <select
                   name="gender_category"
                   value={formData.gender_category}
@@ -795,7 +795,7 @@ function Tournaments() {
                   <option value="male">{t('tournaments.maleTournament')}</option>
                   <option value="female">{t('tournaments.femaleTournament')}</option>
                 </select>
-                <small style={{ color: '#666', fontSize: '12px' }}>
+                <small style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
                   {t('tournaments.categoryDesc')}
                 </small>
               </div>

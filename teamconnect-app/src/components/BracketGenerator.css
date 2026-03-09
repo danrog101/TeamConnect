@@ -131,7 +131,7 @@
 
 .bracket-legend h4 {
   margin: 0 0 15px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.2rem;
 }
 

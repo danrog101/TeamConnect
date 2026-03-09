@@ -46,7 +46,7 @@
   bottom: 20px;
   right: 20px;
   padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   border: none;
   border-radius: var(--radius-full);
   font-weight: 700;

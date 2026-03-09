@@ -318,7 +318,7 @@ function Dashboard() {
                 setFilters({ ...filters, date: filters.date === today ? '' : today });
               }}
             >
-              📅 Danas
+              {'📅 ' + t('dashboard.today')}
             </button>
             <button 
               className={`btn btn-small ${filters.date === new Date(Date.now() + 86400000).toISOString().split('T')[0] ? 'btn-primary' : 'btn-ghost'}`}
@@ -327,7 +327,7 @@ function Dashboard() {
                 setFilters({ ...filters, date: filters.date === tomorrow ? '' : tomorrow });
               }}
             >
-              📅 Sutra
+              {'📅 ' + t('dashboard.tomorrow')}
             </button>
             <button 
               className={`btn btn-small ${(() => {
@@ -344,7 +344,7 @@ function Dashboard() {
                 setFilters({ ...filters, date: filters.date === satDate ? '' : satDate });
               }}
             >
-              📅 Subota
+              {'📅 ' + t('dashboard.saturday')}
             </button>
             <button 
               className={`btn btn-small ${(() => {
@@ -361,7 +361,7 @@ function Dashboard() {
                 setFilters({ ...filters, date: filters.date === sunDate ? '' : sunDate });
               }}
             >
-              📅 Nedjelja
+              {'📅 ' + t('dashboard.sunday')}
             </button>
           </div>
         </div>
