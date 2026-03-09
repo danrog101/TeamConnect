@@ -1,5 +1,6 @@
 const { supabase } = require('../config/supabase');
 const { notifyWaitlist } = require('./waitlistController');
+const { createNotificationHelper } = require('./notificationController');
 
 // Get all teams with creator info
 exports.getAllTeams = async (req, res) => {
@@ -72,7 +73,6 @@ exports.getMyTeams = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Get teams where user is creator
     const { data: createdTeams, error: createdError } = await supabase
       .from('teams')
       .select(`
@@ -93,7 +93,6 @@ exports.getMyTeams = async (req, res) => {
       return res.status(500).json({ message: 'Server error' });
     }
 
-    // Get teams where user is member
     const { data: memberTeams, error: memberError } = await supabase
       .from('team_members')
       .select(`
@@ -116,10 +115,7 @@ exports.getMyTeams = async (req, res) => {
       return res.status(500).json({ message: 'Server error' });
     }
 
-    // Extract team objects from member teams
     const memberTeamsData = memberTeams.map(mt => mt.teams).filter(Boolean);
-
-    // Combine and remove duplicates
     const allTeams = [...createdTeams, ...memberTeamsData];
     const uniqueTeams = allTeams.filter((team, index, self) =>
       index === self.findIndex((t) => t.id === team.id)
@@ -132,21 +128,17 @@ exports.getMyTeams = async (req, res) => {
   }
 };
 
-// Helper function to calculate skill level from rating
 const calculateSkillLevel = (rating) => {
   if (rating === null || rating === undefined) return null;
-  if (rating <= 20) return 1; // Beginner
-  if (rating <= 40) return 2; // Intermediate
-  if (rating <= 60) return 3; // Advanced
-  if (rating <= 80) return 4; // Expert
-  return 5; // Pro
+  if (rating <= 20) return 1;
+  if (rating <= 40) return 2;
+  if (rating <= 60) return 3;
+  if (rating <= 80) return 4;
+  return 5;
 };
 
-// Helper function to determine if user is amateur
 const isUserAmateur = (overallRating) => {
-  // Amateur if no rating or overall rating equivalent to less than 60%
   if (overallRating === null || overallRating === undefined) return true;
-  // Convert overall rating (0-3000) to percentage
   const percentage = (overallRating / 3000) * 100;
   return percentage < 60;
 };
@@ -156,39 +148,21 @@ exports.createTeam = async (req, res) => {
   try {
     const userId = req.user.id;
     const {
-      name,
-      sport,
-      location,
-      city,
-      country,
-      date,
-      time,
-      max_players,
-      description,
-      gender_preference,
-      min_skill_level,
-      max_skill_level,
-      amateur_only,
-      join_as_player,
-      position
+      name, sport, location, city, country, date, time,
+      max_players, description, gender_preference,
+      min_skill_level, max_skill_level, amateur_only,
+      join_as_player, position
     } = req.body;
 
-    console.log('📝 Creating team for user:', userId);
-    console.log('📝 Join as player:', join_as_player);
-
-    // Insert team - start with 0 players if creator doesn't join, 1 if they do
     const initialPlayerCount = join_as_player ? 1 : 0;
 
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .insert({
-        name,
-        sport,
-        location,
+        name, sport, location,
         city: city || 'Zagreb',
         country: country || 'Hrvatska',
-        date,
-        time,
+        date, time,
         max_players: max_players || 10,
         description: description || '',
         creator_id: userId,
@@ -201,12 +175,7 @@ exports.createTeam = async (req, res) => {
       .select(`
         *,
         creator:users!teams_creator_id_fkey (
-          id,
-          username,
-          email,
-          avatar,
-          sport,
-          location
+          id, username, email, avatar, sport, location
         )
       `)
       .single();
@@ -216,27 +185,19 @@ exports.createTeam = async (req, res) => {
       return res.status(500).json({ message: 'Failed to create team', error: teamError.message });
     }
 
-    // Only add creator as team member if they chose to join as player
     if (join_as_player) {
       const { error: memberError } = await supabase
         .from('team_members')
-        .insert({
-          team_id: team.id,
-          user_id: userId,
-          position: position || null
-        });
+        .insert({ team_id: team.id, user_id: userId, position: position || null });
 
       if (memberError) {
         console.error('❌ Add team member error:', memberError);
-        // Don't fail the request, just log it
       }
     }
 
-    console.log('✅ Team created:', team.id);
     res.status(201).json(team);
   } catch (error) {
     console.error('❌ Create team error:', error);
-    console.error('Error details:', error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -248,9 +209,6 @@ exports.joinTeam = async (req, res) => {
     const { id } = req.params;
     const { position } = req.body;
 
-    console.log('🔵 Join team request:', { userId, teamId: id, position });
-
-    // Check if team exists
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('*')
@@ -258,14 +216,12 @@ exports.joinTeam = async (req, res) => {
       .single();
 
     if (teamError || !team) {
-      console.error('❌ Team not found:', id);
       return res.status(404).json({ message: 'Tim nije pronađen' });
     }
 
-    // Get user info for validation
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('gender, rating_overall, skill_level_numeric, is_amateur, has_self_rated, self_rating_attack, self_rating_defense, self_rating_teamwork, self_rating_consistency')
+      .select('gender, rating_overall, skill_level_numeric, is_amateur, has_self_rated, self_rating_attack, self_rating_defense, self_rating_teamwork, self_rating_consistency, username')
       .eq('id', userId)
       .single();
 
@@ -273,7 +229,6 @@ exports.joinTeam = async (req, res) => {
       return res.status(404).json({ message: 'Korisnik nije pronađen' });
     }
 
-    // Check for sport-specific rating first
     const { data: sportRating } = await supabase
       .from('sport_ratings')
       .select('skill_level, overall_rating')
@@ -281,29 +236,22 @@ exports.joinTeam = async (req, res) => {
       .eq('sport', team.sport)
       .single();
 
-    // Calculate user's skill level - prefer sport-specific rating
     let userSkillLevel = sportRating?.skill_level || user.skill_level_numeric;
     if (!userSkillLevel && user.has_self_rated) {
       const avgSelfRating = (user.self_rating_attack + user.self_rating_defense + user.self_rating_teamwork + user.self_rating_consistency) / 4;
       userSkillLevel = calculateSkillLevel(avgSelfRating);
     }
 
-    // Validate gender preference
     if (team.gender_preference && team.gender_preference !== 'mix') {
       if (user.gender !== team.gender_preference) {
-        console.log('⚠️ Gender mismatch');
         const genderMessage = team.gender_preference === 'male'
           ? 'Ovaj tim je samo za muške igrače'
           : 'Ovaj tim je samo za ženske igračice';
-        return res.status(400).json({
-          message: genderMessage
-        });
+        return res.status(400).json({ message: genderMessage });
       }
     }
 
-    // Validate skill level
     if (team.min_skill_level || team.max_skill_level) {
-      // Check if user has sport-specific rating OR generic self-rating
       if (!userSkillLevel && !sportRating && !user.has_self_rated) {
         return res.status(400).json({
           message: `Molimo ocijeni svoje vještine za ${team.sport} prije pridruživanja timu`,
@@ -325,17 +273,13 @@ exports.joinTeam = async (req, res) => {
       }
     }
 
-    // Validate amateur only
     if (team.amateur_only) {
       const userIsAmateur = isUserAmateur(user.rating_overall);
       if (!userIsAmateur) {
-        return res.status(400).json({
-          message: 'Ovaj tim je samo za amatere'
-        });
+        return res.status(400).json({ message: 'Ovaj tim je samo za amatere' });
       }
     }
 
-    // Check if user is already in team
     const { data: existingMember } = await supabase
       .from('team_members')
       .select('*')
@@ -344,31 +288,22 @@ exports.joinTeam = async (req, res) => {
       .single();
 
     if (existingMember) {
-      console.log('⚠️ User already in team');
       return res.status(400).json({ message: 'Već ste član ovog tima' });
     }
 
-    // Check if team is full
     if (team.current_players >= team.max_players) {
-      console.log('⚠️ Team is full');
       return res.status(400).json({ message: 'Tim je popunjen' });
     }
 
-    // Add user to team
     const { error: addError } = await supabase
       .from('team_members')
-      .insert({
-        team_id: id,
-        user_id: userId,
-        position: position || null
-      });
+      .insert({ team_id: id, user_id: userId, position: position || null });
 
     if (addError) {
       console.error('❌ Add team member error:', addError);
       return res.status(500).json({ message: 'Pridruživanje timu nije uspjelo' });
     }
 
-    // Update current_players count
     const { data: updatedTeam, error: updateError } = await supabase
       .from('teams')
       .update({ current_players: team.current_players + 1 })
@@ -376,12 +311,7 @@ exports.joinTeam = async (req, res) => {
       .select(`
         *,
         creator:users!teams_creator_id_fkey (
-          id,
-          username,
-          email,
-          avatar,
-          sport,
-          location
+          id, username, email, avatar, sport, location
         )
       `)
       .single();
@@ -391,7 +321,23 @@ exports.joinTeam = async (req, res) => {
       return res.status(500).json({ message: 'Failed to update team' });
     }
 
-    console.log('✅ User joined team successfully');
+    // 🔔 Pošalji notifikaciju kreatoru tima
+    try {
+      if (team.creator_id !== userId) {
+        await createNotificationHelper(
+          team.creator_id,
+          'team_joined',
+          'Novi član tima!',
+          `${user.username} se pridružio/la tvom timu "${team.name}"`,
+          `/my-teams`,
+          { teamId: id },
+          userId
+        );
+      }
+    } catch (notifError) {
+      console.error('❌ Notification error:', notifError);
+    }
+
     res.json(updatedTeam);
   } catch (error) {
     console.error('❌ Join team error:', error);
@@ -405,7 +351,6 @@ exports.leaveTeam = async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    // Check if team exists
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('*')
@@ -416,7 +361,13 @@ exports.leaveTeam = async (req, res) => {
       return res.status(404).json({ message: 'Team not found' });
     }
 
-    // Remove user from team
+    // Dohvati korisničko ime za notifikaciju
+    const { data: user } = await supabase
+      .from('users')
+      .select('username')
+      .eq('id', userId)
+      .single();
+
     const { error: removeError } = await supabase
       .from('team_members')
       .delete()
@@ -428,7 +379,6 @@ exports.leaveTeam = async (req, res) => {
       return res.status(500).json({ message: 'Failed to leave team' });
     }
 
-    // Update current_players count
     const { data: updatedTeam, error: updateError } = await supabase
       .from('teams')
       .update({ current_players: Math.max(0, team.current_players - 1) })
@@ -436,12 +386,7 @@ exports.leaveTeam = async (req, res) => {
       .select(`
         *,
         creator:users!teams_creator_id_fkey (
-          id,
-          username,
-          email,
-          avatar,
-          sport,
-          location
+          id, username, email, avatar, sport, location
         )
       `)
       .single();
@@ -451,13 +396,27 @@ exports.leaveTeam = async (req, res) => {
       return res.status(500).json({ message: 'Failed to update team' });
     }
 
-    // Notify waitlist users that a spot is available
+    // 🔔 Pošalji notifikaciju kreatoru tima
+    try {
+      if (team.creator_id !== userId) {
+        await createNotificationHelper(
+          team.creator_id,
+          'team_joined',
+          'Član napustio tim',
+          `${user?.username} je napustio/la tvoj tim "${team.name}"`,
+          `/my-teams`,
+          { teamId: id },
+          userId
+        );
+      }
+    } catch (notifError) {
+      console.error('❌ Notification error:', notifError);
+    }
+
     try {
       await notifyWaitlist(id);
-      console.log('✅ Waitlist notified for team:', id);
     } catch (notifyError) {
       console.error('⚠️ Failed to notify waitlist:', notifyError);
-      // Don't fail the request if notification fails
     }
 
     res.json(updatedTeam);
@@ -473,22 +432,11 @@ exports.updateTeam = async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
     const {
-      name,
-      sport,
-      location,
-      city,
-      country,
-      date,
-      time,
-      max_players,
-      description,
-      gender_preference,
-      min_skill_level,
-      max_skill_level,
-      amateur_only
+      name, sport, location, city, country, date, time,
+      max_players, description, gender_preference,
+      min_skill_level, max_skill_level, amateur_only
     } = req.body;
 
-    // Check if user is creator
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('*')
@@ -503,7 +451,6 @@ exports.updateTeam = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Update team
     const { data: updatedTeam, error: updateError } = await supabase
       .from('teams')
       .update({
@@ -525,12 +472,7 @@ exports.updateTeam = async (req, res) => {
       .select(`
         *,
         creator:users!teams_creator_id_fkey (
-          id,
-          username,
-          email,
-          avatar,
-          sport,
-          location
+          id, username, email, avatar, sport, location
         )
       `)
       .single();
@@ -553,7 +495,6 @@ exports.deleteTeam = async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    // Check if user is creator
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('*')
@@ -568,7 +509,6 @@ exports.deleteTeam = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Delete team (CASCADE will delete team_members)
     const { error: deleteError } = await supabase
       .from('teams')
       .delete()
@@ -647,7 +587,6 @@ exports.getTeamMembers = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    // First check if user is the team creator
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('creator_id')
@@ -658,12 +597,10 @@ exports.getTeamMembers = async (req, res) => {
       return res.status(404).json({ message: 'Tim nije pronađen' });
     }
 
-    // Only creator can see team members
     if (team.creator_id !== userId) {
       return res.status(403).json({ message: 'Samo kreator tima može vidjeti popis članova' });
     }
 
-    // Get team members with user details
     const { data: members, error } = await supabase
       .from('team_members')
       .select(`
@@ -671,14 +608,7 @@ exports.getTeamMembers = async (req, res) => {
         joined_at,
         position,
         user:users!team_members_user_id_fkey (
-          id,
-          username,
-          email,
-          avatar,
-          sport,
-          location,
-          gender,
-          rating_overall
+          id, username, email, avatar, sport, location, gender, rating_overall
         )
       `)
       .eq('team_id', id)
@@ -701,18 +631,12 @@ exports.getTeamStats = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Get team info
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select(`
         *,
         creator:users!teams_creator_id_fkey (
-          id,
-          username,
-          email,
-          avatar,
-          sport,
-          location
+          id, username, email, avatar, sport, location
         )
       `)
       .eq('id', id)
@@ -722,13 +646,11 @@ exports.getTeamStats = async (req, res) => {
       return res.status(404).json({ message: 'Team not found' });
     }
 
-    // Get team members count
     const { count: memberCount } = await supabase
       .from('team_members')
       .select('*', { count: 'exact', head: true })
       .eq('team_id', id);
 
-    // Get recent messages count
     const { count: messageCount } = await supabase
       .from('team_messages')
       .select('*', { count: 'exact', head: true })

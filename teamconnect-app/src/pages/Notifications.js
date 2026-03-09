@@ -52,7 +52,7 @@ function Notifications() {
   const handleNotificationClick = async (notification) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`${API_URL}/notifications/${notification._id}/read`, {
+      await fetch(`${API_URL}/notifications/${notification.id}/read`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -190,7 +190,7 @@ function Notifications() {
           <div className="notifications-list-page">
             {notifications.map(notification => (
               <div
-                key={notification._id}
+                key={notification.id}
                 className={`notification-card card ${!notification.read ? 'unread' : ''}`}
                 onClick={() => handleNotificationClick(notification)}
               >
