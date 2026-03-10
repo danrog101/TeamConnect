@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -14,12 +14,13 @@ function Navbar() {
   const { t } = useLanguage();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [showMenu, setShowMenu] = useState(false);
-  useEffect(() => {
-  document.body.style.overflow = showMenu ? 'hidden' : '';
-  return () => { document.body.style.overflow = ''; };
-}, [showMenu]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const isAdmin = user.email === ADMIN_EMAIL;
+
+  useEffect(() => {
+    document.body.style.overflow = showMenu ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [showMenu]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
