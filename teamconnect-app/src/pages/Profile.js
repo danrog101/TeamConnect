@@ -6,7 +6,7 @@ import { authAPI } from '../services/api';
 import './Profile.css';
 import SportRatingModal from '../components/SportRatingModal';
 import { useLanguage } from '../i18n/LanguageContext'; 
-import { API_URL } from '../services/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 function Profile() {
    const { t } = useLanguage();
   const navigate = useNavigate();
