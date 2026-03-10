@@ -6,6 +6,7 @@ import { authAPI } from '../services/api';
 import './Profile.css';
 import SportRatingModal from '../components/SportRatingModal';
 import { useLanguage } from '../i18n/LanguageContext'; 
+import { API_URL } from '../services/api';
 function Profile() {
    const { t } = useLanguage();
   const navigate = useNavigate();
