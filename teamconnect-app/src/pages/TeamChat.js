@@ -1,4 +1,3 @@
-// src/pages/TeamChat.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -8,7 +7,7 @@ import { getSocket } from '../utils/socket';
 import { API_URL } from '../config';
 import { useLanguage } from '../i18n/LanguageContext';
 import './TeamChat.css';
-
+ 
 function TeamChat() {
   const { teamId } = useParams();
   const navigate = useNavigate();
@@ -27,21 +26,14 @@ function TeamChat() {
   const typingTimeoutRef = useRef(null);
   const socketRef = useRef(null);
 
-  // Konzistentan userId
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUserId = currentUser.id || currentUser._id;
 
   useEffect(() => {
     socketRef.current = getSocket();
     loadTeam();
     loadMessages();
 
-    socketRef.current.emit('join_team', teamId, (response) => {
-      if (response?.error) {
-        setToast({ message: response.error, type: 'error' });
-        setTimeout(() => navigate('/my-teams'), 2000);
-      }
-    });
+    socketRef.current.emit('join_team', teamId);
 
     socketRef.current.on('new_message', (message) => {
       setMessages(prev => [...prev, message]);
@@ -49,7 +41,7 @@ function TeamChat() {
     });
 
     socketRef.current.on('user_typing', ({ userId, username }) => {
-      if (userId !== currentUserId) {
+      if (userId !== currentUser._id && userId !== currentUser.id) {
         setTypingUsers(prev => {
           if (!prev.find(u => u.userId === userId)) {
             return [...prev, { userId, username }];
@@ -74,21 +66,11 @@ function TeamChat() {
       socketRef.current.off('user_stop_typing');
       socketRef.current.off('message_deleted');
     };
-  }, [teamId, currentUserId]);
+  }, [teamId, currentUser._id, currentUser.id]);
 
   const loadTeam = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/teams/${teamId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.status === 403) {
-        setToast({ message: 'Nisi član ovog tima', type: 'error' });
-        setTimeout(() => navigate('/my-teams'), 2000);
-        return;
-      }
-
+      const response = await fetch(`${API_URL}/teams/${teamId}`);
       if (response.ok) {
         const data = await response.json();
         setTeam(data);
@@ -131,7 +113,7 @@ function TeamChat() {
 
     socketRef.current.emit('send_message', {
       teamId,
-      userId: currentUserId,
+      userId: currentUser._id || currentUser.id,
       text: newMessage.trim(),
       type: 'text'
     });
@@ -139,7 +121,7 @@ function TeamChat() {
     setNewMessage('');
     socketRef.current.emit('stop_typing', {
       teamId,
-      userId: currentUserId
+      userId: currentUser._id || currentUser.id
     });
   };
 
@@ -148,7 +130,7 @@ function TeamChat() {
       setIsTyping(true);
       socketRef.current.emit('typing', {
         teamId,
-        userId: currentUserId,
+        userId: currentUser._id || currentUser.id,
         username: currentUser.username
       });
     }
@@ -161,18 +143,10 @@ function TeamChat() {
       setIsTyping(false);
       socketRef.current.emit('stop_typing', {
         teamId,
-        userId: currentUserId
+        userId: currentUser._id || currentUser.id
       });
     }, 2000);
   };
-
-  // Ostali handleri (location, delete) ostaju isti, samo koristi currentUserId
-  // renderMessage i UI CSS ostaju identični tvojem trenutnom TeamChat.css
-
-  // … ostatak komponente (render, JSX) ostaje isti …
-}
-
-
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
@@ -397,5 +371,6 @@ function TeamChat() {
       )}
     </div>
   );
+}
 
 export default TeamChat;

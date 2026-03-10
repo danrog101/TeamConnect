@@ -1,5 +1,6 @@
 const { supabase } = require('../config/supabase');
-
+const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+const currentUserId = currentUser.id || currentUser._id;
 // Dohvati sve poruke tima
 exports.getMessages = async (req, res) => {
   try {
