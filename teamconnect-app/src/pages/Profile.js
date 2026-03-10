@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { authAPI } from '../services/api';
 import './Profile.css';
+import SportRatingModal from '../components/SportRatingModal';
 import { useLanguage } from '../i18n/LanguageContext'; 
 function Profile() {
    const { t } = useLanguage();
@@ -16,6 +17,9 @@ function Profile() {
   const [toast, setToast] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showRateModal, setShowRateModal] = useState(false);
+const [canRateUser, setCanRateUser] = useState(false);
+const [hasRatedUser, setHasRatedUser] = useState(false);
 
   const [editForm, setEditForm] = useState({
     firstName: '',
@@ -136,7 +140,9 @@ function Profile() {
       });
 
       setIsOwnProfile(!userId || userId === currentUser.id);
-
+      if (userId && userId !== currentUser.id) {
+  checkCanRate(userId);
+}
       setEditForm({
         firstName: user.first_name || user.firstName || '',
         lastName: user.last_name || user.lastName || '',
@@ -165,7 +171,54 @@ function Profile() {
       setToast({ message: 'Failed to load profile', type: 'error' });
     }
   };
+  const checkCanRate = async (targetId) => {
+  try {
+    const token = localStorage.getItem('token');
+    // Provjeri dijele li zajednički tim
+    const [myTeamsRes, targetTeamsRes] = await Promise.all([
+      fetch(`${API_URL}/teams?member=${currentUser.id}`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${API_URL}/teams?member=${targetId}`, { headers: { Authorization: `Bearer ${token}` } })
+    ]);
 
+    if (myTeamsRes.ok && targetTeamsRes.ok) {
+      const myTeams = await myTeamsRes.json();
+      const targetTeams = await targetTeamsRes.json();
+      const myIds = new Set(myTeams.map(t => t.id));
+      const shared = targetTeams.some(t => myIds.has(t.id));
+      setCanRateUser(shared);
+    }
+  } catch (e) {
+    console.error('Check can rate error:', e);
+  }
+};
+const handleRatePlayer = async ({ sport, skillLevel }) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/ratings/rate-player`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        targetUserId: userId,
+        skillLevel,
+        sport: sport || profile.sport || 'Nogomet'
+      })
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setToast({ message: '✅ Ocjena uspješno spremljena!', type: 'success' });
+      setShowRateModal(false);
+      setHasRatedUser(true);
+    } else {
+      setToast({ message: data.message, type: 'error' });
+      setShowRateModal(false);
+    }
+  } catch (e) {
+    setToast({ message: 'Greška pri ocjenjivanju', type: 'error' });
+  }
+};
   const handleSaveProfile = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -443,22 +496,26 @@ function Profile() {
               </div>
             </div>
 
-            {isOwnProfile && (
-              <div className="profile-actions-header">
-                <button 
-                  className="btn btn-primary"
-                  onClick={() => setIsEditing(!isEditing)}
-                >
-                  {isEditing ? 'Cancel' : '✏️ Edit Profile'}
-                </button>
-                <button 
-                  className="btn btn-secondary"
-                  onClick={() => setShowPasswordModal(true)}
-                >
-                  🔒 Change Password
-                </button>
-              </div>
-            )}
+            {isOwnProfile ? (
+  <div className="profile-actions-header">
+    <button className="btn btn-primary" onClick={() => setIsEditing(!isEditing)}>
+      {isEditing ? 'Cancel' : '✏️ Edit Profile'}
+    </button>
+    <button className="btn btn-secondary" onClick={() => setShowPasswordModal(true)}>
+      🔒 Change Password
+    </button>
+  </div>
+) : canRateUser && (
+  <div className="profile-actions-header">
+    <button
+      className="btn btn-primary"
+      onClick={() => setShowRateModal(true)}
+      disabled={hasRatedUser}
+    >
+      {hasRatedUser ? '✅ Već ocijenjeno' : '⭐ Ocijeni igrača'}
+    </button>
+  </div>
+)}
           </div>
         </div>
 
@@ -551,7 +608,13 @@ function Profile() {
           </div>
         </div>
       )}
-
+      {showRateModal && (
+  <SportRatingModal
+    sport={profile.sport || 'Nogomet'}
+    onSubmit={({ sport, skillLevel }) => handleRatePlayer({ sport, skillLevel })}
+    onCancel={() => setShowRateModal(false)}
+  />
+)}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );

@@ -594,100 +594,69 @@ exports.ratePlayer = async (req, res) => {
     const raterId = req.user.id;
     const { targetUserId, skillLevel, sport } = req.body;
 
-    // Cannot rate yourself
     if (raterId === targetUserId) {
-      return res.status(400).json({ message: 'Ne možeš ocjeniti sebe. Koristi self-rating.' });
+      return res.status(400).json({ message: 'Ne možeš ocjeniti sebe.' });
     }
 
     if (!targetUserId || !skillLevel || !sport) {
       return res.status(400).json({ message: 'targetUserId, skillLevel i sport su obavezni.' });
     }
 
-    // Validate skill level (1-5)
     const level = parseInt(skillLevel);
     if (isNaN(level) || level < 1 || level > 5) {
       return res.status(400).json({ message: 'Ocjena mora biti između 1 i 5' });
     }
 
-    // Check if target user exists and has self-rated
+    // ✅ Provjeri zajednički tim
+    const { data: raterMembers } = await supabase.from('team_members').select('team_id').eq('user_id', raterId);
+    const { data: targetMembers } = await supabase.from('team_members').select('team_id').eq('user_id', targetUserId);
+    const { data: raterCreated } = await supabase.from('teams').select('id').eq('creator_id', raterId);
+    const { data: targetCreated } = await supabase.from('teams').select('id').eq('creator_id', targetUserId);
+
+    const raterIds = new Set([...(raterMembers||[]).map(t=>t.team_id), ...(raterCreated||[]).map(t=>t.id)]);
+    const targetIds = new Set([...(targetMembers||[]).map(t=>t.team_id), ...(targetCreated||[]).map(t=>t.id)]);
+    const sharedTeam = [...raterIds].some(id => targetIds.has(id));
+
+    if (!sharedTeam) {
+      return res.status(403).json({ message: 'Možeš ocjeniti samo igrače s kojima si bio/la u istom timu.' });
+    }
+
     const { data: targetUser, error: targetError } = await supabase
-      .from('users')
-      .select('has_self_rated, username, rating_overall')
-      .eq('id', targetUserId)
-      .single();
+      .from('users').select('has_self_rated, username, rating_overall').eq('id', targetUserId).single();
 
     if (targetError || !targetUser) {
       return res.status(404).json({ message: 'Korisnik nije pronađen' });
     }
 
     if (!targetUser.has_self_rated) {
-      return res.status(400).json({
-        message: `${targetUser.username} još nije ocijenio/la sebe. Moraju prvo ocijeniti sebe.`
-      });
+      return res.status(400).json({ message: `${targetUser.username} još nije ocijenio/la sebe.` });
     }
 
-    // Convert 1-5 to rating value (20, 40, 60, 80, 100)
     const ratingValue = level * 20;
 
-    // Average with existing rating
-    const currentOverall = targetUser.rating_overall || 0;
-    const newOverall = Math.round((currentOverall + ratingValue * 30) / 2);
-
-    // Update sport_ratings table for this sport
     const { data: existingSportRating } = await supabase
-      .from('sport_ratings')
-      .select('id, overall_rating, skill_level')
-      .eq('user_id', targetUserId)
-      .eq('sport', sport)
-      .single();
+      .from('sport_ratings').select('id, overall_rating, skill_level')
+      .eq('user_id', targetUserId).eq('sport', sport).single();
 
     if (existingSportRating) {
-      // Average with existing sport rating
-      const newSportRating = Math.round((existingSportRating.overall_rating + ratingValue) / 2);
-      const newSkillLevel = Math.round((existingSportRating.skill_level + level) / 2);
-
-      await supabase
-        .from('sport_ratings')
-        .update({
-          overall_rating: newSportRating,
-          skill_level: newSkillLevel,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingSportRating.id);
+      await supabase.from('sport_ratings').update({
+        overall_rating: Math.round((existingSportRating.overall_rating + ratingValue) / 2),
+        skill_level: Math.round((existingSportRating.skill_level + level) / 2),
+        updated_at: new Date().toISOString()
+      }).eq('id', existingSportRating.id);
     } else {
-      await supabase
-        .from('sport_ratings')
-        .insert({
-          user_id: targetUserId,
-          sport,
-          overall_rating: ratingValue,
-          skill_level: level
-        });
+      await supabase.from('sport_ratings').insert({ user_id: targetUserId, sport, overall_rating: ratingValue, skill_level: level });
     }
 
-    // Update user overall rating
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        rating_overall: newOverall,
-        rating_attack: ratingValue,
-        rating_defense: ratingValue,
-        rating_teamwork: ratingValue,
-        rating_consistency: ratingValue,
-        rating_last_updated: new Date().toISOString()
-      })
-      .eq('id', targetUserId);
+    const currentOverall = targetUser.rating_overall || ratingValue * 30;
+    const newOverall = Math.round((currentOverall + ratingValue * 30) / 2);
 
-    if (updateError) {
-      console.error('❌ Update rating error:', updateError);
-      return res.status(500).json({ message: 'Greška pri ažuriranju ocjene' });
-    }
+    await supabase.from('users').update({
+      rating_overall: newOverall,
+      rating_last_updated: new Date().toISOString()
+    }).eq('id', targetUserId);
 
-    res.json({
-      message: 'Ocjena uspješno spremljena!',
-      skillLevel: level,
-      sport
-    });
+    res.json({ message: 'Ocjena uspješno spremljena!', skillLevel: level, sport });
   } catch (error) {
     console.error('❌ Rate player error:', error);
     res.status(500).json({ message: 'Server error' });
