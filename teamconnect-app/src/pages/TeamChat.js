@@ -69,19 +69,29 @@ function TeamChat() {
   }, [teamId, currentUser._id, currentUser.id]);
 
   const loadTeam = async () => {
-    try {
-      const response = await fetch(`${API_URL}/teams/${teamId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setTeam(data);
-      } else {
-        setToast({ message: t('chat.teamNotFound'), type: 'error' });
-        setTimeout(() => navigate('/my-teams'), 2000);
-      }
-    } catch (error) {
-      console.error('Load team error:', error);
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/teams/${teamId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (response.status === 403) {
+      setToast({ message: 'Nisi član ovog tima', type: 'error' });
+      setTimeout(() => navigate('/my-teams'), 2000);
+      return;
     }
-  };
+
+    if (response.ok) {
+      const data = await response.json();
+      setTeam(data);
+    } else {
+      setToast({ message: t('chat.teamNotFound'), type: 'error' });
+      setTimeout(() => navigate('/my-teams'), 2000);
+    }
+  } catch (error) {
+    console.error('Load team error:', error);
+  }
+};
 
   const loadMessages = async () => {
     try {

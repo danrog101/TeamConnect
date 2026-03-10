@@ -14,6 +14,10 @@ function Navbar() {
   const { t } = useLanguage();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [showMenu, setShowMenu] = useState(false);
+  useEffect(() => {
+  document.body.style.overflow = showMenu ? 'hidden' : '';
+  return () => { document.body.style.overflow = ''; };
+}, [showMenu]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const isAdmin = user.email === ADMIN_EMAIL;
 

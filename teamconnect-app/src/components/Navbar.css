@@ -52,7 +52,7 @@
   border: none;
   color: var(--text-primary);
   cursor: pointer;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   font-size: 0.95rem;
   font-weight: 500;
   transition: all var(--transition-fast);
@@ -281,6 +281,7 @@
     transform: translateY(0);
     opacity: 1;
     pointer-events: all;
+    overflow-y: auto;
   }
 
   .nav-link {
