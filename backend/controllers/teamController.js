@@ -5,6 +5,36 @@ const { createNotificationHelper } = require('./notificationController');
 // Get all teams with creator info
 exports.getAllTeams = async (req, res) => {
   try {
+    const { member } = req.query;
+
+    // Ako je tražen member filter, vrati timove tog člana
+    if (member) {
+      const { data: memberTeams } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', member);
+
+      const { data: createdTeams } = await supabase
+        .from('teams')
+        .select('id')
+        .eq('creator_id', member);
+
+      const teamIds = [
+        ...(memberTeams || []).map(t => t.team_id),
+        ...(createdTeams || []).map(t => t.id)
+      ];
+
+      if (teamIds.length === 0) return res.json([]);
+
+      const { data, error } = await supabase
+        .from('teams')
+        .select('id, name, sport')
+        .in('id', teamIds);
+
+      if (error) return res.status(500).json({ message: 'Server error' });
+      return res.json(data || []);
+    }
+
     const { data, error } = await supabase
       .from('teams')
       .select(`
