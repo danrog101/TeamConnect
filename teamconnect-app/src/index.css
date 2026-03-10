@@ -159,7 +159,10 @@
   --z-tooltip: 600;
   --z-toast: 700;
 }
-
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
 /* ============ RESET & BASE ============ */
 *, *::before, *::after {
   box-sizing: border-box;

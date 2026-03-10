@@ -4,9 +4,10 @@
 }
 
 .dashboard-container {
-  max-width: 1400px;
+ max-width: 1400px;
   margin: 0 auto;
   padding: 40px 24px;
+  overflow-x: hidden; /* ✅ dodaj ovo */
 }
 
 .dashboard-header {
@@ -118,6 +119,7 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 24px;
   animation: fadeIn 0.8s ease-out 0.4s both;
+  
 }
 
 /* Loading State */
@@ -273,6 +275,7 @@
 
   .teams-grid {
     grid-template-columns: 1fr;
+    width: 100%;
   }
 
   .filters-grid {

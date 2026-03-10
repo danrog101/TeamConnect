@@ -66,6 +66,7 @@
   transform: translateY(-1px);
 }
 
+/* ✅ Ikonice potpuno zaokružene */
 .nav-icon {
   font-size: 1.1rem;
   display: inline-flex;
@@ -73,7 +74,7 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 10px;
+  border-radius: 50%;
   background: var(--color-primary-bg);
   border: 1px solid var(--border-primary);
   transition: all var(--transition-fast);
@@ -107,7 +108,7 @@
   font-size: 1.5rem;
   cursor: pointer;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: 50%;
   transition: background 0.2s;
   display: flex;
   align-items: center;
@@ -229,7 +230,7 @@
   color: var(--danger, var(--color-error));
 }
 
-/* Mobile */
+/* Tablet */
 @media (max-width: 1024px) {
   .navbar-menu {
     gap: 2px;
@@ -244,11 +245,11 @@
   .nav-icon {
     width: 28px;
     height: 28px;
-    border-radius: 8px;
     font-size: 1rem;
   }
 }
 
+/* ✅ Mobile */
 @media (max-width: 768px) {
   .navbar-container {
     height: 60px;
@@ -297,26 +298,28 @@
   .nav-icon {
     width: 34px;
     height: 34px;
-    border-radius: 10px;
   }
 
   .navbar-user {
     gap: var(--space-sm);
   }
 
-  .user-name {
+  /* ✅ Na mobu sakrij samo ime i btn-logout jer su već u mobilnom meniju */
+  .navbar-user .btn-logout,
+  .navbar-user .user-name {
     display: none;
   }
 
-  .user-avatar {
+  /* ✅ theme-toggle i user-avatar ostaju vidljivi na mobu */
+  .navbar-user .theme-toggle {
+    display: flex;
+  }
+
+  .navbar-user .user-avatar {
+    display: flex;
     width: 36px;
     height: 36px;
     font-size: 1rem;
-  }
-
-  .btn-logout {
-    padding: 6px 12px;
-    font-size: 0.9rem;
   }
 
   .mobile-menu-extras {
@@ -324,22 +327,11 @@
     flex-direction: column;
     gap: 4px;
   }
-
-  .navbar-user .theme-toggle,
-  .navbar-user .btn-logout,
-  .navbar-user .user-avatar,
-  .navbar-user .user-name {
-    display: none;
-  }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
