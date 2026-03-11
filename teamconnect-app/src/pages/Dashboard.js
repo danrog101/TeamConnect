@@ -8,10 +8,9 @@ import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
 import './Dashboard.css';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-const { t, translateSport, translateCountry } = useLanguage();
 function Dashboard() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, translateSport, translateCountry } = useLanguage();
 
   const [teams, setTeams] = useState([]);
   const [filteredTeams, setFilteredTeams] = useState([]);

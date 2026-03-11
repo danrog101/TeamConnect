@@ -9,8 +9,7 @@ const morgan = require('morgan');
 
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
-const studioRoutes = require('./routes/studioRoutes');
-app.use('/api/studios', studioRoutes);
+
 // ✅ DODAJ OVO - Cron job setup
 const cron = require('node-cron');
 
@@ -162,6 +161,8 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/waitlist', waitlistRoutes);
+const studioRoutes = require('./routes/studioRoutes');
+app.use('/api/studios', studioRoutes);
 
 // Socket.io event handlers
 io.on('connection', (socket) => {
