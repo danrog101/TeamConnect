@@ -1,0 +1,320 @@
+.studio-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.studio-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+}
+
+.studio-header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.studio-header h1 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.studio-header p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.studios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+.studio-card {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  padding: var(--space-lg);
+}
+
+.studio-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.studio-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.studio-card-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.studio-role-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.studio-role-badge.trainer {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+}
+
+.studio-role-badge.member {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.studio-desc {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: var(--space-sm) 0;
+}
+
+.studio-card-footer {
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  margin-top: var(--space-sm);
+}
+
+.no-studios, .no-sessions, .no-members {
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.no-studios h2, .no-sessions h3, .no-members h3 {
+  margin: var(--space-md) 0 var(--space-sm);
+}
+
+/* Studio detalji */
+.studio-detail-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.studio-detail-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.studio-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+  border-bottom: 2px solid var(--border-primary);
+  padding-bottom: 0;
+}
+
+.studio-tabs .tab {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+
+.studio-tabs .tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Sesije */
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.session-card {
+  padding: var(--space-lg);
+}
+
+.session-card.past {
+  opacity: 0.6;
+}
+
+.session-card-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.session-type-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.session-info h3 {
+  margin: 4px 0;
+  font-size: 1.1rem;
+}
+
+.session-datetime {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 4px 0;
+}
+
+.session-spots {
+  font-size: 0.9rem;
+  margin: 4px 0;
+}
+
+.full-badge {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.session-notes {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin: 4px 0;
+}
+
+.session-deadlines {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+}
+
+.session-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-sm);
+  min-width: 120px;
+}
+
+.signed-up-badge {
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.trainer-signups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.signup-avatar {
+  font-size: 1.2rem;
+  cursor: default;
+}
+
+/* Članovi */
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.member-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md);
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.member-avatar {
+  font-size: 1.8rem;
+}
+
+.member-info p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Modali */
+.studio-modal {
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-xl);
+}
+
+.form-group {
+  margin-bottom: var(--space-md);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: flex-end;
+  margin-top: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .studio-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .session-card-main {
+    flex-direction: column;
+  }
+
+  .session-actions {
+    align-items: flex-start;
+    min-width: unset;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

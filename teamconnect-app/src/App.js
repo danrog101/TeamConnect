@@ -28,6 +28,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import Footer from './components/Footer';
 import './App.css';
+import MyStudio from './pages/MyStudio';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -57,7 +58,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
-
+            <Route path="/my-studio" element={<MyStudio />} />
             {/* Admin ruta */}
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
