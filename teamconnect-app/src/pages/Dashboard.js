@@ -8,7 +8,7 @@ import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
 import './Dashboard.css';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
+const { t, translateSport, translateCountry } = useLanguage();
 function Dashboard() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -254,12 +254,16 @@ function Dashboard() {
                 <option value="">{t('dashboard.allSports')}</option>
                 <optgroup label={t('dashboard.popular')}>
                   {sportsList.filter(s => s.popular).map(sport => (
-                    <option key={sport.id} value={sport.name}>{sport.name}</option>
+                    <option key={sport.id} value={sport.name}>
+  {sport.icon} {translateSport(sport.name)}
+</option>
                   ))}
                 </optgroup>
                 <optgroup label={t('dashboard.other')}>
                   {sportsList.filter(s => !s.popular).map(sport => (
-                    <option key={sport.id} value={sport.name}>{sport.name}</option>
+                    <option key={sport.id} value={sport.name}>
+  {sport.icon} {translateSport(sport.name)}
+</option>
                   ))}
                 </optgroup>
               </select>
@@ -273,7 +277,9 @@ function Dashboard() {
               >
                 <option value="">{t('dashboard.allCountries')}</option>
                 {countries.map(country => (
-                  <option key={country} value={country}>{country}</option>
+                  <option key={country} value={country}>
+  {translateCountry(country)}
+</option>
                 ))}
               </select>
             </div>
