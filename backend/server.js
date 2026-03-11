@@ -9,7 +9,8 @@ const morgan = require('morgan');
 
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
-
+const studioRoutes = require('./routes/studioRoutes');
+app.use('/api/studios', studioRoutes);
 // ✅ DODAJ OVO - Cron job setup
 const cron = require('node-cron');
 
