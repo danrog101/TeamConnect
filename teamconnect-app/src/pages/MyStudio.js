@@ -41,9 +41,17 @@ function MyStudio() {
 
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    loadData();
-  }, []);
+useEffect(() => {
+  loadData();
+}, []);
+
+useEffect(() => {
+  // Ako je klijent (ne trener) i ima samo jedan studio, automatski ga otvori
+  if (memberStudios.length > 0 && myStudios.length === 0) {
+    setSelectedStudio(memberStudios[0]);
+    setActiveTab('sessions');
+  }
+}, [memberStudios, myStudios]);
 
   useEffect(() => {
     if (selectedStudio) {
@@ -410,12 +418,16 @@ function MyStudio() {
                             {isTrainer(selectedStudio) && (
                               <>
                                 <div className="trainer-signups">
-                                  {session.signups?.filter(s => !s.cancelled_at).map(s => (
-                                    <span key={s.id} className="signup-avatar" title={s.user?.username}>
-                                      {s.user?.avatar || '👤'}
-                                    </span>
-                                  ))}
-                                </div>
+  {session.signups?.filter(s => !s.cancelled_at).map(s => (
+    <div key={s.id} className="signup-person">
+      <span className="signup-avatar">{s.user?.avatar || '👤'}</span>
+      <span className="signup-name">{s.user?.username}</span>
+    </div>
+  ))}
+  {session.signups?.filter(s => !s.cancelled_at).length === 0 && (
+    <p style={{color: 'var(--text-secondary)', fontSize: '0.85rem'}}>Nema prijavljenih</p>
+  )}
+</div>
                                 <button className="btn btn-danger btn-small" onClick={() => handleDeleteSession(session.id)}>
                                   🗑️
                                 </button>

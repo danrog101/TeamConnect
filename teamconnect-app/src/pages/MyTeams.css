@@ -196,3 +196,13 @@
     padding: 40px 20px;
   }
 }
+.signup-person {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+.signup-name {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
