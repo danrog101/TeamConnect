@@ -214,7 +214,8 @@ function Dashboard() {
     } catch (error) {
       console.error('❌ Join waitlist error:', error);
       setToast({ message: t('dashboard.waitlistError'), type: 'error' });
-    }
+    } };
+
    const handleLeaveTeam = async (teamId) => {
     try {
       const token = localStorage.getItem('token');
@@ -235,7 +236,7 @@ function Dashboard() {
     } catch (e) {
       setToast({ message: 'Greška', type: 'error' });
     }
-  };
+  
    
   };
 
