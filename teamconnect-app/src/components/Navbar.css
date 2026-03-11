@@ -1,5 +1,4 @@
 /* Navbar */
-
 .navbar {
   background: var(--card-bg);
   border-bottom: 1px solid var(--border-primary);
@@ -7,6 +6,56 @@
   top: 0;
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Light mode navbar u boji */
+[data-theme="light"] .navbar {
+  background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+  border-bottom: none;
+  box-shadow: 0 2px 12px rgba(26, 115, 232, 0.3);
+}
+
+[data-theme="light"] .navbar-brand {
+  color: #fff;
+}
+
+[data-theme="light"] .nav-link {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+[data-theme="light"] .nav-icon {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="light"] .nav-link:hover .nav-icon {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: #fff;
+}
+
+[data-theme="light"] .theme-toggle {
+  color: #fff;
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="light"] .user-name {
+  color: #fff;
+}
+
+[data-theme="light"] .user-avatar {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="light"] .menu-toggle {
+  color: #fff;
 }
 
 .navbar-container {
@@ -66,7 +115,6 @@
   transform: translateY(-1px);
 }
 
-/* ✅ Ikonice potpuno zaokružene */
 .nav-icon {
   font-size: 1.1rem;
   display: inline-flex;
@@ -177,10 +225,7 @@
 /* Logout Modal */
 .logout-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -215,7 +260,7 @@
   justify-content: flex-end;
 }
 
-/* Mobile menu extras - hidden on desktop */
+/* Mobile menu extras - sakriveno na desktopu */
 .mobile-menu-extras {
   display: none;
 }
@@ -228,6 +273,10 @@
 
 .logout-link {
   color: var(--danger, var(--color-error));
+}
+
+.menu-overlay {
+  display: none;
 }
 
 /* Tablet */
@@ -249,7 +298,7 @@
   }
 }
 
-/* ✅ Mobile */
+/* Mobile */
 @media (max-width: 768px) {
   .navbar-container {
     height: 60px;
@@ -257,6 +306,16 @@
 
   .menu-toggle {
     display: block;
+  }
+
+  /* Overlay koji blokira scroll ispod menija */
+  .menu-overlay {
+    display: block;
+    position: fixed;
+    top: 60px;
+    left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 998;
   }
 
   .navbar-menu {
@@ -268,20 +327,40 @@
     flex-direction: column;
     padding: var(--space-md);
     border-bottom: 1px solid var(--border-primary);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-110%);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
     max-height: calc(100vh - 60px);
     overflow-y: auto;
+    z-index: 999;
+    -webkit-overflow-scrolling: touch;
   }
 
   .navbar-menu.show {
     transform: translateY(0);
     opacity: 1;
     pointer-events: all;
-    overflow-y: auto;
+  }
+
+  /* Light mode mobilni meni bijeli */
+  [data-theme="light"] .navbar-menu {
+    background: #fff;
+  }
+
+  [data-theme="light"] .navbar-menu .nav-link {
+    color: var(--text-primary);
+  }
+
+  [data-theme="light"] .navbar-menu .nav-link:hover {
+    background: var(--bg-secondary);
+    color: var(--color-primary);
+  }
+
+  [data-theme="light"] .navbar-menu .nav-icon {
+    background: var(--color-primary-bg);
+    border-color: var(--border-primary);
   }
 
   .nav-link {
@@ -305,13 +384,11 @@
     gap: var(--space-sm);
   }
 
-  /* ✅ Na mobu sakrij samo ime i btn-logout jer su već u mobilnom meniju */
   .navbar-user .btn-logout,
   .navbar-user .user-name {
     display: none;
   }
 
-  /* ✅ theme-toggle i user-avatar ostaju vidljivi na mobu */
   .navbar-user .theme-toggle {
     display: flex;
   }
@@ -336,12 +413,6 @@
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
