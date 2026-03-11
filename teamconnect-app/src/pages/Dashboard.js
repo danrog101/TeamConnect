@@ -215,27 +215,28 @@ function Dashboard() {
       console.error('❌ Join waitlist error:', error);
       setToast({ message: t('dashboard.waitlistError'), type: 'error' });
     }
-    const handleLeaveTeam = async (teamId) => {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/teams/${teamId}/leave`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+   const handleLeaveTeam = async (teamId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/teams/${teamId}/leave`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setToast({ message: '✅ Napustio/la si tim!', type: 'success' });
+        fetchTeams();
+      } else {
+        setToast({ message: data.message || 'Greška', type: 'error' });
       }
-    });
-    const data = await response.json();
-    if (response.ok) {
-      setToast({ message: '✅ Napustio/la si tim!', type: 'success' });
-      fetchTeams();
-    } else {
-      setToast({ message: data.message || 'Greška', type: 'error' });
+    } catch (e) {
+      setToast({ message: 'Greška', type: 'error' });
     }
-  } catch (e) {
-    setToast({ message: 'Greška', type: 'error' });
-  }
-};
+  };
+   
   };
 
   if (loading) {
@@ -412,6 +413,7 @@ function Dashboard() {
                 key={team.id}
                 team={team}
                 onJoin={handleJoinTeam}
+                onLeave={handleLeaveTeam}
                 onJoinWaitlist={handleJoinWaitlist}
                 onShowNotification={(msg, type) => setToast({ message: msg, type })}
               />

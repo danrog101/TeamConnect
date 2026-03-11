@@ -101,19 +101,17 @@ exports.getMyTeams = async (req, res) => {
     const userId = req.user.id;
 
     const { data: createdTeams, error: createdError } = await supabase
-      .from('teams')
-      .select(`
-        *,
-        creator:users!teams_creator_id_fkey (
-          id,
-          username,
-          email,
-          avatar,
-          sport,
-          location
-        )
-      `)
-      .eq('creator_id', userId);
+  .from('teams')
+  .select(`
+    *,
+    creator:users!teams_creator_id_fkey (
+      id, username, email, avatar, sport, location
+    ),
+    team_members (
+      user_id
+    )
+  `)
+  .eq('creator_id', userId);
 
     if (createdError) {
       console.error('❌ Get created teams error:', createdError);
@@ -121,21 +119,19 @@ exports.getMyTeams = async (req, res) => {
     }
 
     const { data: memberTeams, error: memberError } = await supabase
-      .from('team_members')
-      .select(`
-        teams:teams!team_members_team_id_fkey (
-          *,
-          creator:users!teams_creator_id_fkey (
-            id,
-            username,
-            email,
-            avatar,
-            sport,
-            location
-          )
-        )
-      `)
-      .eq('user_id', userId);
+  .from('team_members')
+  .select(`
+    teams:teams!team_members_team_id_fkey (
+      *,
+      creator:users!teams_creator_id_fkey (
+        id, username, email, avatar, sport, location
+      ),
+      team_members (
+        user_id
+      )
+    )
+  `)
+  .eq('user_id', userId);
 
     if (memberError) {
       console.error('❌ Get member teams error:', memberError);
