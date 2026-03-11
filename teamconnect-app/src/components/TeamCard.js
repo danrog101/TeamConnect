@@ -62,6 +62,7 @@ const isJoined = () => {
   const isFull = (team.current_players || 0) >= (team.max_players || 0);
   const creator = isTeamCreator();
   const joined = isJoined();
+  console.log('Team:', team.name, '| team_members:', team.team_members, '| userId:', userId, '| joined:', joined);
   const onWaitlist = isOnWaitlist();
 
   // Ima li tim filter po ocjeni?
