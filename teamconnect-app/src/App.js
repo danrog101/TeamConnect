@@ -95,8 +95,7 @@ function App() {
             {/* Friends */}
             <Route path="/friends" element={<PrivateRoute><Friends /></PrivateRoute>} />
 
-            {/* Statistics */}
-            <Route path="/statistics" element={<PrivateRoute><Statistics /></PrivateRoute>} />
+     
 
             {/* Video */}
             <Route path="/highlights" element={<PrivateRoute><VideoHighlights /></PrivateRoute>} />
