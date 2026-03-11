@@ -36,20 +36,17 @@ exports.getAllTeams = async (req, res) => {
     }
 
     const { data, error } = await supabase
-      .from('teams')
-      .select(`
-        *,
-        creator:users!teams_creator_id_fkey (
-          id,
-          username,
-          email,
-          avatar,
-          sport,
-          location
-        )
-      `)
-      .order('created_at', { ascending: false });
-
+  .from('teams')
+  .select(`
+    *,
+    creator:users!teams_creator_id_fkey (
+      id, username, email, avatar, sport, location
+    ),
+    team_members (
+      user_id
+    )
+  `)
+  .order('created_at', { ascending: false });
     if (error) {
       console.error('❌ Get all teams error:', error);
       return res.status(500).json({ message: 'Server error' });

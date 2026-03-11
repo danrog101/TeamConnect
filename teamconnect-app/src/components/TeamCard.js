@@ -37,13 +37,21 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
     return creatorId === userId;
   };
 
-  const isJoined = () => {
-    if (!userId || !team?.players) return false;
+const isJoined = () => {
+  if (!userId) return false;
+  // Provjeri team_members ako postoje
+  if (team?.team_members) {
+    return team.team_members.some(m => m.user_id === userId);
+  }
+  // Fallback na players
+  if (team?.players) {
     return team.players.some(player => {
       const playerId = player.id || player._id || player;
       return playerId === userId;
     });
-  };
+  }
+  return false;
+};
 
   const isOnWaitlist = () => {
     if (!userId || !team?.waitlist) return false;

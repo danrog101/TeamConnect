@@ -139,7 +139,7 @@ const matchRoutes = require('./routes/matchRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const ratingRoutes = require('./routes/ratingRoutes');
-const statsRoutes = require('./routes/statsRoutes');
+
 const teamRoutes = require('./routes/teamRoutes');
 const tournamentRoutes = require('./routes/tournamentRoutes');
 const videoRoutes = require('./routes/videoRoutes');
@@ -156,7 +156,7 @@ app.use('/api/matches', matchRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/ratings', ratingRoutes);
-app.use('/api/stats', statsRoutes);
+
 app.use('/api/teams', teamRoutes);
 app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/videos', videoRoutes);
