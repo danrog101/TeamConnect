@@ -29,12 +29,14 @@
 .navbar-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 12px;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  height: 60px;
+  height: auto;      /* ← umjesto 60px */
+  min-height: 60px;
+  flex-wrap: wrap;
 }
 
 .navbar-brand {
@@ -64,8 +66,7 @@
   gap: 2px;
   flex: 1;
   justify-content: center;
-  flex-wrap: nowrap;
-  overflow: hidden;
+ flex-wrap: wrap;  /* ← mijenja iz nowrap u wrap */
 }
 
 .nav-link {

@@ -4,7 +4,7 @@ import SportRatingModal from './SportRatingModal';
 import { API_URL } from '../config';
 import './TeamCard.css';
 import { useLanguage } from '../i18n/LanguageContext';
-
+import ReactDOM from 'react-dom';
 function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotification, showActions = true, autoExpandMembers = false }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -454,14 +454,15 @@ const isJoined = () => {
       )}
 
       {/* Rating modal */}
-      {showRatingModal && (
-        <SportRatingModal
-          sport={team.sport}
-          onSubmit={handleSportRatingSubmit}
-          onCancel={() => setShowRatingModal(false)}
-          existingRating={userSportRating?.skill_level}
-        />
-      )}
+     {showRatingModal && ReactDOM.createPortal(
+  <SportRatingModal
+    sport={team.sport}
+    onSubmit={handleSportRatingSubmit}
+    onCancel={() => setShowRatingModal(false)}
+    existingRating={userSportRating?.skill_level}
+  />,
+  document.body
+)}
 
       {/* Join modal */}
       {showJoinModal && (
