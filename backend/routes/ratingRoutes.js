@@ -10,7 +10,8 @@ const {
   ratePlayer,
   getSportRating,
   submitSportRating,
-  getAllSportRatings
+  getAllSportRatings,
+   getMySportRatings
 } = require('../controllers/ratingController');
 const auth = require('../middleware/auth');
 
@@ -18,7 +19,7 @@ router.get('/leaderboard', getLeaderboard);
 router.get('/user/:userId', getUserRating);
 router.post('/recalculate', auth, recalculateRating);
 router.get('/achievements', auth, getAchievements);
-router.get('/my-sports', auth, ratingController.getMySportRatings);
+router.get('/my-sports', auth, getMySportRatings);
 // Self-rating routes (generic)
 router.get('/self-rating/status', auth, getSelfRatingStatus);
 router.post('/self-rating', auth, submitSelfRating);

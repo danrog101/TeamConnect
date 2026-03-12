@@ -1,5 +1,5 @@
 const { supabase } = require('../config/supabase');
-
+const { createNotificationHelper } = require('./notificationController');
 // Email transporter - moved inside function to avoid initialization errors
 const getTransporter = () => {
   const nodemailer = require('nodemailer');
@@ -80,7 +80,20 @@ exports.sendFriendRequest = async (req, res) => {
     const { message } = req.body;
 
     console.log('📤 Send friend request:', { from: currentUserId, to: userId });
-
+    // In-app notifikacija
+try {
+  await createNotificationHelper(
+    userId,           // recipient (osoba koja prima zahtjev)
+    'friend_request',
+    `👋 Novi zahtjev za prijateljstvo`,
+    `${currentUser?.username || 'Netko'} želi biti tvoj prijatelj!`,
+    '/friends',
+    {},
+    currentUserId     // sender
+  );
+} catch (notifErr) {
+  console.error('Notification error:', notifErr);
+}
     if (userId === currentUserId) {
       return res.status(400).json({ message: 'Cannot send friend request to yourself' });
     }
@@ -286,7 +299,20 @@ exports.acceptFriendRequest = async (req, res) => {
     }
 
     console.log('✅ Friendship created');
-
+    // In-app notifikacija
+try {
+  await createNotificationHelper(
+    friendId,         // recipient (osoba čiji je zahtjev prihvaćen)
+    'friend_accepted',
+    `🎉 Zahtjev prihvaćen!`,
+    `${currentUser?.username || 'Netko'} je prihvatio/la tvoj zahtjev za prijateljstvo!`,
+    '/friends',
+    {},
+    userId            // sender
+  );
+} catch (notifErr) {
+  console.error('Notification error:', notifErr);
+}
     const { data: currentUser } = await supabase
       .from('users')
       .select('username, email')
