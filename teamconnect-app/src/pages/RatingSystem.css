@@ -4,560 +4,50 @@
 }
 
 .rating-container {
-  max-width: 1400px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 30px 20px;
 }
 
 .rating-header {
   text-align: center;
   color: var(--text-primary);
-  margin-bottom: 40px;
-  animation: fadeInDown 0.6s ease-out;
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  margin-bottom: 30px;
 }
 
 .rating-header h1 {
-  font-size: 3.5rem;
-  margin-bottom: 15px;
-  text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.4);
+  font-size: 2.2rem;
+  margin-bottom: 8px;
   font-weight: 800;
 }
 
 .rating-header p {
-  font-size: 1.4rem;
-  opacity: 0.95;
-  text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.rating-filters {
-  margin-bottom: 40px;
-  padding: 30px;
-  display: flex;
-  gap: 40px;
-  flex-wrap: wrap;
-  align-items: center;
-  animation: fadeIn 0.8s ease-out 0.2s both;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.filter-section {
-  flex: 1;
-  min-width: 250px;
-}
-
-.filter-section label {
-  display: block;
-  margin-bottom: 12px;
-  color: var(--text-primary);
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.filter-buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  padding: 10px 20px;
-  background: var(--bg-tertiary);
-  border: 2px solid var(--border-primary);
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s;
-}
-
-.filter-btn:hover {
-  background: var(--bg-tertiary);
-  transform: translateY(-2px);
-}
-
-.filter-btn.active {
-  background: linear-gradient(135deg, #81c784, #66bb6a);
-  color: white;
-  border-color: #66bb6a;
-}
-
-.leaderboard {
-  display: grid;
-  gap: 25px;
-  margin-bottom: 40px;
-  animation: fadeIn 0.8s ease-out 0.4s both;
-}
-
-.player-card {
-  display: grid;
-  grid-template-columns: auto auto 1fr auto auto auto;
-  gap: 25px;
-  align-items: center;
-  padding: 25px;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.player-card:hover {
-  transform: translateY(-5px) translateX(10px);
-  box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
-}
-
-.player-rank {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--color-primary);
-  min-width: 60px;
-  text-align: center;
-}
-
-.player-avatar-large {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: var(--gradient-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-}
-
-.player-info h3 {
-  margin: 0 0 8px 0;
-  color: var(--text-primary);
-  font-size: 1.4rem;
-}
-
-.player-sport {
-  color: #666;
   font-size: 1rem;
-}
-
-.player-rating {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.rating-value {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.2rem;
-}
-
-.rating-number {
-  font-weight: 800;
-  color: var(--color-primary);
-  font-size: 1.5rem;
-}
-
-.skill-level {
-  padding: 6px 14px;
-  border-radius: 20px;
-  color: white;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.player-stats {
-  display: flex;
-  gap: 25px;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.stat-value {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: #999;
-  text-transform: uppercase;
-}
-
-.player-achievements {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.achievement-badge {
-  width: 45px;
-  height: 45px;
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
-  cursor: help;
-  transition: transform 0.3s;
-}
-
-.achievement-badge:hover {
-  transform: scale(1.2) rotate(10deg);
-}
-
-.btn-small {
-  padding: 10px 20px;
-  font-size: 0.9rem;
-}
-
-.empty-leaderboard {
-  text-align: center;
-  padding: 80px 40px;
-}
-
-/* Player Rating Card Styles */
-.player-rating-card {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  padding: 25px;
-  transition: all 0.3s;
-}
-
-.player-rating-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-.rank-badge {
-  min-width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 1.2rem;
-  color: white;
-  flex-shrink: 0;
-}
-
-.player-rating-info {
-  flex: 1;
-}
-
-.player-rating-header {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.player-rating-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--gradient-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-}
-
-.player-rating-details h4 {
-  margin: 0 0 5px 0;
-  font-size: 1.3rem;
-  color: var(--text-primary);
-}
-
-.player-rating-location {
-  margin: 0;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.rating-overall {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  padding: 15px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 12px;
-}
-
-.rating-label {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.rating-overall .rating-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--color-primary);
-}
-
-.rating-breakdown {
-  display: grid;
-  gap: 12px;
-  margin-bottom: 15px;
-}
-
-.rating-stat {
-  display: grid;
-  grid-template-columns: 100px 1fr 50px;
-  gap: 10px;
-  align-items: center;
-}
-
-.stat-name {
-  font-weight: 600;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.stat-bar {
-  height: 10px;
-  background: var(--bg-tertiary);
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.stat-fill {
-  height: 100%;
-  border-radius: 5px;
-  transition: width 0.5s ease;
-}
-
-.rating-stat .stat-value {
-  font-weight: 700;
-  color: var(--text-primary);
-  text-align: right;
-  font-size: 0.95rem;
-}
-
-.player-rank-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  color: white;
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-
-/* Not Rated State */
-.not-rated-message {
-  text-align: center;
-  padding: 30px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8eaed 100%);
-  border-radius: 15px;
-  border: 2px dashed #ccc;
-}
-
-.not-rated-icon {
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 15px;
-}
-
-.not-rated-message p {
-  margin: 0 0 10px 0;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #666;
-}
-
-.not-rated-message small {
-  color: #999;
-  font-size: 0.9rem;
-}
-
-/* Self-Rating Section */
-.self-rating-section {
-  max-width: 700px;
-  margin: 0 auto;
-  animation: fadeIn 0.5s ease-out;
-}
-
-.self-rating-card {
-  padding: 40px;
-}
-
-.self-rating-card h2 {
-  margin: 0 0 15px 0;
-  font-size: 2rem;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.self-rating-description {
-  text-align: center;
-  color: #666;
-  margin-bottom: 30px;
-  line-height: 1.6;
-}
-
-.self-rating-form {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.rating-slider-group {
-  padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8eaed 100%);
-  border-radius: 15px;
-}
-
-.rating-slider-group label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--text-primary);
-}
-
-.rating-icon {
-  font-size: 1.5rem;
-}
-
-.rating-value-display {
-  margin-left: auto;
-  background: var(--gradient-primary);
-  color: white;
-  padding: 5px 15px;
-  border-radius: 20px;
-  font-weight: 800;
-  font-size: 1rem;
-}
-
-.rating-slider {
-  width: 100%;
-  height: 10px;
-  border-radius: 5px;
-  background: #ddd;
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.rating-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--gradient-primary);
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
-  transition: transform 0.2s;
-}
-
-.rating-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-}
-
-.rating-slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--gradient-primary);
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
-}
-
-.rating-slider:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.rating-slider:disabled::-webkit-slider-thumb {
-  cursor: not-allowed;
-  background: #999;
-}
-
-.rating-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #999;
-}
-
-.overall-preview {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  padding: 25px;
-  background: var(--gradient-primary);
-  border-radius: 15px;
-  color: white;
-  font-size: 1.2rem;
-}
-
-.overall-preview strong {
-  font-size: 2.5rem;
-  font-weight: 800;
-}
-
-.btn-large {
-  padding: 18px 40px;
-  font-size: 1.2rem;
-  margin-top: 10px;
+  color: var(--text-secondary);
 }
 
 /* Rating Tabs */
 .rating-tabs {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 .rating-tabs .tab {
-  padding: 12px 24px;
+  padding: 10px 22px;
   background: var(--bg-card);
   border: 2px solid var(--border-primary);
   border-radius: 25px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
+  font-size: 0.95rem;
 }
 
 .rating-tabs .tab:hover {
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   transform: translateY(-2px);
 }
 
@@ -567,480 +57,131 @@
   border-color: #66bb6a;
 }
 
-/* Rating Controls */
-.rating-controls {
+/* My ratings list */
+.my-rating-section {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.sport-ratings-list {
   display: flex;
-  justify-content: center;
-  margin-bottom: 30px;
+  flex-direction: column;
+  gap: 12px;
 }
 
-@media (max-width: 768px) {
-  .self-rating-card {
-    padding: 25px;
-  }
-
-  .self-rating-card h2 {
-    font-size: 1.5rem;
-  }
-
-  .rating-slider-group {
-    padding: 15px;
-  }
-
-  .overall-preview strong {
-    font-size: 2rem;
-  }
-}
-
-.achievement-list {
-  padding: 40px;
-  animation: fadeIn 1s ease-out 0.6s both;
-}
-
-.achievement-list h2 {
-  color: var(--text-primary);
-  margin-bottom: 30px;
-  font-size: 2rem;
-  text-align: center;
-}
-
-.achievements-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.achievement-item {
+.sport-rating-item {
   display: flex;
-  gap: 15px;
+  justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 15px;
-  transition: all 0.3s;
-}
-
-.achievement-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
-}
-
-.ach-icon {
-  font-size: 2.5rem;
-}
-
-.achievement-item h4 {
-  margin: 0 0 5px 0;
-  color: var(--text-primary);
-  font-size: 1.1rem;
-}
-
-.achievement-item p {
-  margin: 0;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-@media (max-width: 1200px) {
-  .player-card {
-    grid-template-columns: auto 1fr;
-    gap: 15px;
-  }
-
-  .player-stats {
-    grid-column: 1 / -1;
-    justify-content: space-around;
-  }
-
-  .player-achievements {
-    grid-column: 1 / -1;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 768px) {
-  .rating-header h1 {
-    font-size: 2.5rem;
-  }
-
-  .rating-filters {
-    flex-direction: column;
-  }
-
-  .player-card {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .player-rank {
-    font-size: 2rem;
-  }
-
-  .player-avatar-large {
-    margin: 0 auto;
-  }
-
-  .achievements-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ============================================
-   SPORT-SPECIFIC RATINGS SECTION
-   ============================================ */
-
-.sport-ratings-section {
-  max-width: 900px;
-  margin: 0 auto;
-  animation: fadeIn 0.5s ease-out;
-}
-
-.sport-ratings-header {
-  text-align: center;
-  padding: 30px;
-  margin-bottom: 30px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border-radius: 12px;
   border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
 }
 
-.sport-ratings-header h2 {
-  margin: 0 0 12px 0;
-  font-size: 1.8rem;
-  color: var(--text-primary);
-}
-
-.sport-ratings-header p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 1rem;
-}
-
-/* My Sport Ratings Grid */
-.my-sport-ratings {
-  margin-bottom: 30px;
-}
-
-.my-sport-ratings h3 {
-  margin-bottom: 20px;
-  color: var(--text-primary);
-  font-size: 1.3rem;
-}
-
-.sport-ratings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.sport-rating-card {
-  padding: 24px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-primary);
-  transition: all 0.3s;
-}
-
-.sport-rating-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
-}
-
-.sport-rating-card .sport-rating-header {
+.sport-rating-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-primary);
 }
 
-.sport-rating-card .sport-icon {
-  font-size: 2.5rem;
-}
-
-.sport-rating-card h4 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: var(--text-primary);
-}
-
-.sport-rating-stats {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.sport-rating-stats .overall-stat,
-.sport-rating-stats .level-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.sport-rating-stats .stat-label {
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.sport-rating-stats .stat-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--primary);
-}
-
-.sport-rating-stats .stat-badge {
-  padding: 6px 14px;
-  background: var(--gradient-primary);
-  color: white;
-  border-radius: var(--radius-full);
+.sport-name {
   font-weight: 600;
-  font-size: 0.85rem;
-}
-
-/* Add Sport Rating Section */
-.add-sport-rating {
-  padding: 30px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-primary);
-  border-left: 4px solid var(--primary);
-}
-
-.add-sport-rating h3 {
-  margin: 0 0 10px 0;
-  color: var(--text-primary);
-  font-size: 1.3rem;
-}
-
-.add-sport-rating p {
-  margin: 0 0 24px 0;
-  color: var(--text-secondary);
-}
-
-.sport-selection {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.sport-select {
-  flex: 1;
-  min-width: 200px;
-  padding: 14px 18px;
-  border: 2px solid var(--border-primary);
-  border-radius: var(--radius-lg);
   font-size: 1rem;
-  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.sport-level-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* Self-Rating Section */
+.self-rating-section {
+  max-width: 640px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.self-rating-card {
+  padding: 28px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.self-rating-card h2 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* Sport chips */
+.sport-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.sport-chip {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 2px solid var(--border-primary);
+  background: var(--bg-secondary);
   color: var(--text-primary);
   cursor: pointer;
+  font-size: 0.85rem;
   transition: all 0.2s;
 }
 
-.sport-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-alpha);
+.sport-chip:hover,
+.sport-chip.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
 }
 
-.sport-select option:disabled {
-  color: var(--text-tertiary);
-}
-
-.loading-indicator {
-  text-align: center;
-  padding: 40px;
-  color: var(--text-secondary);
-}
-
-/* Achievements Section Updates */
-.achievements-section {
-  animation: fadeIn 0.5s ease-out;
-}
-
-.achievements-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.achievements-header h2 {
-  margin: 0 0 10px 0;
-  color: var(--text-primary);
-  font-size: 1.8rem;
-}
-
-.achievements-header p {
-  margin: 0;
-  color: var(--text-secondary);
-}
-
-.no-achievements {
-  text-align: center;
-  padding: 60px 30px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-primary);
-}
-
-.no-achievements .empty-icon {
-  font-size: 4rem;
-  display: block;
-  margin-bottom: 20px;
-}
-
-.no-achievements p {
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.achievement-card {
-  padding: 24px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-primary);
-  text-align: center;
-  transition: all 0.3s;
-}
-
-.achievement-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
-}
-
-.achievement-card.locked {
-  opacity: 0.6;
-}
-
-.achievement-card.unlocked {
-  border-color: #3b82f6;
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(34, 197, 94, 0.1) 100%);
-}
-
-.achievement-card .achievement-icon {
-  font-size: 3rem;
-  margin-bottom: 12px;
-}
-
-.achievement-card h4 {
-  margin: 0 0 8px 0;
-  color: var(--text-primary);
-  font-size: 1.1rem;
-}
-
-.achievement-card p {
-  margin: 0 0 16px 0;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.achievement-progress {
-  margin-top: 16px;
-}
-
-.achievement-progress .progress-bar {
-  height: 8px;
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.achievement-progress .progress-fill {
-  height: 100%;
-  background: var(--gradient-primary);
-  border-radius: var(--radius-full);
-  transition: width 0.5s ease;
-}
-
-.achievement-progress .progress-text {
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
-}
-
-.achievement-unlocked {
-  color: #3b82f6;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-@media (max-width: 600px) {
-  .sport-selection {
-    flex-direction: column;
-  }
-
-  .sport-select {
-    width: 100%;
-  }
-
-  .sport-selection .btn {
-    width: 100%;
-  }
-
-  .sport-ratings-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ============================================
-   SIMPLIFIED SKILL LEVEL RATING (1-5)
-   ============================================ */
-
-.simple-rating-group {
-  padding: 30px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8eaed 100%);
-  border-radius: 20px;
-}
-
-.simple-rating-label {
-  display: block;
-  text-align: center;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 25px;
-}
-
+/* Skill Level Buttons - KOMPAKTNI */
 .skill-level-options {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 25px;
+  flex-wrap: nowrap;
+  margin: 16px 0;
 }
 
 .skill-level-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 20px 24px;
-  min-width: 100px;
+  gap: 4px;
+  padding: 12px 10px;
+  min-width: 0;
+  flex: 1;
+  max-width: 100px;
   background: var(--bg-secondary);
-  border: 3px solid var(--border-primary);
-  border-radius: 16px;
+  border: 2px solid var(--border-primary);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
 
 .skill-level-btn:hover:not(:disabled) {
-  transform: translateY(-4px);
-  border-color: var(--primary);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
+  transform: translateY(-3px);
+  border-color: var(--color-primary);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.2);
 }
 
 .skill-level-btn.selected {
-  background: var(--gradient-primary);
-  border-color: var(--primary);
-  transform: scale(1.05);
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+  border-color: var(--color-primary);
+  transform: scale(1.04);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
 }
 
 .skill-level-btn.selected .level-number,
@@ -1053,118 +194,264 @@
   cursor: not-allowed;
 }
 
+.skill-level-btn .level-icon {
+  font-size: 1.2rem;
+}
+
 .skill-level-btn .level-number {
-  font-size: 2rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--color-primary);
   line-height: 1;
 }
 
 .skill-level-btn .level-label {
-  font-size: 0.85rem;
+  font-size: 0.68rem;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  text-align: center;
 }
 
-.skill-level-btn .level-icon {
-  font-size: 1.5rem;
-  margin-top: 4px;
-}
-
+/* Skill description */
 .skill-level-description {
   text-align: center;
-  padding: 20px;
+  padding: 14px 16px;
   background: var(--bg-secondary);
-  border-radius: 12px;
-  border-left: 4px solid var(--primary);
+  border-radius: 10px;
+  border-left: 3px solid var(--color-primary);
+  margin-bottom: 16px;
 }
 
 .skill-level-description p {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   color: var(--text-primary);
   line-height: 1.5;
 }
 
-.skill-level-description strong {
-  color: var(--primary);
+/* Save button - uvijek vidljiv */
+.btn-large {
+  padding: 14px 32px;
+  font-size: 1.05rem;
+  width: 100%;
+  margin-top: 8px;
+  border-radius: 10px;
 }
 
-@media (max-width: 600px) {
-  .skill-level-options {
-    gap: 8px;
-  }
-
-  .skill-level-btn {
-    padding: 15px 18px;
-    min-width: 60px;
-  }
-
-  .skill-level-btn .level-number {
-    font-size: 1.5rem;
-  }
-
-  .skill-level-btn .level-label {
-    font-size: 0.7rem;
-  }
-
-  .skill-level-btn .level-icon {
-    font-size: 1.2rem;
-  }
+/* Leaderboard */
+.leaderboard {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 30px;
 }
-.sport-ratings-list {
+
+.player-card {
+  display: grid;
+  grid-template-columns: 60px 60px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-primary);
+  transition: all 0.3s;
+}
+
+.player-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+}
+
+.player-rank {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.player-avatar-large {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+}
+
+.player-info h3 {
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.player-sport {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.player-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat-item {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-}
-
-.sport-rating-item {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: var(--space-md);
+  gap: 2px;
 }
 
-.sport-rating-info {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
-.sport-name {
-  font-weight: 600;
-  font-size: 1rem;
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
 }
 
-.sport-level-badge {
+.skill-level {
   padding: 4px 12px;
   border-radius: 20px;
   color: white;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
 }
 
-.sport-chips {
+/* Rating filters */
+.rating-filters {
+  margin-bottom: 24px;
+  padding: 20px;
   display: flex;
+  gap: 24px;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
 }
 
-.sport-chip {
-  padding: 8px 14px;
-  border-radius: 20px;
-  border: 2px solid var(--border-primary);
-  background: var(--bg-secondary);
+.filter-section { flex: 1; min-width: 200px; }
+
+.filter-section label {
+  display: block;
+  margin-bottom: 10px;
   color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.filter-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.filter-btn {
+  padding: 8px 16px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-primary);
+  border-radius: 20px;
   cursor: pointer;
+  font-weight: 600;
   font-size: 0.9rem;
   transition: all 0.2s;
 }
 
-.sport-chip:hover, .sport-chip.selected {
-  border-color: var(--color-primary);
-  background: var(--color-primary-bg);
-  color: var(--color-primary);
+.filter-btn:hover { transform: translateY(-2px); }
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #81c784, #66bb6a);
+  color: white;
+  border-color: #66bb6a;
+}
+
+/* Achievements */
+.achievement-list { padding: 20px 0; }
+
+.achievement-list h2 {
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.achievement-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.achievement-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+}
+
+.ach-icon { font-size: 2rem; }
+
+.achievement-item h4 {
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.achievement-item p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Empty state */
+.empty-leaderboard {
+  text-align: center;
+  padding: 60px 30px;
+  color: var(--text-secondary);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .rating-container { padding: 20px 12px; }
+
+  .rating-header h1 { font-size: 1.7rem; }
+
+  .self-rating-card { padding: 20px 16px; }
+
+  .skill-level-options { gap: 5px; }
+
+  .skill-level-btn {
+    padding: 10px 6px;
+  }
+
+  .skill-level-btn .level-number { font-size: 1.2rem; }
+  .skill-level-btn .level-icon { font-size: 1rem; }
+  .skill-level-btn .level-label { font-size: 0.6rem; }
+
+  .player-card {
+    grid-template-columns: 40px 1fr;
+    gap: 10px;
+  }
+
+  .player-stats { display: none; }
+  .player-avatar-large { width: 40px; height: 40px; font-size: 1.4rem; }
+  .player-rank { font-size: 1.4rem; }
+
+  .achievements-grid { grid-template-columns: 1fr; }
 }
