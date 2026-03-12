@@ -341,25 +341,43 @@ function TournamentDetail() {
           )}
 
           {/* BRACKET TAB */}
-          {activeTab === 'bracket' && (
-            <div className="bracket-tab">
-              {tournament.bracket && tournament.bracket.length > 0 ? (
-                <BracketGenerator 
-                  teams={registeredTeams.map(t => t.teamName || t.team_name) || []}
-                  matches={tournament.bracket || []}
-                  onUpdateMatch={(match) => console.log('Update match:', match)}
-                />
-              ) : registeredTeams.length >= 2 ? (
-                <div className="no-bracket-container">
-                  <p className="no-bracket">Bracket će biti generiran od strane organizatora</p>
-                </div>
-              ) : (
-                <div className="no-bracket-container">
-                  <p className="no-bracket">Bracket će biti generiran kada se prijavi dovoljno timova (min 2)</p>
-                </div>
-              )}
-            </div>
-          )}
+         {activeTab === 'bracket' && (
+  <div className="bracket-tab">
+    {currentUser?.id === tournament.creator?.id && !tournament.bracket_generated && registeredTeams.length >= 2 && (
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <p style={{ marginBottom: '12px', color: 'var(--text-secondary)' }}>
+          Prijavljeno {registeredTeams.length} timova. Generiraj bracket!
+        </p>
+        <button className="btn btn-primary" onClick={async () => {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`${API_URL}/tournaments/${id}/bracket/generate`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) loadTournament();
+        }}>
+          🏆 Generiraj Bracket
+        </button>
+      </div>
+    )}
+    {tournament.bracket && tournament.bracket.length > 0 ? (
+      <BracketGenerator
+        bracket={tournament.bracket}
+        isOrganizer={currentUser?.id === tournament.creator?.id}
+        tournamentId={id}
+        onRefresh={loadTournament}
+      />
+    ) : (
+      <div className="no-bracket-container">
+        <p className="no-bracket">
+          {registeredTeams.length < 2
+            ? 'Bracket će biti generiran kada se prijavi dovoljno timova (min 2)'
+            : 'Bracket još nije generiran'}
+        </p>
+      </div>
+    )}
+  </div>
+)}
 
           {/* MATCHES TAB */}
           {activeTab === 'matches' && (

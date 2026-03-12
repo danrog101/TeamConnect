@@ -31,5 +31,6 @@ router.delete('/:id/teams/:registrationId', auth, removeTeamFromTournament);
 // Admin/maintenance routes
 router.post('/maintenance/cleanup', auth, cleanupExpired);
 router.post('/maintenance/update-statuses', auth, updateTournamentStatuses);
-
+router.post('/:id/bracket/generate', auth, tournamentController.generateBracket);
+router.put('/:id/bracket/score', auth, tournamentController.updateMatchScore); 
 module.exports = router;

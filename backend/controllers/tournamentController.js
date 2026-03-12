@@ -881,3 +881,111 @@ exports.updateTournamentStatuses = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+// Generate bracket
+exports.generateBracket = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const { data: tournament } = await supabase
+      .from('tournaments').select('*').eq('id', id).single();
+
+    if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+    if (tournament.creator_id !== userId) return res.status(403).json({ message: 'Not authorized' });
+
+    const { data: registrations } = await supabase
+      .from('tournament_registrations')
+      .select('team_name').eq('tournament_id', id).eq('is_waitlist', false)
+      .order('registered_at', { ascending: true });
+
+    if (!registrations || registrations.length < 2)
+      return res.status(400).json({ message: 'Potrebna su minimalno 2 tima' });
+
+    const teams = registrations.map(r => r.team_name);
+    const shuffled = [...teams].sort(() => Math.random() - 0.5);
+    const rounds = Math.ceil(Math.log2(shuffled.length));
+    const bracket = [];
+
+    for (let i = 0; i < shuffled.length; i += 2) {
+      bracket.push({
+        round: 1, matchNumber: Math.floor(i / 2) + 1,
+        team1: shuffled[i] || null, team2: shuffled[i + 1] || null,
+        score1: null, score2: null, winner: null, status: 'pending'
+      });
+    }
+
+    let prevCount = Math.ceil(shuffled.length / 2);
+    for (let r = 2; r <= rounds; r++) {
+      const count = Math.ceil(prevCount / 2);
+      for (let m = 0; m < count; m++) {
+        bracket.push({ round: r, matchNumber: m + 1, team1: null, team2: null, score1: null, score2: null, winner: null, status: 'pending' });
+      }
+      prevCount = count;
+    }
+
+    const { error } = await supabase.from('tournaments')
+      .update({ bracket, bracket_generated: true }).eq('id', id);
+
+    if (error) return res.status(500).json({ message: 'Failed to save bracket' });
+    res.json({ bracket, message: 'Bracket generiran!' });
+  } catch (error) {
+    console.error('❌ Generate bracket error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Update match score
+exports.updateMatchScore = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+    const { round, matchNumber, score1, score2 } = req.body;
+
+    const { data: tournament } = await supabase
+      .from('tournaments').select('*').eq('id', id).single();
+
+    if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+    if (tournament.creator_id !== userId) return res.status(403).json({ message: 'Not authorized' });
+
+    const bracket = tournament.bracket || [];
+    const matchIndex = bracket.findIndex(m => m.round === round && m.matchNumber === matchNumber);
+    if (matchIndex === -1) return res.status(404).json({ message: 'Match not found' });
+
+    const match = bracket[matchIndex];
+    const s1 = parseInt(score1), s2 = parseInt(score2);
+    if (s1 === s2) return res.status(400).json({ message: 'Rezultat mora imati pobjednika' });
+    
+    const winner = s1 > s2 ? match.team1 : match.team2;
+    bracket[matchIndex] = { ...match, score1: s1, score2: s2, winner, status: 'finished' };
+
+    // Advance winner to next round
+    const nextRound = round + 1;
+    const nextMatchNumber = Math.ceil(matchNumber / 2);
+    const nextIdx = bracket.findIndex(m => m.round === nextRound && m.matchNumber === nextMatchNumber);
+    if (nextIdx !== -1) {
+      const isFirstSlot = matchNumber % 2 !== 0;
+      bracket[nextIdx] = { 
+        ...bracket[nextIdx], 
+        [isFirstSlot ? 'team1' : 'team2']: winner 
+      };
+    }
+
+    const { error } = await supabase.from('tournaments').update({ bracket }).eq('id', id);
+    if (error) return res.status(500).json({ message: 'Failed to update' });
+
+    const maxRound = Math.max(...bracket.map(m => m.round));
+    if (round === maxRound && winner) {
+      await supabase.from('notifications').insert({
+        user_id: tournament.creator_id, type: 'tournament_winner',
+        title: '🏆 Turnir završen!',
+        message: `Pobjednik turnira "${tournament.name}" je tim "${winner}"!`,
+        link: `/tournament/${id}`, read: false, created_at: new Date().toISOString()
+      });
+    }
+
+    res.json({ bracket, message: 'Rezultat ažuriran!' });
+  } catch (error) {
+    console.error('❌ Update score error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
