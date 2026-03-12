@@ -81,7 +81,17 @@ exports.sendFriendRequest = async (req, res) => {
 
     console.log('📤 Send friend request:', { from: currentUserId, to: userId });
     // In-app notifikacija
-try {
+
+    if (userId === currentUserId) {
+      return res.status(400).json({ message: 'Cannot send friend request to yourself' });
+    }
+
+    const { data: targetUser, error: userError } = await supabase
+      .from('users')
+      .select('id, username, email, sport, location')
+      .eq('id', userId)
+      .single();
+      try {
   await createNotificationHelper(
     userId,           // recipient (osoba koja prima zahtjev)
     'friend_request',
@@ -94,15 +104,6 @@ try {
 } catch (notifErr) {
   console.error('Notification error:', notifErr);
 }
-    if (userId === currentUserId) {
-      return res.status(400).json({ message: 'Cannot send friend request to yourself' });
-    }
-
-    const { data: targetUser, error: userError } = await supabase
-      .from('users')
-      .select('id, username, email, sport, location')
-      .eq('id', userId)
-      .single();
 
     if (userError || !targetUser) {
       console.log('❌ Target user not found:', userId);
@@ -299,20 +300,7 @@ exports.acceptFriendRequest = async (req, res) => {
     }
 
     console.log('✅ Friendship created');
-    // In-app notifikacija
-try {
-  await createNotificationHelper(
-    friendId,         // recipient (osoba čiji je zahtjev prihvaćen)
-    'friend_accepted',
-    `🎉 Zahtjev prihvaćen!`,
-    `${currentUser?.username || 'Netko'} je prihvatio/la tvoj zahtjev za prijateljstvo!`,
-    '/friends',
-    {},
-    userId            // sender
-  );
-} catch (notifErr) {
-  console.error('Notification error:', notifErr);
-}
+
     const { data: currentUser } = await supabase
       .from('users')
       .select('username, email')
@@ -324,6 +312,21 @@ try {
       .select('username, email')
       .eq('id', friendId)
       .single();
+
+    // In-app notifikacija
+    try {
+      await createNotificationHelper(
+        friendId,
+        'friend_accepted',
+        `🎉 Zahtjev prihvaćen!`,
+        `${currentUser?.username || 'Netko'} je prihvatio/la tvoj zahtjev za prijateljstvo!`,
+        '/friends',
+        {},
+        userId
+      );
+    } catch (notifErr) {
+      console.error('Notification error:', notifErr);
+    }
 
     // Send email notification
     try {
@@ -372,7 +375,6 @@ try {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 // Reject friend request
 exports.rejectFriendRequest = async (req, res) => {
   try {
