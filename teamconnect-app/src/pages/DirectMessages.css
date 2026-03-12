@@ -1,0 +1,121 @@
+.dm-layout {
+  display: flex;
+  gap: 0;
+  height: calc(100vh - 80px);
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.dm-sidebar {
+  width: 300px;
+  min-width: 300px;
+  border-radius: 16px 0 0 16px;
+  overflow-y: auto;
+  padding: 20px 0;
+}
+
+.dm-sidebar h3 {
+  padding: 0 20px 15px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 10px;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.conversation-item:hover,
+.conversation-item.active {
+  background: var(--bg-secondary);
+}
+
+.conv-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.conv-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.conv-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.conv-last {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-unread {
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.no-conversations {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.chat-messages-container {
+  flex: 1;
+  border-radius: 0 16px 16px 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header-dm {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+}
+
+.dm-avatar {
+  font-size: 28px;
+  margin-right: 12px;
+}
+
+.dm-empty {
+  flex: 1;
+  border-radius: 0 16px 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  gap: 10px;
+  font-size: 16px;
+}
+
+.dm-empty span {
+  font-size: 48px;
+}

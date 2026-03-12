@@ -89,6 +89,9 @@ function Navbar() {
           <button className="nav-link" onClick={() => goTo('/friends')}>
             <span className="nav-icon">🤝</span>{t('nav.friends')}
           </button>
+            <button className="nav-link" onClick={() => goTo('/messages')}>
+  <span className="nav-icon">💬</span>{t('nav.messages')}
+</button>
           <button className="nav-link" onClick={() => goTo('/my-studio')}>
             <span className="nav-icon">💪</span>
            Moj Studio

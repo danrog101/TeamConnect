@@ -144,7 +144,7 @@ const teamRoutes = require('./routes/teamRoutes');
 const tournamentRoutes = require('./routes/tournamentRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const waitlistRoutes = require('./routes/waitlistRoutes');
-
+const dmRoutes = require('./routes/dmRoutes');
 // ✅ USE ALL 15 ROUTES
 app.use('/api/activities', activityRoutes);
 app.use('/api/admin', adminRoutes);
@@ -163,7 +163,7 @@ app.use('/api/videos', videoRoutes);
 app.use('/api/waitlist', waitlistRoutes);
 const studioRoutes = require('./routes/studioRoutes');
 app.use('/api/studios', studioRoutes);
-
+app.use('/api/dm', dmRoutes);
 // Socket.io event handlers
 io.on('connection', (socket) => {
   console.log('🔌 Novi korisnik spojen:', socket.id);
@@ -177,6 +177,47 @@ io.on('connection', (socket) => {
     socket.leave(`team_${teamId}`);
     console.log(`👤 Korisnik ${socket.id} left team ${teamId}`);
   });
+  // DM - join osobna soba
+socket.on('join_dm', (userId) => {
+  socket.join(`dm_${userId}`);
+  console.log(`💬 Korisnik joined DM room: ${userId}`);
+});
+
+// DM - pošalji poruku real-time
+socket.on('send_dm', async (data) => {
+  try {
+    const { supabase } = require('./config/supabase');
+    const { senderId, recipientId, text } = data;
+
+    const { data: savedMessage, error } = await supabase
+      .from('direct_messages')
+      .insert({ sender_id: senderId, recipient_id: recipientId, text })
+      .select(`
+        id, sender_id, recipient_id, text, read, created_at,
+        sender:users!direct_messages_sender_id_fkey(id, username, avatar)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    // Pošalji objema stranama
+    io.to(`dm_${recipientId}`).emit('new_dm', savedMessage);
+    io.to(`dm_${senderId}`).emit('new_dm', savedMessage);
+
+  } catch (error) {
+    console.error('❌ send_dm error:', error);
+    socket.emit('error', { message: 'Failed to send DM' });
+  }
+});
+
+// DM - typing
+socket.on('dm_typing', (data) => {
+  socket.to(`dm_${data.recipientId}`).emit('dm_user_typing', { userId: data.senderId });
+});
+
+socket.on('dm_stop_typing', (data) => {
+  socket.to(`dm_${data.recipientId}`).emit('dm_user_stop_typing', { userId: data.senderId });
+});
 
  socket.on('send_message', async (data) => {
   try {

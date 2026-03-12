@@ -391,19 +391,25 @@ function Friends() {
                       </div>
 
                       <div className="friend-actions">
-                        <button
-                          className="btn btn-secondary btn-small"
-                          onClick={() => navigate(`/profile/${friend.id}`)}
-                        >
-                          {t('friends.viewProfile')}
-                        </button>
-                        <button
-                          className="btn btn-danger btn-small"
-                          onClick={() => handleRemoveFriend(friend.id)}
-                        >
-                          {t('friends.removeFriend')}
-                        </button>
-                      </div>
+  <button
+    className="btn btn-secondary btn-small"
+    onClick={() => navigate(`/profile/${friend.id}`)}
+  >
+    {t('friends.viewProfile')}
+  </button>
+  <button
+    className="btn btn-primary btn-small"
+    onClick={() => navigate(`/messages/${friend.id}`)}
+  >
+    💬 Poruka
+  </button>
+  <button
+    className="btn btn-danger btn-small"
+    onClick={() => handleRemoveFriend(friend.id)}
+  >
+    {t('friends.removeFriend')}
+  </button>
+</div>
                     </div>
                   ))}
                 </div>

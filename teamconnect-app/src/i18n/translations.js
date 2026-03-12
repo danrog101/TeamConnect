@@ -62,6 +62,7 @@ export const translations = {
       darkMode: 'Tamni mod',
       switchToLight: 'Prebaci na svijetli način',
       switchToDark: 'Prebaci na tamni način',
+      messages: 'Poruke',
     },
 
     // Auth
@@ -805,6 +806,7 @@ export const translations = {
       darkMode: 'Dark Mode',
       switchToLight: 'Switch to light mode',
       switchToDark: 'Switch to dark mode',
+      messages: 'Messages',
     },
 
     // Auth

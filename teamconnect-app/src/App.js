@@ -29,7 +29,7 @@ import Terms from './pages/Terms';
 import Footer from './components/Footer';
 import './App.css';
 import MyStudio from './pages/MyStudio';
-
+import DirectMessages from './pages/DirectMessages';
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" replace />;
@@ -95,7 +95,8 @@ function App() {
             {/* Friends */}
             <Route path="/friends" element={<PrivateRoute><Friends /></PrivateRoute>} />
 
-     
+            <Route path="/messages" element={<DirectMessages />} />
+<Route path="/messages/:userId" element={<DirectMessages />} />
 
             {/* Video */}
             <Route path="/highlights" element={<PrivateRoute><VideoHighlights /></PrivateRoute>} />
