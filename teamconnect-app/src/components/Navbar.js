@@ -99,8 +99,8 @@ function Navbar() {
           <button className="nav-link" onClick={() => goTo('/highlights')}>
             <span className="nav-icon">🎬</span>{t('nav.highlights')}
           </button>
-          <button className="nav-link" onClick={() => goTo('/groups')}>
-  <span className="nav-icon">🏃</span>Grupe
+         <button className="nav-link" onClick={() => goTo('/groups')}>
+  <span className="nav-icon">🏃</span>{t('nav.groups')}
 </button>
           {isAdmin && (
             <button className="nav-link" onClick={() => goTo('/activity')}>
