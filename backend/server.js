@@ -145,6 +145,7 @@ const tournamentRoutes = require('./routes/tournamentRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const waitlistRoutes = require('./routes/waitlistRoutes');
 const dmRoutes = require('./routes/dmRoutes');
+const groupRoutes = require('./routes/groupRoutes');
 // ✅ USE ALL 15 ROUTES
 app.use('/api/activities', activityRoutes);
 app.use('/api/admin', adminRoutes);
@@ -164,6 +165,7 @@ app.use('/api/waitlist', waitlistRoutes);
 const studioRoutes = require('./routes/studioRoutes');
 app.use('/api/studios', studioRoutes);
 app.use('/api/dm', dmRoutes);
+app.use('/api/groups', groupRoutes);
 // Socket.io event handlers
 io.on('connection', (socket) => {
   console.log('🔌 Novi korisnik spojen:', socket.id);
@@ -308,44 +310,33 @@ app.use(errorHandler);
 cron.schedule('0 2 * * *', async () => {
   console.log('🧹 Running auto-cleanup...');
   
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate()); 
-  
   try {
     const { supabase } = require('./config/supabase');
-    
-    // Delete old finished tournaments
-   const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
 
-const { data: deletedTournaments } = await supabase
-  .from('tournaments')
-  .delete()
-  .lt('end_date', today)
-  .select('id, name');
+    const { data: deletedTournaments } = await supabase
+      .from('tournaments').delete().lt('end_date', today).select('id, name');
 
-const { data: deletedTeams } = await supabase
-  .from('teams')
-  .delete()
-  .lt('date', today)
-  .select('id, name');
-const { data: deletedSessions } = await supabase
-  .from('studio_sessions')
-  .delete()
-  .lt('date', today)
-  .select('id, title');
-console.log('✅ Cleanup completed:', {
-  tournaments: deletedTournaments?.length || 0,
-  teams: deletedTeams?.length || 0,
-  sessions: deletedSessions?.length || 0  // ← dodaj ovo
-});
+    const { data: deletedTeams } = await supabase
+      .from('teams').delete().lt('date', today).select('id, name');
+
+    const { data: deletedSessions } = await supabase
+      .from('studio_sessions').delete().lt('date', today).select('id');
+
+    const { data: deletedGroupSessions } = await supabase
+      .from('group_sessions').delete().lt('date', today).select('id');
+
     console.log('✅ Cleanup completed:', {
       tournaments: deletedTournaments?.length || 0,
-      teams: deletedTeams?.length || 0
+      teams: deletedTeams?.length || 0,
+      sessions: deletedSessions?.length || 0,
+      groupSessions: deletedGroupSessions?.length || 0
     });
   } catch (error) {
     console.error('❌ Cleanup error:', error);
   }
 });
+
 
 const PORT = config.port;
 server.listen(PORT, () => {

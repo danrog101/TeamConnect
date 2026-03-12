@@ -180,5 +180,21 @@ export const adminAPI = {
   update: (id, data) => api.put(`/admin/${id}`, data),
   delete: (id) => api.delete(`/admin/${id}`)
 };
-
+export const groupsAPI = {
+  getMyGroups: () => api.get('/groups/my'),
+  getMyMemberGroups: () => api.get('/groups/member'),
+  getPublicSessions: () => api.get('/groups/public-sessions'),
+  create: (data) => api.post('/groups', data),
+  delete: (id) => api.delete(`/groups/${id}`),
+  getMembers: (id) => api.get(`/groups/${id}/members`),
+  join: (invite_code) => api.post('/groups/join', { invite_code }),
+  leave: (id) => api.post(`/groups/${id}/leave`),
+  removeMember: (id, memberId) => api.delete(`/groups/${id}/members/${memberId}`),
+  getSessions: (id) => api.get(`/groups/${id}/sessions`),
+  createSession: (id, data) => api.post(`/groups/${id}/sessions`, data),
+  deleteSession: (id, sessionId) => api.delete(`/groups/${id}/sessions/${sessionId}`),
+  togglePublic: (id, sessionId) => api.put(`/groups/${id}/sessions/${sessionId}/toggle-public`),
+  signup: (id, sessionId) => api.post(`/groups/${id}/sessions/${sessionId}/signup`),
+  cancel: (sessionId) => api.put(`/groups/sessions/${sessionId}/cancel`)
+};
 export default api;

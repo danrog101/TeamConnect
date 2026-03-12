@@ -31,7 +31,7 @@ import Footer from './components/Footer';
 import './App.css';
 import MyStudio from './pages/MyStudio';
 import DirectMessages from './pages/DirectMessages';
-
+import Groups from './pages/Groups';
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" replace />;
@@ -103,6 +103,7 @@ function App() {
 
             {/* Video */}
             <Route path="/highlights" element={<PrivateRoute><VideoHighlights /></PrivateRoute>} />
+            <Route path="/groups" element={<PrivateRoute><Groups /></PrivateRoute>} />
           </Routes>
           <Footer />
         </div>
