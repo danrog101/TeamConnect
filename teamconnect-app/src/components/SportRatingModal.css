@@ -16,12 +16,14 @@
 .sport-rating-modal {
   background: var(--bg-secondary);
   border-radius: var(--radius-xl);
-  max-width: 600px;
+  max-width: 560px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: modalSlideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes modalSlideUp {
@@ -64,13 +66,14 @@
 
 .sport-rating-simple {
   padding: 24px 32px;
+  flex: 1;
 }
 
 .skill-level-options {
   display: flex;
   gap: 10px;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin-bottom: 20px;
 }
 
@@ -78,15 +81,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 16px 14px;
+  gap: 4px;
+  padding: 12px 8px;
+  min-width: 60px;
+  flex: 1;
   border: 3px solid var(--border-primary);
   border-radius: var(--radius-lg);
   background: var(--bg-secondary);
   cursor: pointer;
   transition: all 0.25s ease;
-  min-width: 80px;
-  flex: 1;
 }
 
 .skill-level-btn:hover {
@@ -100,16 +103,16 @@
 }
 
 .skill-level-btn .level-icon {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 
 .skill-level-btn .level-number {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 800;
 }
 
 .skill-level-btn .level-label {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -129,11 +132,15 @@
 }
 
 .sport-rating-actions {
-  padding: 24px 32px;
+  padding: 20px 32px;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   border-top: 1px solid var(--border-primary);
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  position: sticky;
+  bottom: 0;
 }
 
 .sport-rating-actions .btn {
@@ -141,7 +148,6 @@
   font-size: 1rem;
 }
 
-/* Responsive */
 @media (max-width: 600px) {
   .sport-rating-modal {
     max-height: 95vh;
@@ -164,12 +170,12 @@
   }
 
   .skill-level-btn {
-    min-width: 60px;
-    padding: 12px 10px;
+    min-width: 50px;
+    padding: 10px 6px;
   }
 
   .sport-rating-actions {
-    padding: 20px;
+    padding: 16px 20px;
     flex-direction: column;
   }
 
