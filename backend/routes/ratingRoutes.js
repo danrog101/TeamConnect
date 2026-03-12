@@ -18,7 +18,7 @@ router.get('/leaderboard', getLeaderboard);
 router.get('/user/:userId', getUserRating);
 router.post('/recalculate', auth, recalculateRating);
 router.get('/achievements', auth, getAchievements);
-
+router.get('/my-sports', auth, ratingController.getMySportRatings);
 // Self-rating routes (generic)
 router.get('/self-rating/status', auth, getSelfRatingStatus);
 router.post('/self-rating', auth, submitSelfRating);

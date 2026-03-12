@@ -661,6 +661,22 @@ exports.ratePlayer = async (req, res) => {
     console.error('❌ Rate player error:', error);
     res.status(500).json({ message: 'Server error' });
   }
+
+};
+exports.getMySportRatings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { data, error } = await supabase
+      .from('sport_ratings')
+      .select('sport, skill_level, overall_rating, updated_at')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
+
+    if (error) return res.status(500).json({ message: 'Server error' });
+    res.json(data || []);
+  } catch (e) {
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 module.exports = exports;

@@ -1114,3 +1114,57 @@
     font-size: 1.2rem;
   }
 }
+.sport-ratings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.sport-rating-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md);
+}
+
+.sport-rating-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.sport-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.sport-level-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.sport-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sport-chip {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 2px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.sport-chip:hover, .sport-chip.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
