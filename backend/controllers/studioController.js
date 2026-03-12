@@ -141,8 +141,26 @@ exports.addMember = async (req, res) => {
       .select()
       .single();
 
-    if (error) return res.status(500).json({ message: 'Greška pri dodavanju člana' });
-    res.status(201).json({ ...data, user: targetUser });
+if (error) return res.status(500).json({ message: 'Greška pri dodavanju člana' });
+
+// Notifikacija klijentu
+try {
+  const { createNotificationHelper } = require('./notificationController');
+  const trainerData = await supabase.from('users').select('username').eq('id', userId).single();
+  await createNotificationHelper(
+    targetUser.id,
+    'studio_added',
+    '💪 Dodan/a si u studio!',
+    `${trainerData.data?.username || 'Trener'} te dodao/la u studio "${studio.name}"`,
+    '/my-studio',
+    {},
+    userId
+  );
+} catch (notifErr) {
+  console.error('Notification error:', notifErr);
+}
+
+res.status(201).json({ ...data, user: targetUser });
   } catch (e) {
     res.status(500).json({ message: 'Server error' });
   }

@@ -55,6 +55,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (selectedStudio) {
+      setActiveTab('sessions'); 
       loadSessions(selectedStudio.id);
       const isTrainer = selectedStudio.trainer_id === currentUser.id;
       if (isTrainer) loadMembers(selectedStudio.id);
@@ -539,7 +540,9 @@ useEffect(() => {
             <div className="form-row">
               <div className="form-group">
                 <label>Datum *</label>
-                <input type="date" value={sessionForm.date} onChange={e => setSessionForm({ ...sessionForm, date: e.target.value })} />
+                <input type="date" value={sessionForm.date}
+  min={new Date().toISOString().split('T')[0]}
+  onChange={e => setSessionForm({ ...sessionForm, date: e.target.value })} />
               </div>
               <div className="form-group">
                 <label>Vrijeme *</label>

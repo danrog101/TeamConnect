@@ -328,7 +328,16 @@ const { data: deletedTeams } = await supabase
   .delete()
   .lt('date', today)
   .select('id, name');
-
+const { data: deletedSessions } = await supabase
+  .from('studio_sessions')
+  .delete()
+  .lt('date', today)
+  .select('id, title');
+console.log('✅ Cleanup completed:', {
+  tournaments: deletedTournaments?.length || 0,
+  teams: deletedTeams?.length || 0,
+  sessions: deletedSessions?.length || 0  // ← dodaj ovo
+});
     console.log('✅ Cleanup completed:', {
       tournaments: deletedTournaments?.length || 0,
       teams: deletedTeams?.length || 0
