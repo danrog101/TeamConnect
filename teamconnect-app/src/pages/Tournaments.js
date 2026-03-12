@@ -297,6 +297,7 @@ function Tournaments() {
       });
 
       setShowRegisterModal(false);
+      setSelectedTournament(null);
       setRegisterData({ teamName: '', players: [] });
       
       // ✅ FIXED: Toast notifikacija
@@ -350,7 +351,7 @@ function Tournaments() {
       <div className="tournaments-container">
         <div className="tournaments-header">
           <h1>{'🏆 ' + t('tournaments.title')}</h1>
-          <p>Natjecanja, pobjednici, slava!</p>
+         <p>{t('tournaments.subtitle') || 'Natjecanja, pobjednici, slava!'}</p>
           <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
             {'+ ' + t('tournaments.createTournament')}
           </button>

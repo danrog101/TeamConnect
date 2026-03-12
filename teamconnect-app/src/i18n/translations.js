@@ -631,6 +631,7 @@ export const translations = {
       genderMix: 'Mješoviti',
       competitor: 'Natjecatelj',
       substitute: 'Zamjena',
+      subtitle: 'Natjecanja, pobjednici, slava!',
     },
 
     // Profile
@@ -1373,6 +1374,7 @@ export const translations = {
       genderMix: 'Mixed',
       competitor: 'Competitor',
       substitute: 'Substitute',
+      subtitle: 'Competitions, champions, glory!',
     },
 
     // Profile
