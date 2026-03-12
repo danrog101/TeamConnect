@@ -127,6 +127,8 @@ function MyTeams() {
                       key={team.id}
                       team={team}
                       onDelete={handleDeleteTeam}
+                      onDetails={(teamId) => navigate(`/edit-team/${teamId}`)}
+                      onShowNotification={(msg, type) => setToast({ message: msg, type })}
                       showActions={true}
                       autoExpandMembers={true}
                     />
@@ -144,6 +146,8 @@ function MyTeams() {
                       key={team.id}
                       team={team}
                       onLeave={handleLeaveTeam}
+                      
+                      onShowNotification={(msg, type) => setToast({ message: msg, type })}
                       showActions={true}
                     />
                   ))}

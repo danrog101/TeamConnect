@@ -5,7 +5,8 @@ import { API_URL } from '../config';
 import './TeamCard.css';
 import { useLanguage } from '../i18n/LanguageContext';
 import ReactDOM from 'react-dom';
-function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotification, showActions = true, autoExpandMembers = false }) {
+
+function TeamCard({ team, onJoin, onLeave, onDelete, onDetails, onJoinWaitlist, onShowNotification, showActions = true, autoExpandMembers = false }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -37,19 +38,19 @@ function TeamCard({ team, onJoin, onLeave, onDelete, onJoinWaitlist, onShowNotif
     return creatorId === userId;
   };
 
-const isJoined = () => {
-  if (!userId) return false;
-  if (team?.team_members) {
-    return team.team_members.some(m => m.user_id === userId);
-  }
-  if (team?.players) {
-    return team.players.some(player => {
-      const playerId = player.id || player._id || player;
-      return playerId === userId;
-    });
-  }
-  return false;
-};
+  const isJoined = () => {
+    if (!userId) return false;
+    if (team?.team_members) {
+      return team.team_members.some(m => m.user_id === userId);
+    }
+    if (team?.players) {
+      return team.players.some(player => {
+        const playerId = player.id || player._id || player;
+        return playerId === userId;
+      });
+    }
+    return false;
+  };
 
   const isOnWaitlist = () => {
     if (!userId || !team?.waitlist) return false;
@@ -62,10 +63,8 @@ const isJoined = () => {
   const isFull = (team.current_players || 0) >= (team.max_players || 0);
   const creator = isTeamCreator();
   const joined = isJoined();
-  console.log('Team:', team.name, '| team_members:', team.team_members, '| userId:', userId, '| joined:', joined);
   const onWaitlist = isOnWaitlist();
 
-  // Ima li tim filter po ocjeni?
   const hasSkillRequirements = !!(team.min_skill_level || team.max_skill_level);
 
   useEffect(() => {
@@ -115,19 +114,16 @@ const isJoined = () => {
       return;
     }
 
-    // ✅ Ako tim nema skill requirements — odmah otvori join modal
     if (!hasSkillRequirements && !team.amateur_only) {
       setShowJoinModal(true);
       return;
     }
 
-    // Tim ima skill requirements — provjeri ocjenu
     setCheckingRating(true);
     try {
       const sportRating = await checkUserSportRating();
 
       if (!sportRating || !sportRating.hasRating) {
-        // Nema ocjene — prikaži modal za ocjenu
         setCheckingRating(false);
         setShowRatingModal(true);
         return;
@@ -260,7 +256,7 @@ const isJoined = () => {
 
   const handleShowMembers = () => {
     if (!showMembers) loadTeamMembers();
-    else setTeamMembers([]); // reset da se osvježi pri sljedećem otvaranju
+    else setTeamMembers([]);
     setShowMembers(!showMembers);
   };
 
@@ -327,6 +323,14 @@ const isJoined = () => {
               <button className="btn btn-secondary" disabled>
                 {t('teams.creator')}
               </button>
+              {onDetails && (
+                <button
+                  className="btn btn-secondary btn-small"
+                  onClick={(e) => { e.stopPropagation(); onDetails(team.id); }}
+                >
+                  ✏️ Uredi tim
+                </button>
+              )}
               {onDelete && (
                 <button className="btn btn-danger" onClick={() => handleAction(onDelete, team.id)}>
                   {t('teams.deleteTeam')}
@@ -410,7 +414,6 @@ const isJoined = () => {
         {t('teams.creator')}: {team.creator?.username || 'Unknown'}
       </div>
 
-      {/* Prijavljeni igrači — samo za kreatora */}
       {creator && (
         <div className="team-members-section creator-view">
           <div className="members-header">
@@ -453,18 +456,16 @@ const isJoined = () => {
         </div>
       )}
 
-      {/* Rating modal */}
-     {showRatingModal && ReactDOM.createPortal(
-  <SportRatingModal
-    sport={team.sport}
-    onSubmit={handleSportRatingSubmit}
-    onCancel={() => setShowRatingModal(false)}
-    existingRating={userSportRating?.skill_level}
-  />,
-  document.body
-)}
+      {showRatingModal && ReactDOM.createPortal(
+        <SportRatingModal
+          sport={team.sport}
+          onSubmit={handleSportRatingSubmit}
+          onCancel={() => setShowRatingModal(false)}
+          existingRating={userSportRating?.skill_level}
+        />,
+        document.body
+      )}
 
-      {/* Join modal */}
       {showJoinModal && (
         <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
           <div className="join-modal" onClick={(e) => e.stopPropagation()}>

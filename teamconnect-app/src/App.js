@@ -11,6 +11,7 @@ import ProfileSetup from './pages/ProfileSetup';
 import Dashboard from './pages/Dashboard';
 import CreateTeam from './pages/CreateTeam';
 import MyTeams from './pages/MyTeams';
+import EditTeam from './pages/EditTeam';
 import Profile from './pages/Profile';
 import ActivityFeed from './pages/ActivityFeed';
 import Tournaments from './pages/Tournaments';
@@ -30,6 +31,7 @@ import Footer from './components/Footer';
 import './App.css';
 import MyStudio from './pages/MyStudio';
 import DirectMessages from './pages/DirectMessages';
+
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" replace />;
@@ -66,6 +68,7 @@ function App() {
             <Route path="/profile-setup" element={<PrivateRoute><ProfileSetup /></PrivateRoute>} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
             <Route path="/create-team" element={<PrivateRoute><CreateTeam /></PrivateRoute>} />
+            <Route path="/edit-team/:teamId" element={<PrivateRoute><EditTeam /></PrivateRoute>} />
             <Route path="/my-teams" element={<PrivateRoute><MyTeams /></PrivateRoute>} />
             <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
 

@@ -63,6 +63,7 @@ export const teamsAPI = {
   join: (id) => api.post(`/teams/${id}/join`),
   leave: (id) => api.post(`/teams/${id}/leave`),
   delete: (id) => api.delete(`/teams/${id}`),
+  update: (id, data) => api.put(`/teams/${id}`, data),
   
   // Aliases for backward compatibility
   getMyTeams: () => api.get('/teams/my'),
