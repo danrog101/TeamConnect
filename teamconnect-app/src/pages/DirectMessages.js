@@ -20,7 +20,8 @@ function DirectMessages() {
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]);
   const [toast, setToast] = useState(null);
-
+const [searchQuery, setSearchQuery] = useState('');
+const [searchResults, setSearchResults] = useState([]);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const socketRef = useRef(null);
@@ -158,7 +159,20 @@ function DirectMessages() {
     if (date.toDateString() === yesterday.toDateString()) return t('chat.yesterday');
     return date.toLocaleDateString('hr-HR');
   };
-
+const handleSearchUsers = async (query) => {
+  setSearchQuery(query);
+  if (query.length < 2) { setSearchResults([]); return; }
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/users/search?q=${query}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setSearchResults(data.filter(u => u.id !== currentUserId));
+    }
+  } catch (e) { console.error(e); }
+};
   const renderMessage = (message, index) => {
     const isOwn = message.sender_id === currentUserId;
     const showDateSeparator =
@@ -198,6 +212,52 @@ function DirectMessages() {
         {/* SIDEBAR - Konverzacije */}
         <div className="dm-sidebar card">
           <h3>💬 Poruke</h3>
+
+          <div className="dm-sidebar card">
+          <h3>💬 Poruke</h3>
+          {conversations.length === 0 ? (
+            <div className="no-conversations">
+              <span>📭</span>
+              <p>Nema konverzacija</p>
+            </div>
+          ) : (
+            conversations.map(conv => (
+              <div
+                key={conv.userId}
+                className={`conversation-item ${conv.userId === otherUserId ? 'active' : ''}`}
+                onClick={() => navigate(`/messages/${conv.userId}`)}
+              >
+                <div className="conv-avatar">{conv.user?.avatar || '👤'}</div>
+                <div className="conv-info">
+                  <div className="conv-name">{conv.user?.username}</div>
+                  <div className="conv-last">{conv.lastMessage?.text?.substring(0, 30)}...</div>
+                </div>
+                {conv.unreadCount > 0 && (
+                  <div className="conv-unread">{conv.unreadCount}</div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+{searchResults.length > 0 && (
+    <div className="dm-search-results">
+      {searchResults.map(user => (
+        <div
+          key={user.id}
+          className="search-result-item"
+          onClick={() => {
+            navigate(`/messages/${user.id}`);
+            setSearchQuery('');
+            setSearchResults([]);
+          }}
+        >
+          <div className="conv-avatar">{user.avatar || '👤'}</div>
+          <div className="conv-name">{user.username}</div>
+        </div>
+      ))}
+    </div>
+  )}
+
           {conversations.length === 0 ? (
             <div className="no-conversations">
               <span>📭</span>
