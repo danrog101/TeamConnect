@@ -22,5 +22,5 @@ router.delete('/:id/sessions/:sessionId', auth, studioController.deleteSession);
 // Signups
 router.post('/:id/sessions/:sessionId/signup', auth, studioController.signupSession);
 router.put('/sessions/:sessionId/cancel', auth, studioController.cancelSignup);
-
+router.put('/:id/members/:memberId/membership', auth, studioController.toggleMembership);
 module.exports = router;

@@ -234,7 +234,19 @@ useEffect(() => {
       setToast({ message: 'Greška', type: 'error' });
     }
   };
-
+const handleToggleMembership = async (memberId) => {
+  try {
+    const res = await fetch(`${API_URL}/studios/${selectedStudio.id}/members/${memberId}/membership`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      loadMembers(selectedStudio.id);
+    }
+  } catch (e) {
+    setToast({ message: 'Greška', type: 'error' });
+  }
+};
   const isTrainer = (studio) => studio?.trainer_id === currentUser.id;
 
   const getSignupStatus = (session) => {
@@ -455,17 +467,32 @@ useEffect(() => {
                 ) : (
                   members.map(member => (
                     <div key={member.id} className="member-card card">
-                      <div className="member-info">
-                        <span className="member-avatar">{member.user?.avatar || '👤'}</span>
-                        <div>
-                          <strong>{member.user?.username}</strong>
-                          <p>{member.user?.email}</p>
-                        </div>
-                      </div>
-                      <button className="btn btn-danger btn-small" onClick={() => handleRemoveMember(member.id)}>
-                        Ukloni
-                      </button>
-                    </div>
+  <div className="member-info">
+    <span className="member-avatar">{member.user?.avatar || '👤'}</span>
+    <div>
+      <strong>{member.user?.username}</strong>
+      <p>{member.user?.email}</p>
+      <span style={{
+        fontSize: '0.75rem',
+        fontWeight: '600',
+        color: member.membership_paid ? '#10b981' : '#ef4444'
+      }}>
+        {member.membership_paid ? '✅ Plaćeno' : '❌ Nije plaćeno'}
+      </span>
+    </div>
+  </div>
+  <div style={{ display: 'flex', gap: '8px' }}>
+    <button
+      className={`btn btn-small ${member.membership_paid ? 'btn-secondary' : 'btn-primary'}`}
+      onClick={() => handleToggleMembership(member.id)}
+    >
+      {member.membership_paid ? '❌ Označi neplaćeno' : '✅ Označi plaćeno'}
+    </button>
+    <button className="btn btn-danger btn-small" onClick={() => handleRemoveMember(member.id)}>
+      Ukloni
+    </button>
+  </div>
+</div>
                   ))
                 )}
               </div>

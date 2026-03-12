@@ -299,7 +299,16 @@ exports.signupSession = async (req, res) => {
       .eq('user_id', userId)
       .single();
     if (!member) return res.status(403).json({ message: 'Nisi član ovog studija' });
+    const { data: memberData } = await supabase
+  .from('studio_members')
+  .select('membership_paid')
+  .eq('studio_id', id)
+  .eq('user_id', userId)
+  .single();
 
+if (!memberData?.membership_paid) {
+  return res.status(403).json({ message: '❌ Nisi platio/la članarinu. Kontaktiraj trenera.' });
+}
     // Dohvati sesiju
     const { data: session } = await supabase
       .from('studio_sessions')
@@ -391,6 +400,31 @@ exports.cancelSignup = async (req, res) => {
       .single();
 
     if (error) return res.status(500).json({ message: 'Greška pri otkazivanju' });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+// Toggle članarina
+exports.toggleMembership = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id, memberId } = req.params;
+
+    const { data: studio } = await supabase.from('studios').select('trainer_id').eq('id', id).single();
+    if (!studio || studio.trainer_id !== userId) return res.status(403).json({ message: 'Nije dozvoljeno' });
+
+    const { data: member } = await supabase.from('studio_members').select('membership_paid').eq('id', memberId).single();
+    if (!member) return res.status(404).json({ message: 'Član nije pronađen' });
+
+    const { data, error } = await supabase
+      .from('studio_members')
+      .update({ membership_paid: !member.membership_paid })
+      .eq('id', memberId)
+      .select()
+      .single();
+
+    if (error) return res.status(500).json({ message: 'Greška' });
     res.json(data);
   } catch (e) {
     res.status(500).json({ message: 'Server error' });
