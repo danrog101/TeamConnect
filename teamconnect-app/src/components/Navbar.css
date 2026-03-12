@@ -34,9 +34,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  height: auto;      /* ← umjesto 60px */
+  height: auto;
   min-height: 60px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .navbar-brand {
@@ -53,9 +53,7 @@
 
 .navbar-brand:hover { opacity: 0.8; }
 
-.navbar-brand span {
-  display: none;
-}
+.navbar-brand span { display: none; }
 
 @media (min-width: 1100px) {
   .navbar-brand span { display: inline; }
@@ -66,7 +64,7 @@
   gap: 2px;
   flex: 1;
   justify-content: center;
- flex-wrap: wrap;  /* ← mijenja iz nowrap u wrap */
+  flex-wrap: wrap;
 }
 
 .nav-link {
@@ -113,14 +111,12 @@
   color: #fff;
 }
 
-/* Sakrij tekst na manjim ekranima, ostavi samo ikonicu */
 @media (max-width: 1280px) {
   .nav-link {
     padding: 5px;
-    font-size: 0;  /* sakrij tekst */
+    font-size: 0;
     gap: 0;
   }
-
   .nav-icon {
     width: 34px;
     height: 34px;
@@ -244,15 +240,20 @@
 .logout-modal p { color: var(--text-secondary); margin-bottom: var(--space-lg); }
 .logout-modal-actions { display: flex; gap: var(--space-md); justify-content: flex-end; }
 
-/* Mobile menu extras - sakriveno na desktopu */
+/* Desktop - mobile extras skriveni */
 .mobile-menu-extras { display: none; }
 .mobile-menu-divider { height: 1px; background: var(--border-primary); margin: 8px 0; }
 .logout-link { color: var(--danger, var(--color-error)); }
 .menu-overlay { display: none; }
 
-/* Mobile */
+/* ===================== MOBILE ===================== */
 @media (max-width: 768px) {
-  .navbar-container { height: 60px; padding: 0 12px; }
+  .navbar-container {
+    height: 60px;
+    padding: 0 12px;
+    flex-wrap: nowrap;
+  }
+
   .menu-toggle { display: block; }
   .navbar-brand span { display: inline; }
 
@@ -263,8 +264,10 @@
     left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.4);
     z-index: 998;
+    pointer-events: auto;
   }
 
+  /* Mobilni meni — puna visina, scrollable */
   .navbar-menu {
     position: fixed;
     top: 60px;
@@ -272,15 +275,17 @@
     right: 0;
     background: var(--card-bg);
     flex-direction: column;
-    padding: var(--space-md);
+    flex-wrap: nowrap;
+    padding: 8px 12px 32px 12px;
     border-bottom: 1px solid var(--border-primary);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transform: translateY(-110%);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.3s ease;
-    max-height: calc(100vh - 60px);
-    overflow-y: auto;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    height: calc(100vh - 60px); /* puna visina ispod navbara */
+    overflow-y: scroll;         /* uvijek scrollable */
+    overflow-x: hidden;
     z-index: 999;
     -webkit-overflow-scrolling: touch;
   }
@@ -292,36 +297,41 @@
   }
 
   [data-theme="light"] .navbar-menu { background: #fff; }
-  [data-theme="light"] .navbar-menu .nav-link { color: var(--text-primary); font-size: 0.95rem; }
+  [data-theme="light"] .navbar-menu .nav-link { color: var(--text-primary); }
   [data-theme="light"] .navbar-menu .nav-link:hover { background: var(--bg-secondary); color: var(--color-primary); }
   [data-theme="light"] .navbar-menu .nav-icon { background: var(--color-primary-bg); border-color: var(--border-primary); }
 
   .nav-link {
     width: 100%;
     justify-content: flex-start;
-    padding: 10px 16px 10px 10px !important;
+    padding: 12px 16px 12px 10px !important;
     font-size: 0.95rem !important;
-    gap: 10px !important;
+    gap: 12px !important;
     border-radius: var(--radius-sm);
   }
 
   .nav-link:hover { transform: none; }
 
   .nav-icon {
-    width: 34px !important;
-    height: 34px !important;
-    font-size: 1rem !important;
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1.1rem !important;
+    flex-shrink: 0 !important;
   }
 
-  .navbar-user { gap: var(--space-sm); }
+  /* Sakrij desktop kontrole */
   .navbar-user .btn-logout { display: none; }
-.navbar-user .user-name { display: none !important; }
-.navbar-user .theme-toggle { display: none; }
-.navbar-user .user-avatar { display: none; }
+  .navbar-user .user-name { display: none !important; }
+  .navbar-user .theme-toggle { display: none; }
+  .navbar-user .user-avatar { display: none; }
+
+  /* Prikaži mobile extras na dnu menija */
   .mobile-menu-extras {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     gap: 4px;
+    margin-top: 8px;
+    padding-bottom: 20px;
   }
 }
 
