@@ -102,7 +102,7 @@ setTimeout(() => {
         </div>
       </div>
       <div className="auth-card card">
-        <h1 className="auth-title">🏀 TeamConnect</h1>
+        <h1 className="auth-title">🏀 TeamConnects</h1>
         <h2>{t('auth.createAccount')}</h2>
         
         {error && <div className="error-message">{error}</div>}

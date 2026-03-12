@@ -78,7 +78,7 @@ function Login() {
   return (
     <div className="auth-container">
       <div className="auth-card card">
-        <h1 className="auth-title">🏀 TeamConnect</h1>
+        <h1 className="auth-title">🏀 TeamConnects</h1>
         <h2>{t('auth.welcomeBack')}</h2>
 
         {error && <div className="error-message">{error}</div>}

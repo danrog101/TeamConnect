@@ -285,4 +285,17 @@
   .dashboard-container {
     padding: 20px 16px;
   }
+  .dashboard-header {
+  padding: 24px 16px;
+}
+
+.teams-grid {
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.filters-section {
+  padding: 16px;
+}
 }

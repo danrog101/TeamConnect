@@ -209,3 +209,30 @@
     gap: 8px;
   }
 }
+/* Fix za register info box na mobitelu */
+.auth-container {
+  flex-direction: column;
+}
+
+.auth-info {
+  width: 100%;
+  max-width: 450px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 16px;
+    justify-content: flex-start;
+    padding-top: 24px;
+  }
+
+  .auth-info {
+    padding: 16px !important;
+  }
+
+  .auth-info div {
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+}

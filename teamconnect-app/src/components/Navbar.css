@@ -315,8 +315,9 @@
 
   .navbar-user { gap: var(--space-sm); }
   .navbar-user .btn-logout { display: none; }
-  .navbar-user .user-name { display: none !important; }
-
+.navbar-user .user-name { display: none !important; }
+.navbar-user .theme-toggle { display: none; }
+.navbar-user .user-avatar { display: none; }
   .mobile-menu-extras {
     display: flex;
     flex-direction: column;
