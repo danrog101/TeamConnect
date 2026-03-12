@@ -58,7 +58,7 @@ function Navbar() {
             <circle cx="16" cy="16" r="14" fill="var(--color-primary)" stroke="var(--color-accent)" strokeWidth="2"/>
             <path d="M12 10L20 16L12 22V10Z" fill="white"/>
           </svg>
-          <span>TeamConnect</span>
+          <span>TeamConnects</span>
         </div>
 
         <button className="menu-toggle" onClick={() => setShowMenu(!showMenu)}>

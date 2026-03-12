@@ -7,7 +7,7 @@ function PrivacyPolicy() {
       <p style={{ color: '#888', fontStyle: 'italic' }}>Datum: 5. ožujka 2026.</p>
 
       <h2>1. Uvod</h2>
-      <p>TeamConnect je web aplikacija koja spaja sportaše i rekreativne igrače prema lokaciji i sportu. Ova politika objašnjava kako prikupljamo i koristimo vaše podatke u skladu s GDPR-om.</p>
+      <p>TeamConnects je web aplikacija koja spaja sportaše i rekreativne igrače prema lokaciji i sportu. Ova politika objašnjava kako prikupljamo i koristimo vaše podatke u skladu s GDPR-om.</p>
 
       <h2>2. Koje podatke prikupljamo</h2>
       <ul>
@@ -44,7 +44,7 @@ function PrivacyPolicy() {
       <p>Pritužbe možete podnijeti <a href="https://azop.hr" target="_blank" rel="noreferrer">AZOP-u (azop.hr)</a>.</p>
 
       <hr />
-      <p style={{ color: '#999', fontSize: '14px' }}>© 2026 TeamConnect. Sva prava pridržana.</p>
+      <p style={{ color: '#999', fontSize: '14px' }}>© 2026 TeamConnects. Sva prava pridržana.</p>
     </div>
   );
 }

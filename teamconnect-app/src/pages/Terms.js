@@ -7,10 +7,10 @@ function Terms() {
       <p style={{ color: '#888', fontStyle: 'italic' }}>Datum: 5. ožujka 2026.</p>
 
       <h2>1. Prihvaćanje uvjeta</h2>
-      <p>Korištenjem aplikacije TeamConnect prihvaćate ove Uvjete korištenja.</p>
+      <p>Korištenjem aplikacije TeamConnects prihvaćate ove Uvjete korištenja.</p>
 
       <h2>2. Opis usluge</h2>
-      <p>TeamConnect omogućuje registraciju, pretraživanje sportskih timova prema sportu i lokaciji te pridruživanje timovima.</p>
+      <p>TeamConnects omogućuje registraciju, pretraživanje sportskih timova prema sportu i lokaciji te pridruživanje timovima.</p>
 
       <h2>3. Korisnički račun</h2>
       <ul>
@@ -30,10 +30,10 @@ function Terms() {
       </ul>
 
       <h2>5. Intelektualno vlasništvo</h2>
-      <p>Sav sadržaj TeamConnecta (dizajn, kod, logotip) vlasništvo je TeamConnect-a i zaštićen autorskim pravom.</p>
+      <p>Sav sadržaj TeamConnectsa (dizajn, kod, logotip) vlasništvo je TeamConnects-a i zaštićen autorskim pravom.</p>
 
       <h2>6. Ograničenje odgovornosti</h2>
-      <p>TeamConnect ne jamči neprekidan rad aplikacije niti točnost informacija koje objavljuju korisnici.</p>
+      <p>TeamConnects ne jamči neprekidan rad aplikacije niti točnost informacija koje objavljuju korisnici.</p>
 
       <h2>7. Primjenjivo pravo</h2>
       <p>Primjenjuje se zakonodavstvo Republike Hrvatske. Nadležan sud: Split.</p>
@@ -42,7 +42,7 @@ function Terms() {
       <p>Za pitanja: <a href="mailto:dana.rogulj01@gmail.com">dana.rogulj01@gmail.com</a></p>
 
       <hr />
-      <p style={{ color: '#999', fontSize: '14px' }}>© 2026 TeamConnect. Sva prava pridržana.</p>
+      <p style={{ color: '#999', fontSize: '14px' }}>© 2026 TeamConnects. Sva prava pridržana.</p>
     </div>
   );
 }
