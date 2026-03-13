@@ -1,12 +1,11 @@
 const { supabase } = require('../config/supabase');
-const fs = require('fs').promises;
 const path = require('path');
 
 // Get all fields
 exports.getFields = async (req, res) => {
   try {
     const { sport, city, country } = req.query;
-    
+
     let query = supabase
       .from('fields')
       .select(`
@@ -14,7 +13,7 @@ exports.getFields = async (req, res) => {
         field_images (id, filename, filepath, is_primary),
         users!fields_added_by_fkey (username, avatar)
       `);
-    
+
     if (sport) query = query.eq('sport', sport);
     if (city) query = query.eq('city', city);
     if (country) query = query.eq('country', country);
@@ -44,10 +43,7 @@ exports.getField = async (req, res) => {
         *,
         field_images (id, filename, filepath, is_primary),
         field_reviews (
-          id,
-          rating,
-          comment,
-          created_at,
+          id, rating, comment, created_at,
           users (id, username, avatar)
         ),
         users!fields_added_by_fkey (id, username, avatar)
@@ -56,7 +52,6 @@ exports.getField = async (req, res) => {
       .single();
 
     if (error || !field) {
-      console.error('Get field error:', error);
       return res.status(404).json({ message: 'Field not found' });
     }
 
@@ -67,25 +62,14 @@ exports.getField = async (req, res) => {
   }
 };
 
-// Create new field (with images)
+// Create new field — slike idu na Supabase Storage
 exports.createField = async (req, res) => {
   try {
     const userId = req.user.id;
-    const fieldData = JSON.parse(req.body.data); // Data is JSON string
+    const fieldData = JSON.parse(req.body.data);
 
-    // Validation
     if (!fieldData.name || !fieldData.sport || !fieldData.city || !fieldData.address) {
-      // Delete uploaded images if validation fails
-      if (req.files) {
-        for (const file of req.files) {
-          try {
-            await fs.unlink(file.path);
-          } catch (err) {
-            console.error('Failed to delete file:', err);
-          }
-        }
-      }
-      return res.status(400).json({ message: 'Fill all required fields!' });
+      return res.status(400).json({ message: 'Popunite sva obavezna polja!' });
     }
 
     // Insert field
@@ -111,55 +95,58 @@ exports.createField = async (req, res) => {
 
     if (error) {
       console.error('Create field error:', error);
-      // Clean up uploaded files
-      if (req.files) {
-        for (const file of req.files) {
-          try {
-            await fs.unlink(file.path);
-          } catch (err) {
-            console.error('Failed to delete file:', err);
-          }
-        }
-      }
       return res.status(500).json({ message: 'Failed to create field' });
     }
 
-    // Add images if provided
+    // ✅ Upload slika na Supabase Storage
     if (req.files && req.files.length > 0) {
-      const imageInserts = req.files.map((file, index) => ({
-        field_id: field.id,
-        filename: file.filename,
-        filepath: file.path,
-        is_primary: index === 0
-      }));
+      for (let i = 0; i < req.files.length; i++) {
+        const file = req.files[i];
+        const fileExt = path.extname(file.originalname).toLowerCase() || '.jpg';
+        const fileName = `field-${field.id}-${Date.now()}-${i}${fileExt}`;
+        const storagePath = `fields/${fileName}`;
 
-      const { error: imagesError } = await supabase
-        .from('field_images')
-        .insert(imageInserts);
+        // Upload na Supabase Storage bucket "field-images"
+        const { error: uploadError } = await supabase.storage
+          .from('field-images')
+          .upload(storagePath, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false
+          });
 
-      if (imagesError) {
-        console.error('Insert images error:', imagesError);
-        // Don't fail the request - field is created
+        if (uploadError) {
+          console.error('❌ Supabase storage upload error:', uploadError);
+          continue;
+        }
+
+        // Dohvati public URL
+        const { data: urlData } = supabase.storage
+          .from('field-images')
+          .getPublicUrl(storagePath);
+
+        const publicUrl = urlData.publicUrl;
+
+        // Spremi u field_images tablicu
+        await supabase.from('field_images').insert({
+          field_id: field.id,
+          filename: fileName,
+          filepath: publicUrl, // ✅ Supabase public URL
+          is_primary: i === 0
+        });
       }
     }
 
-    // Add facilities if provided
-    if (fieldData.facilities && Array.isArray(fieldData.facilities)) {
+    // Add facilities
+    if (fieldData.facilities && Array.isArray(fieldData.facilities) && fieldData.facilities.length > 0) {
       const facilityInserts = fieldData.facilities.map(facility => ({
         field_id: field.id,
         facility: facility
       }));
 
-      const { error: facilitiesError } = await supabase
-        .from('field_facilities')
-        .insert(facilityInserts);
-
-      if (facilitiesError) {
-        console.error('Insert facilities error:', facilitiesError);
-      }
+      await supabase.from('field_facilities').insert(facilityInserts);
     }
 
-    // Get the complete field with relations
+    // Dohvati kompletan field
     const { data: completeField } = await supabase
       .from('fields')
       .select(`
@@ -170,22 +157,12 @@ exports.createField = async (req, res) => {
       .eq('id', field.id)
       .single();
 
-    res.status(201).json({ 
-      message: 'Field added successfully!', 
+    res.status(201).json({
+      message: 'Teren uspješno dodan!',
       field: completeField || field
     });
   } catch (error) {
     console.error('Create field error:', error);
-    // Clean up uploaded files on error
-    if (req.files) {
-      for (const file of req.files) {
-        try {
-          await fs.unlink(file.path);
-        } catch (err) {
-          console.error('Failed to delete file:', err);
-        }
-      }
-    }
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -198,58 +175,26 @@ exports.addReview = async (req, res) => {
     const userId = req.user.id;
 
     if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ message: 'Rating must be between 1 and 5!' });
+      return res.status(400).json({ message: 'Ocjena mora biti između 1 i 5!' });
     }
 
-    // Check if field exists
-    const { data: field, error: fieldError } = await supabase
-      .from('fields')
-      .select('id')
-      .eq('id', fieldId)
-      .single();
+    const { data: field } = await supabase.from('fields').select('id').eq('id', fieldId).single();
+    if (!field) return res.status(404).json({ message: 'Teren nije pronađen' });
 
-    if (fieldError || !field) {
-      return res.status(404).json({ message: 'Field not found' });
-    }
-
-    // Check if already reviewed
     const { data: existingReview } = await supabase
-      .from('field_reviews')
-      .select('id')
-      .eq('field_id', fieldId)
-      .eq('user_id', userId)
-      .single();
+      .from('field_reviews').select('id').eq('field_id', fieldId).eq('user_id', userId).single();
 
-    if (existingReview) {
-      return res.status(400).json({ message: 'You already reviewed this field!' });
-    }
+    if (existingReview) return res.status(400).json({ message: 'Već ste ocijenili ovaj teren!' });
 
-    // Add review
     const { data: review, error } = await supabase
       .from('field_reviews')
-      .insert({
-        field_id: fieldId,
-        user_id: userId,
-        rating,
-        comment: comment || null
-      })
-      .select(`
-        *,
-        users (id, username, avatar)
-      `)
+      .insert({ field_id: fieldId, user_id: userId, rating, comment: comment || null })
+      .select(`*, users (id, username, avatar)`)
       .single();
 
-    if (error) {
-      console.error('Add review error:', error);
-      return res.status(500).json({ message: 'Failed to add review' });
-    }
+    if (error) return res.status(500).json({ message: 'Failed to add review' });
 
-    // The database trigger will automatically update the field's average rating
-
-    res.json({ 
-      message: 'Review added!', 
-      review 
-    });
+    res.json({ message: 'Recenzija dodana!', review });
   } catch (error) {
     console.error('Add review error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -262,49 +207,34 @@ exports.deleteField = async (req, res) => {
     const { fieldId } = req.params;
     const userId = req.user.id;
 
-    // Get field with images
-    const { data: field, error: fetchError } = await supabase
+    const { data: field } = await supabase
       .from('fields')
-      .select(`
-        *,
-        field_images (filepath)
-      `)
+      .select(`*, field_images (filepath)`)
       .eq('id', fieldId)
       .single();
 
-    if (fetchError || !field) {
-      return res.status(404).json({ message: 'Field not found' });
-    }
+    if (!field) return res.status(404).json({ message: 'Teren nije pronađen' });
+    if (field.added_by !== userId) return res.status(403).json({ message: 'Nemate ovlaštenje!' });
 
-    // Check authorization
-    if (field.added_by !== userId) {
-      return res.status(403).json({ message: 'Not authorized to delete this field!' });
-    }
-
-    // Delete image files from filesystem
+    // ✅ Briši slike iz Supabase Storage
     if (field.field_images && field.field_images.length > 0) {
       for (const img of field.field_images) {
         try {
-          await fs.unlink(img.filepath);
+          // Izvuci path iz public URL-a
+          const url = img.filepath || '';
+          const storagePathMatch = url.match(/field-images\/(.+)$/);
+          if (storagePathMatch) {
+            await supabase.storage.from('field-images').remove([storagePathMatch[1]]);
+          }
         } catch (err) {
-          console.error('Failed to delete image file:', err);
-          // Continue even if file deletion fails
+          console.error('Failed to delete image from storage:', err);
         }
       }
     }
 
-    // Delete field (CASCADE will delete related images, facilities, reviews)
-    const { error: deleteError } = await supabase
-      .from('fields')
-      .delete()
-      .eq('id', fieldId);
+    await supabase.from('fields').delete().eq('id', fieldId);
 
-    if (deleteError) {
-      console.error('Delete field error:', deleteError);
-      return res.status(500).json({ message: 'Failed to delete field' });
-    }
-
-    res.json({ message: 'Field deleted successfully!' });
+    res.json({ message: 'Teren uspješno obrisan!' });
   } catch (error) {
     console.error('Delete field error:', error);
     res.status(500).json({ message: 'Server error' });

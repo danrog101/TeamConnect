@@ -300,25 +300,22 @@ function FieldMap() {
   const getAvailabilityColor = (availability) => {
     return availability === 'Dostupno' ? '#3b82f6' : '#f44336';
   };
+// ── Zamijeni getFieldImage funkciju u FieldMap.js s ovom ─────────────────────
+// filepath je sad direktno Supabase public URL, nema potrebe za BASE_URL
 
-  const getFieldImage = (field) => {
-    // Check for field_images from database relation
-    if (field.field_images && field.field_images.length > 0) {
-      const img = field.field_images[0];
-      const filepath = img.filepath || '';
-      // Handle both Windows and Unix paths, and remove leading ./ or .\
-      const cleanPath = filepath.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\.\\/, '');
-      return `${BASE_URL}/${cleanPath}`;
-    }
-    // Fallback to images array
-    if (field.images && field.images.length > 0) {
-      const img = field.images[0];
-      const filepath = typeof img === 'string' ? img : (img.filepath || '');
-      const cleanPath = filepath.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\.\\/, '');
-      return `${BASE_URL}/${cleanPath}`;
-    }
-    return 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800';
-  };
+const getFieldImage = (field) => {
+  if (field.field_images && field.field_images.length > 0) {
+    const primary = field.field_images.find(img => img.is_primary) || field.field_images[0];
+    if (primary?.filepath) return primary.filepath; // ✅ direktno Supabase URL
+  }
+  if (field.images && field.images.length > 0) {
+    const img = field.images[0];
+    const filepath = typeof img === 'string' ? img : (img.filepath || '');
+    if (filepath.startsWith('http')) return filepath; // već URL
+  }
+  // Fallback placeholder
+  return 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800';
+};
 
   const getUniqueCities = () => {
     const cities = new Set(fields.map(f => f.city));

@@ -26,7 +26,7 @@ const generateTokens = (userId) => {
 const sendVerificationEmail = async (email, code) => {
   try {
     const { error } = await resend.emails.send({
-      from: 'TeamConnect <onboarding@resend.dev>',
+      from: 'TeamConnects <noreply@teamconnects.team>',
       to: email,
       subject: '🏀 TeamConnect - Verifikacijski kod',
       html: `

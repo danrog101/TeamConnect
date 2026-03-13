@@ -4,14 +4,16 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { tournamentsAPI } from '../services/api';
 import './TournamentRegister.css';
-import { useLanguage } from '../i18n/LanguageContext'; 
+import { useLanguage } from '../i18n/LanguageContext';
+
 function TournamentRegister() {
   const { id } = useParams();
-   const { t } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false); // ✅ prevent double submit
   const [formData, setFormData] = useState({
     teamName: '',
     players: []
@@ -25,18 +27,12 @@ function TournamentRegister() {
     try {
       const response = await tournamentsAPI.getOneTournament(id);
       const tournamentData = response.data || response;
-      
-      console.log('📋 Tournament loaded:', tournamentData);
-      
       setTournament(tournamentData);
-      
-      // Initialize players array based on max players
-      const maxPlayers = tournamentData.max_players_per_team || 7;
-      const emptyPlayers = Array(maxPlayers).fill('');
 
+      const maxPlayers = tournamentData.max_players_per_team || 7;
       setFormData({
         teamName: '',
-        players: emptyPlayers
+        players: Array(maxPlayers).fill('')
       });
     } catch (error) {
       console.error('❌ Load tournament error:', error);
@@ -60,10 +56,7 @@ function TournamentRegister() {
   const addPlayerField = () => {
     const maxPlayers = tournament.max_players_per_team || 7;
     if (formData.players.length < maxPlayers) {
-      setFormData({
-        ...formData,
-        players: [...formData.players, '']
-      });
+      setFormData({ ...formData, players: [...formData.players, ''] });
     }
   };
 
@@ -75,7 +68,9 @@ function TournamentRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.teamName) {
+    if (submitting) return; // ✅ prevent double submit
+
+    if (!formData.teamName.trim()) {
       setToast({ message: 'Unesite naziv tima!', type: 'error' });
       return;
     }
@@ -94,28 +89,26 @@ function TournamentRegister() {
       return;
     }
 
-    try {
-      // Convert player names to objects for backend
-      const playersData = filledPlayers.map(name => ({ name }));
-      console.log('📤 Registering team:', { teamName: formData.teamName, players: playersData });
+    setSubmitting(true);
 
-      const response = await tournamentsAPI.registerTeam(id, {
-        teamName: formData.teamName,
+    try {
+      const playersData = filledPlayers.map(name => ({ name }));
+
+      await tournamentsAPI.registerTeam(id, {
+        teamName: formData.teamName.trim(),
         players: playersData
       });
 
-      console.log('✅ Registration response:', response);
+      // ✅ Odmah redirect — ne čekamo
+      navigate(`/tournament/${id}`, {
+        state: { successMessage: 'Tim uspješno registriran! 🎉' }
+      });
 
-      if (response.data || response.status === 201) {
-        setToast({ message: 'Tim uspješno registriran! 🎉', type: 'success' });
-        setTimeout(() => navigate(`/tournament/${id}`), 2000);
-      } else {
-        setToast({ message: 'Greška pri registraciji tima', type: 'error' });
-      }
     } catch (error) {
       console.error('❌ Register team error:', error);
       const errorMessage = error.response?.data?.message || 'Greška pri registraciji tima';
       setToast({ message: errorMessage, type: 'error' });
+      setSubmitting(false); // ✅ reset samo kod greške
     }
   };
 
@@ -148,7 +141,7 @@ function TournamentRegister() {
   return (
     <div className="tournament-register-page">
       <Navbar />
-      
+
       <div className="register-container">
         <div className="register-card card">
           <div className="register-header">
@@ -160,7 +153,6 @@ function TournamentRegister() {
           <form onSubmit={handleSubmit}>
             <div className="form-section">
               <h3>Informacije o timu</h3>
-
               <div className="form-group">
                 <label>Naziv tima *</label>
                 <input
@@ -175,7 +167,9 @@ function TournamentRegister() {
             </div>
 
             <div className="form-section">
-              <h3>Natjecatelji ({formData.players.filter(p => p.trim()).length}/{tournament.max_players_per_team || 7})</h3>
+              <h3>
+                Natjecatelji ({formData.players.filter(p => p.trim()).length}/{tournament.max_players_per_team || 7})
+              </h3>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '15px', fontSize: '0.95rem' }}>
                 Minimalno <strong>{tournament.min_players_per_team || 5}</strong> natjecatelja,
                 Maksimalno <strong>{tournament.max_players_per_team || 7}</strong> natjecatelja (uključujući rezerve)
@@ -224,11 +218,16 @@ function TournamentRegister() {
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => navigate(`/tournament/${id}`)}
+                disabled={submitting}
               >
                 Odustani
               </button>
-              <button type="submit" className="btn btn-primary">
-                Registriraj tim
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={submitting}
+              >
+                {submitting ? 'Registriranje...' : 'Registriraj tim'}
               </button>
             </div>
           </form>

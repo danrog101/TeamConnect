@@ -29,7 +29,13 @@ function TournamentDetail() {
     setCurrentUser(user);
     loadTournament();
   }, [id]);
+const location = useLocation(); // import { useLocation } from 'react-router-dom'
 
+useEffect(() => {
+  if (location.state?.successMessage) {
+    setToast({ message: location.state.successMessage, type: 'success' });
+  }
+}, []);
   const loadTournament = async () => {
     setLoading(true);
     try {
