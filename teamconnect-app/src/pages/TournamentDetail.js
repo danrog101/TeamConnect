@@ -7,7 +7,7 @@ import { API_URL } from '../config';
 import './TournamentDetail.css';
 import BracketGenerator from '../components/Bracketgenerator';
 import { useLanguage } from '../i18n/LanguageContext';
-
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 function TournamentDetail() {
   const { id } = useParams();
   const { t } = useLanguage();
