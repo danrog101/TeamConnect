@@ -96,9 +96,7 @@ function Navbar() {
             <span className="nav-icon">💪</span>
            Moj Studio
           </button>
-          <button className="nav-link" onClick={() => goTo('/highlights')}>
-            <span className="nav-icon">🎬</span>{t('nav.highlights')}
-          </button>
+          
          <button className="nav-link" onClick={() => goTo('/groups')}>
   <span className="nav-icon">🏃</span>{t('nav.groups')}
 </button>
