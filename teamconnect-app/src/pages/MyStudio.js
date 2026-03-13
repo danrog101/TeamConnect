@@ -11,21 +11,19 @@ function MyStudio() {
   const { t } = useLanguage();
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
-  const [myStudios, setMyStudios] = useState([]);
+  const [myStudios, setMyStudios]         = useState([]);
   const [memberStudios, setMemberStudios] = useState([]);
-  const [activeTab, setActiveTab] = useState('my-studios');
+  const [activeTab, setActiveTab]         = useState('my-studios');
   const [selectedStudio, setSelectedStudio] = useState(null);
-  const [sessions, setSessions] = useState([]);
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState(null);
+  const [sessions, setSessions]           = useState([]);
+  const [members, setMembers]             = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [toast, setToast]                 = useState(null);
 
-  // Modali
-  const [showCreateStudio, setShowCreateStudio] = useState(false);
+  const [showCreateStudio, setShowCreateStudio]   = useState(false);
   const [showCreateSession, setShowCreateSession] = useState(false);
-  const [showAddMember, setShowAddMember] = useState(false);
+  const [showAddMember, setShowAddMember]         = useState(false);
 
-  // Forme
   const [studioForm, setStudioForm] = useState({ name: '', description: '' });
   const [sessionForm, setSessionForm] = useState({
     title: '', type: '', date: '', time: '',
@@ -41,24 +39,20 @@ function MyStudio() {
 
   const token = localStorage.getItem('token');
 
-useEffect(() => {
-  loadData();
-}, []);
+  useEffect(() => { loadData(); }, []);
 
-useEffect(() => {
-  // Ako je klijent (ne trener) i ima samo jedan studio, automatski ga otvori
-  if (memberStudios.length > 0 && myStudios.length === 0) {
-    setSelectedStudio(memberStudios[0]);
-    setActiveTab('sessions');
-  }
-}, [memberStudios, myStudios]);
+  useEffect(() => {
+    if (memberStudios.length > 0 && myStudios.length === 0) {
+      setSelectedStudio(memberStudios[0]);
+      setActiveTab('sessions');
+    }
+  }, [memberStudios, myStudios]);
 
   useEffect(() => {
     if (selectedStudio) {
-      setActiveTab('sessions'); 
+      setActiveTab('sessions');
       loadSessions(selectedStudio.id);
-      const isTrainer = selectedStudio.trainer_id === currentUser.id;
-      if (isTrainer) loadMembers(selectedStudio.id);
+      if (isTrainer(selectedStudio)) loadMembers(selectedStudio.id);
     }
   }, [selectedStudio]);
 
@@ -66,11 +60,10 @@ useEffect(() => {
     try {
       setLoading(true);
       const [myRes, memberRes] = await Promise.all([
-        fetch(`${API_URL}/studios/my`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/studios/my`,     { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/studios/member`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
-
-      if (myRes.ok) setMyStudios(await myRes.json());
+      if (myRes.ok)     setMyStudios(await myRes.json());
       if (memberRes.ok) setMemberStudios(await memberRes.json());
     } catch (e) {
       setToast({ message: 'Greška pri učitavanju', type: 'error' });
@@ -85,9 +78,7 @@ useEffect(() => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) setSessions(await res.json());
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const loadMembers = async (studioId) => {
@@ -96,16 +87,11 @@ useEffect(() => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) setMembers(await res.json());
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const handleCreateStudio = async () => {
-    if (!studioForm.name) {
-      setToast({ message: 'Naziv je obavezan!', type: 'error' });
-      return;
-    }
+    if (!studioForm.name) { setToast({ message: 'Naziv je obavezan!', type: 'error' }); return; }
     try {
       const res = await fetch(`${API_URL}/studios`, {
         method: 'POST',
@@ -121,9 +107,7 @@ useEffect(() => {
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) {
-      setToast({ message: 'Greška', type: 'error' });
-    }
+    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
   };
 
   const handleCreateSession = async () => {
@@ -146,9 +130,7 @@ useEffect(() => {
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) {
-      setToast({ message: 'Greška', type: 'error' });
-    }
+    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
   };
 
   const handleAddMember = async () => {
@@ -168,9 +150,7 @@ useEffect(() => {
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) {
-      setToast({ message: 'Greška', type: 'error' });
-    }
+    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
   };
 
   const handleRemoveMember = async (memberId) => {
@@ -181,9 +161,7 @@ useEffect(() => {
       });
       setToast({ message: 'Član uklonjen', type: 'info' });
       loadMembers(selectedStudio.id);
-    } catch (e) {
-      setToast({ message: 'Greška', type: 'error' });
-    }
+    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
   };
 
   const handleSignup = async (sessionId) => {
@@ -199,9 +177,7 @@ useEffect(() => {
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) {
-      setToast({ message: 'Greška', type: 'error' });
-    }
+    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
   };
 
   const handleCancel = async (sessionId) => {
@@ -217,9 +193,7 @@ useEffect(() => {
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) {
-      setToast({ message: 'Greška', type: 'error' });
-    }
+    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
   };
 
   const handleDeleteSession = async (sessionId) => {
@@ -230,23 +204,19 @@ useEffect(() => {
       });
       setToast({ message: 'Trening obrisan', type: 'info' });
       loadSessions(selectedStudio.id);
-    } catch (e) {
-      setToast({ message: 'Greška', type: 'error' });
-    }
+    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
   };
-const handleToggleMembership = async (memberId) => {
-  try {
-    const res = await fetch(`${API_URL}/studios/${selectedStudio.id}/members/${memberId}/membership`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (res.ok) {
-      loadMembers(selectedStudio.id);
-    }
-  } catch (e) {
-    setToast({ message: 'Greška', type: 'error' });
-  }
-};
+
+  const handleToggleMembership = async (memberId) => {
+    try {
+      const res = await fetch(`${API_URL}/studios/${selectedStudio.id}/members/${memberId}/membership`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) loadMembers(selectedStudio.id);
+    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
+  };
+
   const isTrainer = (studio) => studio?.trainer_id === currentUser.id;
 
   const getSignupStatus = (session) => {
@@ -257,14 +227,14 @@ const handleToggleMembership = async (memberId) => {
   };
 
   const canSignup = (session) => {
-    const sessionDateTime = new Date(`${session.date}T${session.time}`);
-    const deadline = new Date(sessionDateTime.getTime() - session.signup_deadline_hours * 60 * 60 * 1000);
+    const dt = new Date(`${session.date}T${session.time}`);
+    const deadline = new Date(dt.getTime() - session.signup_deadline_hours * 3600000);
     return new Date() <= deadline;
   };
 
   const canCancel = (session) => {
-    const sessionDateTime = new Date(`${session.date}T${session.time}`);
-    const deadline = new Date(sessionDateTime.getTime() - session.cancel_deadline_hours * 60 * 60 * 1000);
+    const dt = new Date(`${session.date}T${session.time}`);
+    const deadline = new Date(dt.getTime() - session.cancel_deadline_hours * 3600000);
     return new Date() <= deadline;
   };
 
@@ -278,14 +248,9 @@ const handleToggleMembership = async (memberId) => {
     ...memberStudios.filter(ms => !myStudios.find(s => s.id === ms.id)).map(s => ({ ...s, role: 'member' }))
   ];
 
-  if (loading) {
-    return (
-      <div className="studio-page">
-        <Navbar />
-        <div className="loading">Učitavanje...</div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="studio-page"><Navbar /><div className="loading">Učitavanje...</div></div>
+  );
 
   return (
     <div className="studio-page">
@@ -295,7 +260,7 @@ const handleToggleMembership = async (memberId) => {
         {!selectedStudio ? (
           <>
             <div className="studio-header">
-              <h1>💪 Moj Studio</h1>
+              <h1>💪 {t('nav.myStudio') || 'Moj Studio'}</h1>
               <p>Upravljaj treninzima i klijentima</p>
               <button className="btn btn-primary" onClick={() => setShowCreateStudio(true)}>
                 + Kreiraj Studio
@@ -322,9 +287,7 @@ const handleToggleMembership = async (memberId) => {
                       </div>
                     </div>
                     {studio.description && <p className="studio-desc">{studio.description}</p>}
-                    <div className="studio-card-footer">
-                      <span>Klikni za detalje →</span>
-                    </div>
+                    <div className="studio-card-footer">Klikni za detalje →</div>
                   </div>
                 ))}
               </div>
@@ -332,7 +295,6 @@ const handleToggleMembership = async (memberId) => {
           </>
         ) : (
           <>
-            {/* Studio detalji */}
             <div className="studio-detail-header">
               <button className="btn btn-secondary" onClick={() => { setSelectedStudio(null); setSessions([]); setMembers([]); }}>
                 ← Natrag
@@ -345,17 +307,12 @@ const handleToggleMembership = async (memberId) => {
               </div>
               {isTrainer(selectedStudio) && (
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button className="btn btn-primary" onClick={() => setShowCreateSession(true)}>
-                    + Novi trening
-                  </button>
-                  <button className="btn btn-secondary" onClick={() => setShowAddMember(true)}>
-                    + Dodaj klijenta
-                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowCreateSession(true)}>+ Novi trening</button>
+                  <button className="btn btn-secondary" onClick={() => setShowAddMember(true)}>+ Dodaj klijenta</button>
                 </div>
               )}
             </div>
 
-            {/* Tabs za trenera */}
             {isTrainer(selectedStudio) && (
               <div className="studio-tabs">
                 <button className={`tab ${activeTab === 'sessions' ? 'active' : ''}`} onClick={() => setActiveTab('sessions')}>
@@ -367,7 +324,7 @@ const handleToggleMembership = async (memberId) => {
               </div>
             )}
 
-            {/* Sesije */}
+            {/* ── SESSIONS ── */}
             {(activeTab === 'sessions' || !isTrainer(selectedStudio)) && (
               <div className="sessions-list">
                 {sessions.length === 0 ? (
@@ -380,8 +337,8 @@ const handleToggleMembership = async (memberId) => {
                   sessions.map(session => {
                     const { isSignedUp, count } = getSignupStatus(session);
                     const canSign = canSignup(session);
-                    const canCan = canCancel(session);
-                    const isPast = new Date(`${session.date}T${session.time}`) < new Date();
+                    const canCan  = canCancel(session);
+                    const isPast  = new Date(`${session.date}T${session.time}`) < new Date();
 
                     return (
                       <div key={session.id} className={`session-card card ${isPast ? 'past' : ''}`}>
@@ -431,16 +388,16 @@ const handleToggleMembership = async (memberId) => {
                             {isTrainer(selectedStudio) && (
                               <>
                                 <div className="trainer-signups">
-  {session.signups?.filter(s => !s.cancelled_at).map(s => (
-    <div key={s.id} className="signup-person">
-      <span className="signup-avatar">{s.user?.avatar || '👤'}</span>
-      <span className="signup-name">{s.user?.username}</span>
-    </div>
-  ))}
-  {session.signups?.filter(s => !s.cancelled_at).length === 0 && (
-    <p style={{color: 'var(--text-secondary)', fontSize: '0.85rem'}}>Nema prijavljenih</p>
-  )}
-</div>
+                                  {session.signups?.filter(s => !s.cancelled_at).map(s => (
+                                    <div key={s.id} className="signup-person">
+                                      <span className="signup-avatar">{s.user?.avatar || '👤'}</span>
+                                      <span className="signup-name">{s.user?.username}</span>
+                                    </div>
+                                  ))}
+                                  {session.signups?.filter(s => !s.cancelled_at).length === 0 && (
+                                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nema prijavljenih</p>
+                                  )}
+                                </div>
                                 <button className="btn btn-danger btn-small" onClick={() => handleDeleteSession(session.id)}>
                                   🗑️
                                 </button>
@@ -455,7 +412,7 @@ const handleToggleMembership = async (memberId) => {
               </div>
             )}
 
-            {/* Članovi - samo za trenera */}
+            {/* ── MEMBERS ── */}
             {isTrainer(selectedStudio) && activeTab === 'members' && (
               <div className="members-list">
                 {members.length === 0 ? (
@@ -467,32 +424,32 @@ const handleToggleMembership = async (memberId) => {
                 ) : (
                   members.map(member => (
                     <div key={member.id} className="member-card card">
-  <div className="member-info">
-    <span className="member-avatar">{member.user?.avatar || '👤'}</span>
-    <div>
-      <strong>{member.user?.username}</strong>
-      <p>{member.user?.email}</p>
-      <span style={{
-        fontSize: '0.75rem',
-        fontWeight: '600',
-        color: member.membership_paid ? '#10b981' : '#ef4444'
-      }}>
-        {member.membership_paid ? '✅ Plaćeno' : '❌ Nije plaćeno'}
-      </span>
-    </div>
-  </div>
-  <div style={{ display: 'flex', gap: '8px' }}>
-    <button
-      className={`btn btn-small ${member.membership_paid ? 'btn-secondary' : 'btn-primary'}`}
-      onClick={() => handleToggleMembership(member.id)}
-    >
-      {member.membership_paid ? '❌ Označi neplaćeno' : '✅ Označi plaćeno'}
-    </button>
-    <button className="btn btn-danger btn-small" onClick={() => handleRemoveMember(member.id)}>
-      Ukloni
-    </button>
-  </div>
-</div>
+                      {/* Left: avatar + info */}
+                      <div className="member-info">
+                        <span className="member-avatar">{member.user?.avatar || '👤'}</span>
+                        <div>
+                          <strong>{member.user?.username}</strong>
+                          <p>{member.user?.email}</p>
+                          {/* ✅ FIXED: CSS klase umjesto inline stilova */}
+                          <span className={`membership-status ${member.membership_paid ? 'paid' : 'unpaid'}`}>
+                            {member.membership_paid ? '✅ Plaćeno' : '❌ Nije plaćeno'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: action buttons */}
+                      <div className="member-actions">
+                        <button
+                          className={`btn-membership ${member.membership_paid ? 'mark-unpaid' : 'mark-paid'}`}
+                          onClick={() => handleToggleMembership(member.id)}
+                        >
+                          {member.membership_paid ? '❌ Označi neplaćeno' : '✅ Označi plaćeno'}
+                        </button>
+                        <button className="btn btn-danger btn-small" onClick={() => handleRemoveMember(member.id)}>
+                          Ukloni
+                        </button>
+                      </div>
+                    </div>
                   ))
                 )}
               </div>
@@ -501,28 +458,20 @@ const handleToggleMembership = async (memberId) => {
         )}
       </div>
 
-      {/* Modal - Kreiraj Studio */}
+      {/* ── Modal: Kreiraj Studio ── */}
       {showCreateStudio && (
         <div className="modal-overlay" onClick={() => setShowCreateStudio(false)}>
           <div className="studio-modal card" onClick={e => e.stopPropagation()}>
             <h2>💪 Kreiraj Studio</h2>
             <div className="form-group">
               <label>Naziv *</label>
-              <input
-                type="text"
-                placeholder="npr. Ana's Pilates Studio"
-                value={studioForm.name}
-                onChange={e => setStudioForm({ ...studioForm, name: e.target.value })}
-              />
+              <input type="text" placeholder="npr. Ana's Pilates Studio"
+                value={studioForm.name} onChange={e => setStudioForm({ ...studioForm, name: e.target.value })} />
             </div>
             <div className="form-group">
               <label>Opis</label>
-              <textarea
-                placeholder="Kratki opis studija..."
-                value={studioForm.description}
-                onChange={e => setStudioForm({ ...studioForm, description: e.target.value })}
-                rows={3}
-              />
+              <textarea placeholder="Kratki opis studija..." value={studioForm.description}
+                onChange={e => setStudioForm({ ...studioForm, description: e.target.value })} rows={3} />
             </div>
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={() => setShowCreateStudio(false)}>Odustani</button>
@@ -532,83 +481,67 @@ const handleToggleMembership = async (memberId) => {
         </div>
       )}
 
-      {/* Modal - Kreiraj Sesiju */}
+      {/* ── Modal: Kreiraj Sesiju ── */}
       {showCreateSession && (
         <div className="modal-overlay" onClick={() => setShowCreateSession(false)}>
           <div className="studio-modal card" onClick={e => e.stopPropagation()}>
             <h2>📅 Novi Trening</h2>
             <div className="form-group">
               <label>Naziv treninga *</label>
-              <input
-                type="text"
-                placeholder="npr. Jutarnji pilates"
-                value={sessionForm.title}
-                onChange={e => setSessionForm({ ...sessionForm, title: e.target.value })}
-              />
+              <input type="text" placeholder="npr. Jutarnji pilates" value={sessionForm.title}
+                onChange={e => setSessionForm({ ...sessionForm, title: e.target.value })} />
             </div>
             <div className="form-group">
               <label>Vrsta treninga *</label>
               <select value={sessionForm.type} onChange={e => setSessionForm({ ...sessionForm, type: e.target.value })}>
                 <option value="">-- Odaberi vrstu --</option>
-                {sessionTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
+                {sessionTypes.map(type => <option key={type} value={type}>{type}</option>)}
                 <option value="custom">✏️ Unesi vlastitu vrstu</option>
               </select>
               {sessionForm.type === 'custom' && (
-                <input
-                  type="text"
-                  placeholder="Upiši vrstu treninga..."
-                  style={{ marginTop: '8px' }}
-                  onChange={e => setSessionForm({ ...sessionForm, type: e.target.value })}
-                />
+                <input type="text" placeholder="Upiši vrstu treninga..." style={{ marginTop: '8px' }}
+                  onChange={e => setSessionForm({ ...sessionForm, type: e.target.value })} />
               )}
             </div>
             <div className="form-row">
               <div className="form-group">
                 <label>Datum *</label>
-                <input type="date" value={sessionForm.date}
-  min={new Date().toISOString().split('T')[0]}
-  onChange={e => setSessionForm({ ...sessionForm, date: e.target.value })} />
+                <input type="date" value={sessionForm.date} min={new Date().toISOString().split('T')[0]}
+                  onChange={e => setSessionForm({ ...sessionForm, date: e.target.value })} />
               </div>
               <div className="form-group">
                 <label>Vrijeme *</label>
-                <input type="time" value={sessionForm.time} onChange={e => setSessionForm({ ...sessionForm, time: e.target.value })} />
+                <input type="time" value={sessionForm.time}
+                  onChange={e => setSessionForm({ ...sessionForm, time: e.target.value })} />
               </div>
             </div>
             <div className="form-group">
               <label>Maks. sudionika</label>
-              <input type="number" min="1" max="100" value={sessionForm.max_participants} onChange={e => setSessionForm({ ...sessionForm, max_participants: parseInt(e.target.value) })} />
+              <input type="number" min="1" max="100" value={sessionForm.max_participants}
+                onChange={e => setSessionForm({ ...sessionForm, max_participants: parseInt(e.target.value) })} />
             </div>
             <div className="form-row">
               <div className="form-group">
                 <label>Prijava zatvorena (h prije)</label>
-                <select value={sessionForm.signup_deadline_hours} onChange={e => setSessionForm({ ...sessionForm, signup_deadline_hours: parseInt(e.target.value) })}>
+                <select value={sessionForm.signup_deadline_hours}
+                  onChange={e => setSessionForm({ ...sessionForm, signup_deadline_hours: parseInt(e.target.value) })}>
                   <option value={0}>Otvorene prijave</option>
-                  <option value={1}>1h prije</option>
-                  <option value={2}>2h prije</option>
-                  <option value={3}>3h prije</option>
-                  <option value={6}>6h prije</option>
-                  <option value={12}>12h prije</option>
-                  <option value={24}>24h prije</option>
+                  {[1,2,3,6,12,24].map(h => <option key={h} value={h}>{h}h prije</option>)}
                 </select>
               </div>
               <div className="form-group">
                 <label>Otkaz moguć do (h prije)</label>
-                <select value={sessionForm.cancel_deadline_hours} onChange={e => setSessionForm({ ...sessionForm, cancel_deadline_hours: parseInt(e.target.value) })}>
+                <select value={sessionForm.cancel_deadline_hours}
+                  onChange={e => setSessionForm({ ...sessionForm, cancel_deadline_hours: parseInt(e.target.value) })}>
                   <option value={0}>Uvijek</option>
-                  <option value={1}>1h prije</option>
-                  <option value={2}>2h prije</option>
-                  <option value={3}>3h prije</option>
-                  <option value={6}>6h prije</option>
-                  <option value={12}>12h prije</option>
-                  <option value={24}>24h prije</option>
+                  {[1,2,3,6,12,24].map(h => <option key={h} value={h}>{h}h prije</option>)}
                 </select>
               </div>
             </div>
             <div className="form-group">
               <label>Napomene</label>
-              <textarea placeholder="Dodatne info za klijente..." value={sessionForm.notes} onChange={e => setSessionForm({ ...sessionForm, notes: e.target.value })} rows={2} />
+              <textarea placeholder="Dodatne info za klijente..." value={sessionForm.notes}
+                onChange={e => setSessionForm({ ...sessionForm, notes: e.target.value })} rows={2} />
             </div>
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={() => setShowCreateSession(false)}>Odustani</button>
@@ -618,19 +551,15 @@ const handleToggleMembership = async (memberId) => {
         </div>
       )}
 
-      {/* Modal - Dodaj Člana */}
+      {/* ── Modal: Dodaj Člana ── */}
       {showAddMember && (
         <div className="modal-overlay" onClick={() => setShowAddMember(false)}>
           <div className="studio-modal card" onClick={e => e.stopPropagation()}>
             <h2>👥 Dodaj Klijenta</h2>
             <div className="form-group">
               <label>Korisničko ime ili email</label>
-              <input
-                type="text"
-                placeholder="Upiši username ili email..."
-                value={memberInput}
-                onChange={e => setMemberInput(e.target.value)}
-              />
+              <input type="text" placeholder="Upiši username ili email..."
+                value={memberInput} onChange={e => setMemberInput(e.target.value)} />
             </div>
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={() => setShowAddMember(false)}>Odustani</button>

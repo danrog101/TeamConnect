@@ -15,6 +15,7 @@
   padding: 52px 24px 44px;
   background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 60%, #0ea5e9 100%);
   margin-bottom: var(--space-xl);
+  border-radius: var(--radius-xl);
   position: relative;
   overflow: hidden;
   animation: fadeInDown 0.6s ease-out;
@@ -96,11 +97,7 @@
   margin-bottom: var(--space-sm);
 }
 
-.studio-card-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
+.studio-card-header h3 { margin: 0; font-size: 1.1rem; font-weight: 700; }
 
 /* ============ ROLE BADGES ============ */
 .studio-role-badge {
@@ -111,28 +108,11 @@
   font-weight: 600;
 }
 
-.studio-role-badge.trainer {
-  background: rgba(26, 115, 232, 0.12);
-  color: #1a73e8;
-}
+.studio-role-badge.trainer { background: rgba(26,115,232,0.12); color: #1a73e8; }
+.studio-role-badge.member  { background: rgba(16,185,129,0.12); color: #10b981; }
 
-.studio-role-badge.member {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-}
-
-.studio-desc {
-  color: var(--text-secondary);
-  font-size: 0.88rem;
-  margin: var(--space-xs) 0;
-}
-
-.studio-card-footer {
-  color: var(--color-primary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-top: var(--space-sm);
-}
+.studio-desc { color: var(--text-secondary); font-size: 0.88rem; margin: var(--space-xs) 0; }
+.studio-card-footer { color: var(--color-primary); font-size: 0.85rem; font-weight: 600; margin-top: var(--space-sm); }
 
 /* ============ EMPTY STATES ============ */
 .no-studios, .no-sessions, .no-members {
@@ -157,12 +137,7 @@
   border-bottom: 2px solid var(--border-primary);
 }
 
-.studio-detail-header h1 {
-  margin: 0;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
+.studio-detail-header h1 { margin: 0; font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
 
 /* ============ TABS ============ */
 .studio-tabs {
@@ -194,11 +169,7 @@
 }
 
 /* ============ SESSION CARDS ============ */
-.sessions-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
+.sessions-list { display: flex; flex-direction: column; gap: var(--space-md); }
 
 .session-card {
   padding: var(--space-lg);
@@ -208,12 +179,8 @@
   transition: box-shadow 0.2s, border-color 0.2s;
 }
 
-.session-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-secondary);
-}
-
-.session-card.past { opacity: 0.55; }
+.session-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-secondary); }
+.session-card.past  { opacity: 0.55; }
 
 .session-card-main {
   display: flex;
@@ -233,22 +200,14 @@
   margin-bottom: var(--space-xs);
 }
 
-.session-info h3 {
-  margin: 4px 0;
-  font-size: 1.05rem;
-  font-weight: 700;
-}
+.session-info h3 { margin: 4px 0; font-size: 1.05rem; font-weight: 700; }
 
 .session-datetime,
 .session-spots,
-.session-deadlines {
-  color: var(--text-secondary);
-  font-size: 0.88rem;
-  margin: 3px 0;
-}
+.session-deadlines { color: var(--text-secondary); font-size: 0.88rem; margin: 3px 0; }
 
-.full-badge  { color: var(--color-error); font-weight: 700; }
-.session-notes { color: var(--text-secondary); font-size: 0.84rem; margin: 4px 0; }
+.full-badge      { color: var(--color-error); font-weight: 700; }
+.session-notes   { color: var(--text-secondary); font-size: 0.84rem; margin: 4px 0; }
 
 .session-actions {
   display: flex;
@@ -258,18 +217,9 @@
   min-width: 120px;
 }
 
-.signed-up-badge {
-  color: var(--color-success);
-  font-weight: 600;
-  font-size: 0.84rem;
-}
+.signed-up-badge { color: var(--color-success); font-weight: 600; font-size: 0.84rem; }
 
-.trainer-signups {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: flex-end;
-}
+.trainer-signups { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
 
 .signup-person {
   display: flex;
@@ -285,38 +235,119 @@
 .signup-name   { font-weight: 600; color: var(--text-primary); }
 
 /* ============ MEMBERS ============ */
-.members-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
+.members-list { display: flex; flex-direction: column; gap: var(--space-sm); }
 
 .member-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-md);
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   background: var(--bg-card);
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  flex-wrap: wrap;
 }
 
-.member-card:hover { box-shadow: var(--shadow-sm); }
+.member-card:hover { box-shadow: var(--shadow-sm); border-color: var(--border-secondary); }
 
+/* Avatar + info */
 .member-info {
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  flex: 1;
+  min-width: 0;
 }
 
-.member-avatar { font-size: 1.8rem; }
+.member-avatar { font-size: 1.8rem; flex-shrink: 0; }
 
-.member-info strong { color: var(--text-primary); font-size: 0.95rem; }
+.member-info strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
 .member-info p {
   color: var(--text-secondary);
   font-size: 0.82rem;
-  margin: 0;
+  margin: 2px 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Membership status badge */
+.membership-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.membership-status.paid {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.membership-status.unpaid {
+  background: rgba(239, 68, 68, 0.10);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* Action buttons */
+.member-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Payment toggle button */
+.btn-membership {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-membership.mark-paid {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.btn-membership.mark-paid:hover {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.btn-membership.mark-unpaid {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-membership.mark-unpaid:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
 }
 
 /* ============ MODALS ============ */
@@ -338,12 +369,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.studio-modal h2 {
-  margin: 0 0 var(--space-lg);
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
+.studio-modal h2 { margin: 0 0 var(--space-lg); font-size: 1.4rem; font-weight: 800; color: var(--text-primary); }
 
 .form-group { margin-bottom: var(--space-md); }
 
@@ -376,11 +402,7 @@
   box-shadow: 0 0 0 3px var(--color-primary-bg);
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-md);
-}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
 
 .modal-actions {
   display: flex;
@@ -391,10 +413,13 @@
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
-  .studio-header { padding: 36px 16px 32px; }
-  .studio-header h1 { font-size: 1.8rem; }
+  .studio-header        { padding: 36px 16px 32px; border-radius: var(--radius-lg); }
+  .studio-header h1     { font-size: 1.8rem; }
+  .studio-container     { padding: var(--space-md); }
 
-  .studio-detail-header { flex-direction: column; align-items: flex-start; }
+  .studio-detail-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .studio-detail-header > div:last-child { width: 100%; display: flex; gap: 8px; flex-wrap: wrap; }
+  .studio-detail-header > div:last-child .btn { flex: 1; }
 
   .session-card-main { flex-direction: column; }
 
@@ -408,5 +433,9 @@
 
   .form-row { grid-template-columns: 1fr; }
 
-  .studio-container { padding: var(--space-md); }
+  /* Member card — stack vertically */
+  .member-card      { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .member-info      { width: 100%; }
+  .member-actions   { width: 100%; justify-content: flex-start; }
+  .btn-membership   { flex: 1; justify-content: center; }
 }

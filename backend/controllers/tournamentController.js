@@ -989,3 +989,37 @@ exports.updateMatchScore = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+// ── Dodaj samo ovo na kraj tournamentController.js ───────────────────────────
+
+exports.resetBracket = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const { data: tournament, error: fetchError } = await supabase
+      .from('tournaments')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !tournament) {
+      return res.status(404).json({ message: 'Turnir ne postoji' });
+    }
+
+    if (tournament.creator_id !== userId) {
+      return res.status(403).json({ message: 'Samo organizator može resetirati bracket' });
+    }
+
+    const { error } = await supabase
+      .from('tournaments')
+      .update({ bracket: null, bracket_generated: false })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    res.json({ message: 'Bracket uspješno resetiran' });
+  } catch (error) {
+    console.error('❌ Reset bracket error:', error);
+    res.status(500).json({ message: 'Greška pri resetiranju bracketa' });
+  }
+};
