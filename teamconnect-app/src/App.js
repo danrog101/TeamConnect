@@ -22,8 +22,6 @@ import TeamChat from './pages/TeamChat';
 import FieldMap from './pages/FieldMap';
 import MatchTracker from './pages/MatchTracker';
 import Friends from './pages/Friends';
-
-import VideoHighlights from './pages/VideoHighlights';
 import Notifications from './pages/Notifications';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
