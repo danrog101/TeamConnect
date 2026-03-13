@@ -5,6 +5,8 @@
 .bracket-scroll {
   overflow-x: auto;
   padding-bottom: 16px;
+  /* Smooth scroll na mobu */
+  -webkit-overflow-scrolling: touch;
 }
 
 .bracket-container {
@@ -40,8 +42,8 @@
 }
 
 .bracket-match {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 12px;
   display: flex;
@@ -57,18 +59,19 @@
   align-items: center;
   padding: 8px 10px;
   border-radius: 8px;
-  background: var(--bg-secondary, #f5f5f5);
+  background: var(--bg-tertiary);
   gap: 8px;
+  transition: background 0.2s;
 }
 
 .match-team.winner {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, #1a73e8, #0ea5e9);
   color: white;
   font-weight: 700;
 }
 
 .match-team.tbd {
-  opacity: 0.5;
+  opacity: 0.45;
   font-style: italic;
 }
 
@@ -84,7 +87,7 @@
 .team-score {
   font-weight: 700;
   font-size: 15px;
-  min-width: 20px;
+  min-width: 22px;
   text-align: center;
 }
 
@@ -105,8 +108,8 @@
 
 .btn-enter-score {
   margin-top: 4px;
-  padding: 6px 12px;
-  background: var(--color-primary);
+  padding: 7px 12px;
+  background: linear-gradient(135deg, #1a73e8, #0ea5e9);
   color: white;
   border: none;
   border-radius: 8px;
@@ -114,46 +117,65 @@
   cursor: pointer;
   width: 100%;
   font-weight: 600;
+  transition: opacity 0.2s, transform 0.2s;
 }
 
 .btn-enter-score:hover {
-  opacity: 0.85;
+  opacity: 0.88;
+  transform: translateY(-1px);
 }
 
+/* Empty state */
 .bracket-empty {
   text-align: center;
-  padding: 40px;
+  padding: 60px 20px;
   color: var(--text-tertiary);
 }
 
-/* Score Modal */
+.bracket-empty-icon {
+  font-size: 3.5rem;
+  display: block;
+  margin-bottom: 14px;
+}
+
+.bracket-empty p {
+  font-size: 1.05rem;
+}
+
+/* ── Score Modal ─────────────────────────────────────── */
 .score-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px;
 }
 
 .score-modal {
-  background: var(--card-bg);
-  border-radius: 16px;
-  padding: 32px;
-  width: 340px;
-  max-width: 90vw;
+  background: var(--bg-card);
+  border-radius: 18px;
+  padding: 32px 28px;
+  width: 360px;
+  max-width: 100%;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-primary);
 }
 
 .score-modal h3 {
-  margin: 0 0 8px;
-  font-size: 20px;
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
 .score-match-title {
   color: var(--text-secondary);
   margin-bottom: 24px;
-  font-size: 14px;
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 .score-inputs {
@@ -161,7 +183,7 @@
   align-items: center;
   gap: 12px;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .score-input-group {
@@ -172,38 +194,65 @@
 }
 
 .score-input-group label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: 700;
   max-width: 100px;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .score-input-group input {
-  width: 70px;
+  width: 72px;
   padding: 12px;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 800;
   text-align: center;
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  background: var(--bg-secondary);
+  border: 2px solid var(--border-primary);
+  border-radius: 12px;
+  background: var(--bg-tertiary);
   color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+
+.score-input-group input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
 }
 
 .score-separator {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   color: var(--text-secondary);
-  margin-top: 20px;
+  margin-top: 18px;
+}
+
+/* Warning & error messages */
+.score-draw-warning {
+  color: #f59e0b;
+  font-size: 0.82rem;
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.score-save-error {
+  color: var(--color-error);
+  font-size: 0.82rem;
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: 600;
 }
 
 .score-modal-actions {
   display: flex;
   gap: 12px;
+  margin-top: 8px;
 }
 
 .score-modal-actions .btn {
