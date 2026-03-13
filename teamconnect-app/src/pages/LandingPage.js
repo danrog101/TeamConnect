@@ -11,10 +11,8 @@ function LandingPage() {
   const features = [
     { icon: '👥', title: t('landing.featureFindPlayers'), desc: t('landing.featureFindPlayersDesc') },
     { icon: '🏆', title: t('landing.featureTournaments'), desc: t('landing.featureTournamentsDesc') },
-    { icon: '🏟️', title: t('landing.featureFields'), desc: t('landing.featureFieldsDesc') },
-    { icon: '📊', title: t('landing.featureStats'), desc: t('landing.featureStatsDesc') },
-    { icon: '💬', title: t('landing.featureChat'), desc: t('landing.featureChatDesc') },
-    { icon: '🎬', title: t('landing.featureVideo'), desc: t('landing.featureVideoDesc') },
+    { icon: '🏟️', title: t('landing.featureFields'),     desc: t('landing.featureFieldsDesc') },
+    { icon: '💬', title: t('landing.featureChat'),        desc: t('landing.featureChatDesc') },
   ];
 
   return (
