@@ -120,13 +120,6 @@ export const statsAPI = {
   delete: (id) => api.delete(`/stats/${id}`)
 };
 
-// Videos API
-export const videosAPI = {
-  getAll: () => api.get('/videos'),
-  add: (data) => api.post('/videos', data),
-  update: (id, data) => api.put(`/videos/${id}`, data),
-  delete: (id) => api.delete(`/videos/${id}`)
-};
 
 // Ratings API
 export const ratingsAPI = {

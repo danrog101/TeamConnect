@@ -113,7 +113,7 @@ app.get('/api', (req, res) => {
       tournaments: '/api/tournaments',
       fields: '/api/fields',
       matches: '/api/matches',
-      videos: '/api/videos',
+      
       profile: '/api/profile',
       friends: '/api/friends',
       stats: '/api/stats',
@@ -142,7 +142,7 @@ const ratingRoutes = require('./routes/ratingRoutes');
 
 const teamRoutes = require('./routes/teamRoutes');
 const tournamentRoutes = require('./routes/tournamentRoutes');
-const videoRoutes = require('./routes/videoRoutes');
+
 const waitlistRoutes = require('./routes/waitlistRoutes');
 const dmRoutes = require('./routes/dmRoutes');
 const groupRoutes = require('./routes/groupRoutes');
@@ -160,7 +160,7 @@ app.use('/api/ratings', ratingRoutes);
 
 app.use('/api/teams', teamRoutes);
 app.use('/api/tournaments', tournamentRoutes);
-app.use('/api/videos', videoRoutes);
+
 app.use('/api/waitlist', waitlistRoutes);
 const studioRoutes = require('./routes/studioRoutes');
 app.use('/api/studios', studioRoutes);
@@ -363,7 +363,7 @@ server.listen(PORT, () => {
   console.log('   ✅ /api/stats');
   console.log('   ✅ /api/teams');
   console.log('   ✅ /api/tournaments');
-  console.log('   ✅ /api/videos');
+ 
   console.log('   ✅ /api/waitlist');
   console.log('═══════════════════════════════════════════');
 });

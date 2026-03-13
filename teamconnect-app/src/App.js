@@ -102,7 +102,7 @@ function App() {
 <Route path="/messages/:userId" element={<DirectMessages />} />
 
             {/* Video */}
-            <Route path="/highlights" element={<PrivateRoute><VideoHighlights /></PrivateRoute>} />
+            
             <Route path="/groups" element={<PrivateRoute><Groups /></PrivateRoute>} />
           </Routes>
           <Footer />
