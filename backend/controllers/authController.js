@@ -4,13 +4,14 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.resend.com',
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: 'resend',
+    pass: process.env.RESEND_API_KEY
   }
 });
-
 // Generate access and refresh tokens
 const generateTokens = (userId) => {
   const accessToken = jwt.sign(
@@ -32,7 +33,7 @@ const generateTokens = (userId) => {
 const sendVerificationEmail = async (email, code) => {
   try {
     await transporter.sendMail({
-      from: `"TeamConnects" <${process.env.EMAIL_USER}>`,
+      from: 'TeamConnects <noreply@teamconnects.team>',
       to: email,
       subject: '⚽ TeamConnects - Verifikacijski kod',
       html: `
@@ -60,7 +61,7 @@ const sendVerificationEmail = async (email, code) => {
 const sendPasswordResetEmail = async (email, code) => {
   try {
     await transporter.sendMail({
-      from: `"TeamConnects" <${process.env.EMAIL_USER}>`,
+      from: 'TeamConnects <noreply@teamconnects.team>',
       to: email,
       subject: '🔐 TeamConnects - Resetiranje lozinke',
       html: `
@@ -139,9 +140,7 @@ exports.register = async (req, res) => {
     console.error('❌ Register error:', error);
     res.status(500).json({ message: 'Server error: ' + error.message });
   }
-  setTimeout(() => {
-  window.location.href = '/verify-email';
-}, 1500);
+ 
 };
 
 // Verify email code
