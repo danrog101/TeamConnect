@@ -1,12 +1,12 @@
-# TeamConnect 
+# TeamConnects
 
-**Project:** TeamConnect – Connecting Teams for Sport  
+**Project:** TeamConnects – Connecting Teams for Sport  
 
 **Status:** In Development
 
 ## 🎯 Project Overview
 
-**TeamConnect** is a web application that connects athletes and recreational players by **location and sport**.
+**TeamConnects** is a web application that connects athletes and recreational players by **location and sport**.
 
 It addresses a common problem: people often want to play football (or other sports) but can't find enough players to form a team.
 
