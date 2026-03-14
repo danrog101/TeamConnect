@@ -32,59 +32,84 @@ const generateTokens = (userId) => {
 // Send verification email
 const sendVerificationEmail = async (email, code) => {
   try {
-    await transporter.sendMail({
-      from: 'TeamConnects <noreply@teamconnects.team>',
-      to: email,
-      subject: '⚽ TeamConnects - Verifikacijski kod',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 60%, #0ea5e9 100%); padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">⚽ TeamConnects</h1>
-            <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0;">Dobrodošli u vašu sportsku zajednicu!</p>
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'TeamConnects <noreply@teamconnects.team>',
+        to: email,
+        subject: '⚽ TeamConnects - Verifikacijski kod',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 60%, #0ea5e9 100%); padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">⚽ TeamConnects</h1>
+              <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0;">Dobrodošli u vašu sportsku zajednicu!</p>
+            </div>
+            <p style="color: #333; font-size: 16px;">Vaš verifikacijski kod je:</p>
+            <h2 style="color: #1a73e8; font-size: 40px; background: #f0f7ff; padding: 24px; text-align: center; border-radius: 12px; letter-spacing: 12px; font-weight: 800;">${code}</h2>
+            <p style="color: #666; font-size: 14px;">Kod vrijedi <strong>15 minuta</strong>.</p>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+            <p style="color: #9ca3af; font-size: 12px;">Ako niste zatražili ovaj kod, ignorirajte ovaj email.</p>
           </div>
-          <p style="color: #333; font-size: 16px;">Vaš verifikacijski kod je:</p>
-          <h2 style="color: #1a73e8;font-size: 40px; background: #f0f7ff; padding: 24px; text-align: center; border-radius: 12px; letter-spacing: 12px; font-weight: 800;">${code}</h2>
-          <p style="color: #666; font-size: 14px;">Kod vrijedi <strong>15 minuta</strong>.</p>
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-          <p style="color: #9ca3af; font-size: 12px;">Ako niste zatražili ovaj kod, ignorirajte ovaj email.</p>
-        </div>
-      `
+        `
+      })
     });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('❌ Resend error:', data);
+      return false;
+    }
     console.log('✅ Verification email sent to:', email);
     return true;
   } catch (error) {
     console.error('❌ Email sending failed:', error);
-    return false;
-  } };
+    return false; 
+  }
+};
+
 
 // Send password reset email
+
 const sendPasswordResetEmail = async (email, code) => {
   try {
-    await transporter.sendMail({
-      from: 'TeamConnects <noreply@teamconnects.team>',
-      to: email,
-      subject: '🔐 TeamConnects - Resetiranje lozinke',
-      html: `
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'TeamConnects <noreply@teamconnects.team>',
+        to: email,
+        subject: '🔐 TeamConnects - Resetiranje lozinke',
+        html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 60%, #0ea5e9 100%); padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">⚽ TeamConnects</h1>
-            <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0;">Resetiranje lozinke</p>
+            <div style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 60%, #0ea5e9 100%); padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">⚽ TeamConnects</h1>
+            </div>
+            <p style="color: #333;">Vaš kod za resetiranje lozinke:</p>
+            <h2 style="color: #ef4444; font-size: 40px; background: #fef2f2; padding: 24px; text-align: center; border-radius: 12px; letter-spacing: 12px; font-weight: 800;">${code}</h2>
+            <p style="color: #666; font-size: 14px;">Kod vrijedi <strong>1 sat</strong>.</p>
           </div>
-          <p style="color: #333;">Primili smo zahtjev za resetiranje vaše lozinke.</p>
-          <h2 style="color: #ef4444; font-size: 40px; background: #fef2f2; padding: 24px; text-align: center; border-radius: 12px; letter-spacing: 12px; font-weight: 800;">${code}</h2>
-          <p style="color: #666; font-size: 14px;">Kod vrijedi <strong>1 sat</strong>.</p>
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-          <p style="color: #9ca3af; font-size: 12px;">Ako niste zatražili resetiranje lozinke, ignorirajte ovaj email.</p>
-        </div>
-      `
+        `
+      })
     });
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('❌ Resend reset error:', data);
+      return false;
+    }
     console.log('✅ Reset email sent to:', email);
     return true;
   } catch (error) {
     console.error('❌ Reset email failed:', error);
     return false;
   }
-};
+}
 
 // ----------------- CONTROLLER FUNCTIONS -----------------
 
