@@ -1,14 +1,14 @@
-📄 Engineering Specification – TeamConnect
+📄 Engineering Specification – TeamConnects
 1. Project Overview
 
-Project Name & Working Title: TeamConnect – Sports Team Finder
+Project Name & Working Title: TeamConnects – Sports Team Finder
 Version / Date: v1.0.0 – December 2025
 High-Level Goal:
-TeamConnect je web aplikacija koja omogućuje korisnicima brzo pronalaženje suigrača i sportskih timova prema sportu i lokaciji (npr. Split – kvartovi). Sustav automatizira spajanje korisnika u postojeće timove ili kreira nove timove kada prethodni nemaju dovoljno članova.
+TeamConnects je web aplikacija koja omogućuje korisnicima brzo pronalaženje suigrača i sportskih timova prema sportu i lokaciji (npr. Split – kvartovi). Sustav automatizira spajanje korisnika u postojeće timove ili kreira nove timove kada prethodni nemaju dovoljno članova.
 
 Core Value Proposition:
 Rješava čest problem rekreativaca: "Želim igrati, ali nemam ekipu."
-TeamConnect uklanja ručno traženje suigrača i čini organizaciju sportskih aktivnosti jednostavnijom.
+TeamConnects uklanja ručno traženje suigrača i čini organizaciju sportskih aktivnosti jednostavnijom.
 
 2. Scope & Requirements
 2.1 Goals (In-Scope)
@@ -85,7 +85,7 @@ Jednostavan stack idealan za studentski tim, lagan za razvoj, testiranje i održ
 └─────────────────────────┘
 
 3.3 Project Directory Structure
-teamconnect/
+teamconnects/
   ├── server.js
   ├── routes/
   │     ├── users.js
@@ -118,29 +118,11 @@ Sport (enum)
 
 Location (enum)
 
-MongoDB Schemas
-User
-{
-  "userId": "ObjectId",
-  "name": "Karolina",
-  "email": "karolina@example.com",
-  "password": "hashed",
-  "sport": "Nogomet",
-  "location": "Split - Brda"
-}
 
-Team
-{
-  "teamId": "ObjectId",
-  "sport": "Nogomet",
-  "location": "Split - Brda",
-  "members": ["ObjectId1", "ObjectId2"],
-  "maxPlayers": 10
-}
 
 Storage Strategy
 
-MongoDB kolekcije: users, teams
+
 
 JSON fallback: data/users.json, data/teams.json
 
