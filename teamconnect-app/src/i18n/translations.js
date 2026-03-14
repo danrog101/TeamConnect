@@ -64,6 +64,7 @@ export const translations = {
       switchToDark: 'Prebaci na tamni način',
       messages: 'Poruke',
       groups: 'Grupe',
+      myStudio: 'Moj Studio',
     },
     groups: {
   title: 'Grupe',
@@ -118,6 +119,11 @@ export const translations = {
   memberRemoved: 'Član uklonjen',
   sessionDeleted: 'Trening obrisan',
   visibilityChanged: 'Vidljivost treninga promijenjena',
+},
+dm: {
+  title: 'Poruke',
+  noConversations: 'Nema konverzacija',
+  selectConversation: 'Odaberi konverzaciju',
 },
     // Auth
     auth: {
@@ -862,6 +868,7 @@ export const translations = {
       switchToDark: 'Switch to dark mode',
       messages: 'Messages',
       groups: 'Groups',
+      myStudio: 'My Studio',
     },
     groups: {
   title: 'Groups',
@@ -917,7 +924,11 @@ export const translations = {
   sessionDeleted: 'Session deleted',
   visibilityChanged: 'Session visibility changed',
 },
-
+dm: {
+  title: 'Messages',
+  noConversations: 'No conversations',
+  selectConversation: 'Select a conversation',
+},
     // Auth
     auth: {
       login: 'Login',
