@@ -14,17 +14,23 @@ const {
   deleteTeam,
   getAllTournaments,
   deleteTournament,
-  updateTournamentStatus
+  updateTournamentStatus,
+  // ✅ Novo:
+  getAllFields,
+  adminDeleteField,
+  getAllStudios,
+  adminDeleteStudio,
+  getAllGroups,
+  adminDeleteGroup
 } = require('../controllers/adminController');
 
-// All admin routes require auth + admin check
 router.use(auth);
 router.use(adminAuth);
 
 // Dashboard
 router.get('/stats', getDashboardStats);
 
-// Users management
+// Users
 router.get('/users', getAllUsers);
 router.get('/users/:userId', getUserDetails);
 router.put('/users/:userId', updateUser);
@@ -32,13 +38,25 @@ router.delete('/users/:userId', deleteUser);
 router.post('/users/:userId/verify', verifyUser);
 router.post('/users/:userId/reset-password', resetUserPassword);
 
-// Teams management
+// Teams
 router.get('/teams', getAllTeams);
 router.delete('/teams/:teamId', deleteTeam);
 
-// Tournaments management
+// Tournaments
 router.get('/tournaments', getAllTournaments);
 router.delete('/tournaments/:tournamentId', deleteTournament);
 router.put('/tournaments/:tournamentId/status', updateTournamentStatus);
+
+// ✅ Fields
+router.get('/fields', getAllFields);
+router.delete('/fields/:fieldId', adminDeleteField);
+
+// ✅ Studios
+router.get('/studios', getAllStudios);
+router.delete('/studios/:studioId', adminDeleteStudio);
+
+// ✅ Groups
+router.get('/groups', getAllGroups);
+router.delete('/groups/:groupId', adminDeleteGroup);
 
 module.exports = router;

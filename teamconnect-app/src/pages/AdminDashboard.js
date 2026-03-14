@@ -4,29 +4,30 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import api from '../services/api';
 import './AdminDashboard.css';
-import { useLanguage } from '../i18n/LanguageContext'; 
+import { useLanguage } from '../i18n/LanguageContext';
+
 const ADMIN_EMAIL = 'teamconnect0102@gmail.com';
 
 function AdminDashboard() {
-   const { t } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [tournaments, setTournaments] = useState([]);
+  const [fields, setFields] = useState([]);
+  const [studios, setStudios] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(null);
   const [newPassword, setNewPassword] = useState('');
 
-  // Check if current user is admin
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.email !== ADMIN_EMAIL) {
@@ -41,6 +42,9 @@ function AdminDashboard() {
     if (activeTab === 'users') loadUsers();
     if (activeTab === 'teams') loadTeams();
     if (activeTab === 'tournaments') loadTournaments();
+    if (activeTab === 'fields') loadFields();
+    if (activeTab === 'studios') loadStudios();
+    if (activeTab === 'groups') loadGroups();
   }, [activeTab, currentPage, searchTerm]);
 
   const loadDashboardStats = async () => {
@@ -48,7 +52,6 @@ function AdminDashboard() {
       const response = await api.get('/admin/stats');
       setStats(response.data);
     } catch (error) {
-      console.error('Load stats error:', error);
       if (error.response?.status === 403) {
         setToast({ message: 'Pristup odbijen', type: 'error' });
         setTimeout(() => navigate('/dashboard'), 2000);
@@ -61,49 +64,67 @@ function AdminDashboard() {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/users', {
-        params: { page: currentPage, limit: 20, search: searchTerm }
-      });
+      const response = await api.get('/admin/users', { params: { page: currentPage, limit: 20, search: searchTerm } });
       setUsers(response.data.users);
       setTotalPages(response.data.totalPages);
     } catch (error) {
-      console.error('Load users error:', error);
       setToast({ message: 'Greška pri učitavanju korisnika', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const loadTeams = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/teams', {
-        params: { page: currentPage, limit: 20, search: searchTerm }
-      });
+      const response = await api.get('/admin/teams', { params: { page: currentPage, limit: 20, search: searchTerm } });
       setTeams(response.data.teams);
       setTotalPages(response.data.totalPages);
     } catch (error) {
-      console.error('Load teams error:', error);
       setToast({ message: 'Greška pri učitavanju timova', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const loadTournaments = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/tournaments', {
-        params: { page: currentPage, limit: 20, search: searchTerm }
-      });
+      const response = await api.get('/admin/tournaments', { params: { page: currentPage, limit: 20, search: searchTerm } });
       setTournaments(response.data.tournaments);
       setTotalPages(response.data.totalPages);
     } catch (error) {
-      console.error('Load tournaments error:', error);
       setToast({ message: 'Greška pri učitavanju turnira', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
+  };
+
+  const loadFields = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/admin/fields', { params: { page: currentPage, limit: 20, search: searchTerm } });
+      setFields(response.data.fields || response.data);
+      setTotalPages(response.data.totalPages || 1);
+    } catch (error) {
+      setToast({ message: 'Greška pri učitavanju terena', type: 'error' });
+    } finally { setLoading(false); }
+  };
+
+  const loadStudios = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/admin/studios', { params: { page: currentPage, limit: 20, search: searchTerm } });
+      setStudios(response.data.studios || response.data);
+      setTotalPages(response.data.totalPages || 1);
+    } catch (error) {
+      setToast({ message: 'Greška pri učitavanju studija', type: 'error' });
+    } finally { setLoading(false); }
+  };
+
+  const loadGroups = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/admin/groups', { params: { page: currentPage, limit: 20, search: searchTerm } });
+      setGroups(response.data.groups || response.data);
+      setTotalPages(response.data.totalPages || 1);
+    } catch (error) {
+      setToast({ message: 'Greška pri učitavanju grupa', type: 'error' });
+    } finally { setLoading(false); }
   };
 
   const handleVerifyUser = async (userId) => {
@@ -164,6 +185,39 @@ function AdminDashboard() {
     }
   };
 
+  const handleDeleteField = async (fieldId) => {
+    try {
+      await api.delete(`/admin/fields/${fieldId}`);
+      setToast({ message: 'Teren obrisan!', type: 'success' });
+      setShowDeleteConfirm(null);
+      loadFields();
+    } catch (error) {
+      setToast({ message: 'Greška pri brisanju terena', type: 'error' });
+    }
+  };
+
+  const handleDeleteStudio = async (studioId) => {
+    try {
+      await api.delete(`/admin/studios/${studioId}`);
+      setToast({ message: 'Studio obrisan!', type: 'success' });
+      setShowDeleteConfirm(null);
+      loadStudios();
+    } catch (error) {
+      setToast({ message: 'Greška pri brisanju studija', type: 'error' });
+    }
+  };
+
+  const handleDeleteGroup = async (groupId) => {
+    try {
+      await api.delete(`/admin/groups/${groupId}`);
+      setToast({ message: 'Grupa obrisana!', type: 'success' });
+      setShowDeleteConfirm(null);
+      loadGroups();
+    } catch (error) {
+      setToast({ message: 'Greška pri brisanju grupe', type: 'error' });
+    }
+  };
+
   const handleUpdateTournamentStatus = async (tournamentId, status) => {
     try {
       await api.put(`/admin/tournaments/${tournamentId}/status`, { status });
@@ -174,15 +228,49 @@ function AdminDashboard() {
     }
   };
 
+  const confirmDelete = () => {
+    if (!showDeleteConfirm) return;
+    const { type, id } = showDeleteConfirm;
+    if (type === 'user') handleDeleteUser(id);
+    else if (type === 'team') handleDeleteTeam(id);
+    else if (type === 'tournament') handleDeleteTournament(id);
+    else if (type === 'field') handleDeleteField(id);
+    else if (type === 'studio') handleDeleteStudio(id);
+    else if (type === 'group') handleDeleteGroup(id);
+  };
+
   const formatDate = (dateString) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('hr-HR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: '2-digit', month: '2-digit', year: 'numeric'
     });
   };
+
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    setSearchTerm('');
+  };
+
+  const Pagination = () => totalPages > 1 ? (
+    <div className="pagination">
+      <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prethodna</button>
+      <span>Stranica {currentPage} od {totalPages}</span>
+      <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Sljedeća</button>
+    </div>
+  ) : null;
+
+  const SearchBar = ({ placeholder }) => (
+    <div className="section-header">
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={searchTerm}
+        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+        className="search-input"
+      />
+    </div>
+  );
 
   if (loading && !stats) {
     return (
@@ -198,80 +286,51 @@ function AdminDashboard() {
   return (
     <div className="admin-page">
       <Navbar />
-
       <div className="admin-container">
         <div className="admin-header">
-          <h1>Admin Panel</h1>
-          <p>Upravljanje aplikacijom TeamConnect</p>
+          <h1>🛡️ Admin Panel</h1>
+          <p>Upravljanje aplikacijom TeamConnects</p>
         </div>
 
         {/* Tabs */}
         <div className="admin-tabs">
-          <button
-            className={`admin-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('dashboard'); setCurrentPage(1); }}
-          >
-            Dashboard
-          </button>
-          <button
-            className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('users'); setCurrentPage(1); }}
-          >
-            Korisnici
-          </button>
-          <button
-            className={`admin-tab ${activeTab === 'teams' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('teams'); setCurrentPage(1); }}
-          >
-            Timovi
-          </button>
-          <button
-            className={`admin-tab ${activeTab === 'tournaments' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('tournaments'); setCurrentPage(1); }}
-          >
-            Turniri
-          </button>
+          {[
+            { key: 'dashboard', label: '📊 Dashboard' },
+            { key: 'users', label: '👥 Korisnici' },
+            { key: 'teams', label: '⚽ Timovi' },
+            { key: 'tournaments', label: '🏆 Turniri' },
+            { key: 'fields', label: '🏟️ Tereni' },
+            { key: 'studios', label: '🏋️ Studiji' },
+            { key: 'groups', label: '👥 Grupe' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              className={`admin-tab ${activeTab === tab.key ? 'active' : ''}`}
+              onClick={() => switchTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* Dashboard Tab */}
+        {/* ── DASHBOARD ── */}
         {activeTab === 'dashboard' && stats && (
           <div className="dashboard-stats">
-            <div className="stat-card">
-              <div className="stat-icon">👥</div>
-              <div className="stat-info">
-                <h3>{stats.totalUsers}</h3>
-                <p>Ukupno korisnika</p>
+            {[
+              { icon: '👥', value: stats.totalUsers, label: 'Ukupno korisnika' },
+              { icon: '⚽', value: stats.totalTeams, label: 'Ukupno timova' },
+              { icon: '🏆', value: stats.totalTournaments, label: 'Ukupno turnira' },
+              { icon: '🏟️', value: stats.totalFields, label: 'Ukupno terena' },
+              { icon: '📈', value: stats.recentRegistrations, label: 'Novih korisnika (7 dana)', highlight: true },
+            ].map((s, i) => (
+              <div key={i} className={`stat-card ${s.highlight ? 'highlight' : ''}`}>
+                <div className="stat-icon">{s.icon}</div>
+                <div className="stat-info">
+                  <h3>{s.value}</h3>
+                  <p>{s.label}</p>
+                </div>
               </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">⚽</div>
-              <div className="stat-info">
-                <h3>{stats.totalTeams}</h3>
-                <p>Ukupno timova</p>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">🏆</div>
-              <div className="stat-info">
-                <h3>{stats.totalTournaments}</h3>
-                <p>Ukupno turnira</p>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">📍</div>
-              <div className="stat-info">
-                <h3>{stats.totalFields}</h3>
-                <p>Ukupno terena</p>
-              </div>
-            </div>
-            <div className="stat-card highlight">
-              <div className="stat-icon">📈</div>
-              <div className="stat-info">
-                <h3>{stats.recentRegistrations}</h3>
-                <p>Novih korisnika (7 dana)</p>
-              </div>
-            </div>
-
+            ))}
             <div className="admin-support-section">
               <h3>Podrška korisnicima</h3>
               <p>Korisnici vas mogu kontaktirati na:</p>
@@ -282,19 +341,10 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Users Tab */}
+        {/* ── USERS ── */}
         {activeTab === 'users' && (
           <div className="admin-section">
-            <div className="section-header">
-              <input
-                type="text"
-                placeholder="Pretraži korisnike..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="search-input"
-              />
-            </div>
-
+            <SearchBar placeholder="Pretraži korisnike..." />
             <div className="admin-table-container">
               <table className="admin-table">
                 <thead>
@@ -326,29 +376,11 @@ function AdminDashboard() {
                       <td>{formatDate(user.created_at)}</td>
                       <td className="action-buttons">
                         {!user.is_verified && (
-                          <button
-                            className="btn-action btn-verify"
-                            onClick={() => handleVerifyUser(user.id)}
-                            title="Verificiraj"
-                          >
-                            ✓
-                          </button>
+                          <button className="btn-action btn-verify" onClick={() => handleVerifyUser(user.id)} title="Verificiraj">✓</button>
                         )}
-                        <button
-                          className="btn-action btn-password"
-                          onClick={() => setShowResetPasswordModal(user)}
-                          title="Reset lozinke"
-                        >
-                          🔑
-                        </button>
+                        <button className="btn-action btn-password" onClick={() => setShowResetPasswordModal(user)} title="Reset lozinke">🔑</button>
                         {user.email !== ADMIN_EMAIL && (
-                          <button
-                            className="btn-action btn-delete"
-                            onClick={() => setShowDeleteConfirm({ type: 'user', id: user.id, name: user.username })}
-                            title="Obriši"
-                          >
-                            🗑️
-                          </button>
+                          <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'user', id: user.id, name: user.username })} title="Obriši">🗑️</button>
                         )}
                       </td>
                     </tr>
@@ -356,41 +388,14 @@ function AdminDashboard() {
                 </tbody>
               </table>
             </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="pagination">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => p - 1)}
-                >
-                  Prethodna
-                </button>
-                <span>Stranica {currentPage} od {totalPages}</span>
-                <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(p => p + 1)}
-                >
-                  Sljedeća
-                </button>
-              </div>
-            )}
+            <Pagination />
           </div>
         )}
 
-        {/* Teams Tab */}
+        {/* ── TEAMS ── */}
         {activeTab === 'teams' && (
           <div className="admin-section">
-            <div className="section-header">
-              <input
-                type="text"
-                placeholder="Pretraži timove..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="search-input"
-              />
-            </div>
-
+            <SearchBar placeholder="Pretraži timove..." />
             <div className="admin-table-container">
               <table className="admin-table">
                 <thead>
@@ -410,47 +415,25 @@ function AdminDashboard() {
                       <td><strong>{team.name}</strong></td>
                       <td>{team.sport}</td>
                       <td>{team.city}, {team.country}</td>
-                      <td>{new Date(team.date).toLocaleDateString('hr-HR')} {team.time}</td>
+                      <td>{formatDate(team.date)} {team.time}</td>
                       <td>{team.current_players}/{team.max_players}</td>
-                      <td>{team.creator?.username || 'Nepoznato'}</td>
+                      <td>{team.creator?.username || '-'}</td>
                       <td className="action-buttons">
-                        <button
-                          className="btn-action btn-delete"
-                          onClick={() => setShowDeleteConfirm({ type: 'team', id: team.id, name: team.name })}
-                          title="Obriši"
-                        >
-                          🗑️
-                        </button>
+                        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'team', id: team.id, name: team.name })}>🗑️</button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-
-            {totalPages > 1 && (
-              <div className="pagination">
-                <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prethodna</button>
-                <span>Stranica {currentPage} od {totalPages}</span>
-                <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Sljedeća</button>
-              </div>
-            )}
+            <Pagination />
           </div>
         )}
 
-        {/* Tournaments Tab */}
+        {/* ── TOURNAMENTS ── */}
         {activeTab === 'tournaments' && (
           <div className="admin-section">
-            <div className="section-header">
-              <input
-                type="text"
-                placeholder="Pretraži turnire..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="search-input"
-              />
-            </div>
-
+            <SearchBar placeholder="Pretraži turnire..." />
             <div className="admin-table-container">
               <table className="admin-table">
                 <thead>
@@ -471,42 +454,158 @@ function AdminDashboard() {
                       <td><strong>{tournament.name}</strong></td>
                       <td>{tournament.sport}</td>
                       <td>{tournament.city}, {tournament.country}</td>
-                      <td>{new Date(tournament.start_date).toLocaleDateString('hr-HR')}</td>
+                      <td>{formatDate(tournament.start_date)}</td>
                       <td>{tournament.max_teams}</td>
                       <td>
-                        <select
-                          value={tournament.status}
-                          onChange={(e) => handleUpdateTournamentStatus(tournament.id, e.target.value)}
-                          className="status-select"
-                        >
+                        <select value={tournament.status} onChange={(e) => handleUpdateTournamentStatus(tournament.id, e.target.value)} className="status-select">
                           <option value="upcoming">Nadolazeći</option>
                           <option value="active">Aktivan</option>
                           <option value="finished">Završen</option>
                         </select>
                       </td>
-                      <td>{tournament.creator?.username || 'Nepoznato'}</td>
+                      <td>{tournament.creator?.username || '-'}</td>
                       <td className="action-buttons">
-                        <button
-                          className="btn-action btn-delete"
-                          onClick={() => setShowDeleteConfirm({ type: 'tournament', id: tournament.id, name: tournament.name })}
-                          title="Obriši"
-                        >
-                          🗑️
-                        </button>
+                        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'tournament', id: tournament.id, name: tournament.name })}>🗑️</button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <Pagination />
+          </div>
+        )}
 
-            {totalPages > 1 && (
-              <div className="pagination">
-                <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prethodna</button>
-                <span>Stranica {currentPage} od {totalPages}</span>
-                <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Sljedeća</button>
-              </div>
-            )}
+        {/* ── FIELDS ── */}
+        {activeTab === 'fields' && (
+          <div className="admin-section">
+            <SearchBar placeholder="Pretraži terene..." />
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Naziv</th>
+                    <th>Sport</th>
+                    <th>Grad</th>
+                    <th>Adresa</th>
+                    <th>Cijena</th>
+                    <th>Dostupnost</th>
+                    <th>Dodao</th>
+                    <th>Akcije</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fields.map(field => (
+                    <tr key={field.id}>
+                      <td><strong>{field.name}</strong></td>
+                      <td>{field.sport}</td>
+                      <td>{field.city}, {field.country}</td>
+                      <td>{field.address || '-'}</td>
+                      <td>{field.price ? `${field.price} €/h` : 'Na upit'}</td>
+                      <td>
+                        <span className={`badge ${field.availability === 'Dostupno' ? 'badge-success' : 'badge-warning'}`}>
+                          {field.availability || 'Dostupno'}
+                        </span>
+                      </td>
+                      <td>{field.users?.username || '-'}</td>
+                      <td className="action-buttons">
+                        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'field', id: field.id, name: field.name })}>🗑️</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {fields.length === 0 && (
+                    <tr><td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema terena</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <Pagination />
+          </div>
+        )}
+
+        {/* ── STUDIOS ── */}
+        {activeTab === 'studios' && (
+          <div className="admin-section">
+            <SearchBar placeholder="Pretraži studije..." />
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Naziv</th>
+                    <th>Sport</th>
+                    <th>Grad</th>
+                    <th>Trener</th>
+                    <th>Članova</th>
+                    <th>Kreiran</th>
+                    <th>Akcije</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {studios.map(studio => (
+                    <tr key={studio.id}>
+                      <td><strong>{studio.name}</strong></td>
+                      <td>{studio.sport || '-'}</td>
+                      <td>{studio.city || '-'}</td>
+                      <td>{studio.trainer?.username || studio.owner?.username || '-'}</td>
+                      <td>{studio.member_count || studio.studio_members?.length || 0}</td>
+                      <td>{formatDate(studio.created_at)}</td>
+                      <td className="action-buttons">
+                        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'studio', id: studio.id, name: studio.name })}>🗑️</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {studios.length === 0 && (
+                    <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema studija</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <Pagination />
+          </div>
+        )}
+
+        {/* ── GROUPS ── */}
+        {activeTab === 'groups' && (
+          <div className="admin-section">
+            <SearchBar placeholder="Pretraži grupe..." />
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Naziv</th>
+                    <th>Sport</th>
+                    <th>Organizator</th>
+                    <th>Članova</th>
+                    <th>Javna</th>
+                    <th>Kreirana</th>
+                    <th>Akcije</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groups.map(group => (
+                    <tr key={group.id}>
+                      <td><strong>{group.name}</strong></td>
+                      <td>{group.sport || '-'}</td>
+                      <td>{group.creator?.username || group.owner?.username || '-'}</td>
+                      <td>{group.member_count || group.group_members?.length || 0}</td>
+                      <td>
+                        <span className={`badge ${group.is_public ? 'badge-success' : 'badge-warning'}`}>
+                          {group.is_public ? 'Da' : 'Ne'}
+                        </span>
+                      </td>
+                      <td>{formatDate(group.created_at)}</td>
+                      <td className="action-buttons">
+                        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'group', id: group.id, name: group.name })}>🗑️</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {groups.length === 0 && (
+                    <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema grupa</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <Pagination />
           </div>
         )}
       </div>
@@ -519,19 +618,8 @@ function AdminDashboard() {
             <p>Jeste li sigurni da želite obrisati <strong>{showDeleteConfirm.name}</strong>?</p>
             <p className="warning-text">Ova akcija se ne može poništiti!</p>
             <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(null)}>
-                Odustani
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={() => {
-                  if (showDeleteConfirm.type === 'user') handleDeleteUser(showDeleteConfirm.id);
-                  if (showDeleteConfirm.type === 'team') handleDeleteTeam(showDeleteConfirm.id);
-                  if (showDeleteConfirm.type === 'tournament') handleDeleteTournament(showDeleteConfirm.id);
-                }}
-              >
-                Obriši
-              </button>
+              <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(null)}>Odustani</button>
+              <button className="btn btn-danger" onClick={confirmDelete}>Obriši</button>
             </div>
           </div>
         </div>
@@ -551,15 +639,8 @@ function AdminDashboard() {
               className="modal-input"
             />
             <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => { setShowResetPasswordModal(null); setNewPassword(''); }}>
-                Odustani
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => handleResetPassword(showResetPasswordModal.id)}
-              >
-                Spremi
-              </button>
+              <button className="btn btn-secondary" onClick={() => { setShowResetPasswordModal(null); setNewPassword(''); }}>Odustani</button>
+              <button className="btn btn-primary" onClick={() => handleResetPassword(showResetPasswordModal.id)}>Spremi</button>
             </div>
           </div>
         </div>

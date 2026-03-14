@@ -371,4 +371,125 @@ exports.updateTournamentStatus = async (req, res) => {
   }
 };
 
+// ── Dodaj ovo na kraj adminController.js (prije module.exports) ───────────────
+
+// Get all fields
+exports.getAllFields = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '' } = req.query;
+    const offset = (page - 1) * limit;
+
+    let query = supabase
+      .from('fields')
+      .select(`
+        id, name, sport, city, country, address, price, availability, created_at,
+        users!fields_added_by_fkey (id, username)
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,sport.ilike.%${search}%,city.ilike.%${search}%`);
+    }
+
+    const { data: fields, error, count } = await query;
+    if (error) return res.status(500).json({ message: 'Greška pri dohvaćanju terena' });
+
+    res.json({ fields: fields || [], total: count || 0, page: parseInt(page), totalPages: Math.ceil((count || 0) / limit) });
+  } catch (error) {
+    res.status(500).json({ message: 'Greška servera' });
+  }
+};
+
+// Delete field (admin)
+exports.adminDeleteField = async (req, res) => {
+  try {
+    const { fieldId } = req.params;
+    const { error } = await supabase.from('fields').delete().eq('id', fieldId);
+    if (error) return res.status(500).json({ message: 'Greška pri brisanju terena' });
+    res.json({ message: 'Teren uspješno obrisan' });
+  } catch (error) {
+    res.status(500).json({ message: 'Greška servera' });
+  }
+};
+
+// Get all studios
+exports.getAllStudios = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '' } = req.query;
+    const offset = (page - 1) * limit;
+
+    let query = supabase
+      .from('studios')
+      .select(`
+        id, name, sport, city, created_at,
+        trainer:users!studios_trainer_id_fkey (id, username)
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,sport.ilike.%${search}%,city.ilike.%${search}%`);
+    }
+
+    const { data: studios, error, count } = await query;
+    if (error) return res.status(500).json({ message: 'Greška pri dohvaćanju studija' });
+
+    res.json({ studios: studios || [], total: count || 0, page: parseInt(page), totalPages: Math.ceil((count || 0) / limit) });
+  } catch (error) {
+    res.status(500).json({ message: 'Greška servera' });
+  }
+};
+
+// Delete studio (admin)
+exports.adminDeleteStudio = async (req, res) => {
+  try {
+    const { studioId } = req.params;
+    const { error } = await supabase.from('studios').delete().eq('id', studioId);
+    if (error) return res.status(500).json({ message: 'Greška pri brisanju studija' });
+    res.json({ message: 'Studio uspješno obrisan' });
+  } catch (error) {
+    res.status(500).json({ message: 'Greška servera' });
+  }
+};
+
+// Get all groups
+exports.getAllGroups = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '' } = req.query;
+    const offset = (page - 1) * limit;
+
+    let query = supabase
+      .from('groups')
+      .select(`
+        id, name, sport, is_public, created_at,
+        creator:users!groups_creator_id_fkey (id, username)
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,sport.ilike.%${search}%`);
+    }
+
+    const { data: groups, error, count } = await query;
+    if (error) return res.status(500).json({ message: 'Greška pri dohvaćanju grupa' });
+
+    res.json({ groups: groups || [], total: count || 0, page: parseInt(page), totalPages: Math.ceil((count || 0) / limit) });
+  } catch (error) {
+    res.status(500).json({ message: 'Greška servera' });
+  }
+};
+
+// Delete group (admin)
+exports.adminDeleteGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { error } = await supabase.from('groups').delete().eq('id', groupId);
+    if (error) return res.status(500).json({ message: 'Greška pri brisanju grupe' });
+    res.json({ message: 'Grupa uspješno obrisana' });
+  } catch (error) {
+    res.status(500).json({ message: 'Greška servera' });
+  }
+};
 module.exports = exports;
