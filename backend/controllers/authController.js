@@ -1,9 +1,15 @@
 const { supabase } = require('../config/supabase');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
 // Generate access and refresh tokens
 const generateTokens = (userId) => {
@@ -25,64 +31,56 @@ const generateTokens = (userId) => {
 // Send verification email
 const sendVerificationEmail = async (email, code) => {
   try {
-    const { error } = await resend.emails.send({
-      from: 'TeamConnects <noreply@teamconnects.team>',
+    await transporter.sendMail({
+      from: `"TeamConnects" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: '🏀 TeamConnect - Verifikacijski kod',
+      subject: '⚽ TeamConnects - Verifikacijski kod',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #4f46e5;">Dobrodošli u TeamConnect!</h1>
-          <p>Vaš verifikacijski kod je:</p>
-          <h2 style="color: #667eea; font-size: 32px; background: #f3f4f6; padding: 20px; text-align: center; border-radius: 10px;">${code}</h2>
-          <p>Kod vrijedi 15 minuta.</p>
+          <div style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 60%, #0ea5e9 100%); padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">⚽ TeamConnects</h1>
+            <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0;">Dobrodošli u vašu sportsku zajednicu!</p>
+          </div>
+          <p style="color: #333; font-size: 16px;">Vaš verifikacijski kod je:</p>
+          <h2 style="color: #1a73e8;font-size: 40px; background: #f0f7ff; padding: 24px; text-align: center; border-radius: 12px; letter-spacing: 12px; font-weight: 800;">${code}</h2>
+          <p style="color: #666; font-size: 14px;">Kod vrijedi <strong>15 minuta</strong>.</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-          <p style="color: #6b7280; font-size: 12px;">Ako niste zatražili ovaj kod, ignorirajte ovaj email.</p>
-          <p style="color: #6b7280; font-size: 12px;">Podrška: teamconnect0102@gmail.com</p>
+          <p style="color: #9ca3af; font-size: 12px;">Ako niste zatražili ovaj kod, ignorirajte ovaj email.</p>
         </div>
       `
     });
-
-    if (error) {
-      console.error('❌ Resend error:', error);
-      return false;
-    }
-
+    console.log('✅ Verification email sent to:', email);
     return true;
   } catch (error) {
     console.error('❌ Email sending failed:', error);
     return false;
-  }
-};
+  } };
 
 // Send password reset email
 const sendPasswordResetEmail = async (email, code) => {
   try {
-    const { error } = await resend.emails.send({
-      from: 'TeamConnect <onboarding@resend.dev>',
+    await transporter.sendMail({
+      from: `"TeamConnects" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: '🔐 TeamConnect - Resetiranje lozinke',
+      subject: '🔐 TeamConnects - Resetiranje lozinke',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #4f46e5;">Resetiranje lozinke</h1>
-          <p>Primili smo zahtjev za resetiranje vaše lozinke.</p>
-          <p>Vaš kod za resetiranje je:</p>
-          <h2 style="color: #ef4444; font-size: 32px; background: #fef2f2; padding: 20px; text-align: center; border-radius: 10px;">${code}</h2>
-          <p>Kod vrijedi <strong>1 sat</strong>.</p>
+          <div style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 60%, #0ea5e9 100%); padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">⚽ TeamConnects</h1>
+            <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0;">Resetiranje lozinke</p>
+          </div>
+          <p style="color: #333;">Primili smo zahtjev za resetiranje vaše lozinke.</p>
+          <h2 style="color: #ef4444; font-size: 40px; background: #fef2f2; padding: 24px; text-align: center; border-radius: 12px; letter-spacing: 12px; font-weight: 800;">${code}</h2>
+          <p style="color: #666; font-size: 14px;">Kod vrijedi <strong>1 sat</strong>.</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-          <p style="color: #6b7280; font-size: 12px;">Ako niste zatražili resetiranje lozinke, ignorirajte ovaj email.</p>
-          <p style="color: #6b7280; font-size: 12px;">Podrška: teamconnect0102@gmail.com</p>
+          <p style="color: #9ca3af; font-size: 12px;">Ako niste zatražili resetiranje lozinke, ignorirajte ovaj email.</p>
         </div>
       `
     });
-
-    if (error) {
-      console.error('❌ Resend error:', error);
-      return false;
-    }
-
+    console.log('✅ Reset email sent to:', email);
     return true;
   } catch (error) {
-    console.error('❌ Password reset email failed:', error);
+    console.error('❌ Reset email failed:', error);
     return false;
   }
 };
