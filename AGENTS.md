@@ -1,4 +1,4 @@
-# AGENTS.md - TeamConnect
+# AGENTS.md - TeamConnects
 
 ## Commands
 - **Backend dev**: `cd backend && npm run dev` (uses nodemon)
