@@ -405,6 +405,71 @@ exports.cancelSignup = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+// Kopiraj sesije tjedna u sljedeći tjedan
+exports.copyWeekSessions = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+    const { weekStart } = req.body; // ISO datum, npr. "2026-03-16"
+
+    // Provjeri je li trener
+    const { data: studio } = await supabase.from('studios').select('trainer_id').eq('id', id).single();
+    if (!studio) return res.status(404).json({ message: 'Studio nije pronađen' });
+    if (studio.trainer_id !== userId) return res.status(403).json({ message: 'Nije dozvoljeno' });
+
+    // Izračunaj početak i kraj tjedna
+    const start = new Date(weekStart);
+    const end = new Date(weekStart);
+    end.setDate(end.getDate() + 6);
+
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+
+    // Dohvati sve sesije tog tjedna
+    const { data: sessions, error } = await supabase
+      .from('studio_sessions')
+      .select('title, type, time, max_participants, signup_deadline_hours, cancel_deadline_hours, notes, date')
+      .eq('studio_id', id)
+      .gte('date', startStr)
+      .lte('date', endStr);
+
+    if (error) return res.status(500).json({ message: 'Greška pri dohvaćanju sesija' });
+    if (!sessions || sessions.length === 0) {
+      return res.status(400).json({ message: 'Nema sesija u odabranom tjednu za kopiranje' });
+    }
+
+    // Dupliciraj svaku sesiju +7 dana
+    const newSessions = sessions.map(s => {
+      const newDate = new Date(s.date);
+      newDate.setDate(newDate.getDate() + 7);
+      return {
+        studio_id: id,
+        title: s.title,
+        type: s.type,
+        date: newDate.toISOString().split('T')[0],
+        time: s.time,
+        max_participants: s.max_participants,
+        signup_deadline_hours: s.signup_deadline_hours,
+        cancel_deadline_hours: s.cancel_deadline_hours,
+        notes: s.notes || ''
+      };
+    });
+
+    const { data: created, error: insertError } = await supabase
+      .from('studio_sessions')
+      .insert(newSessions)
+      .select();
+
+    if (insertError) return res.status(500).json({ message: 'Greška pri kopiranju sesija' });
+
+    res.status(201).json({
+      message: `✅ Kopirano ${created.length} treninga u sljedeći tjedan!`,
+      sessions: created
+    });
+  } catch (e) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 // Toggle članarina
 exports.toggleMembership = async (req, res) => {
   try {
@@ -429,4 +494,5 @@ exports.toggleMembership = async (req, res) => {
   } catch (e) {
     res.status(500).json({ message: 'Server error' });
   }
+
 };

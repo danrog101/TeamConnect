@@ -19,7 +19,9 @@ function MyStudio() {
   const [members, setMembers]             = useState([]);
   const [loading, setLoading]             = useState(true);
   const [toast, setToast]                 = useState(null);
-
+const [showCopyWeek, setShowCopyWeek] = useState(false);
+const [copyWeekDate, setCopyWeekDate] = useState('');
+const [copyLoading, setCopyLoading] = useState(false);
   const [showCreateStudio, setShowCreateStudio]   = useState(false);
   const [showCreateSession, setShowCreateSession] = useState(false);
   const [showAddMember, setShowAddMember]         = useState(false);
@@ -216,7 +218,40 @@ function MyStudio() {
       if (res.ok) loadMembers(selectedStudio.id);
     } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
   };
+const handleCopyWeek = async () => {
+  if (!copyWeekDate) {
+    setToast({ message: 'Odaberi tjedan!', type: 'error' });
+    return;
+  }
+  // Nađi ponedjeljak odabranog tjedna
+  const d = new Date(copyWeekDate);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  const weekStart = d.toISOString().split('T')[0];
 
+  try {
+    setCopyLoading(true);
+    const res = await fetch(`${API_URL}/studios/${selectedStudio.id}/sessions/copy-week`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ weekStart })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setToast({ message: data.message, type: 'success' });
+      setShowCopyWeek(false);
+      setCopyWeekDate('');
+      loadSessions(selectedStudio.id);
+    } else {
+      setToast({ message: data.message, type: 'error' });
+    }
+  } catch (e) {
+    setToast({ message: 'Greška', type: 'error' });
+  } finally {
+    setCopyLoading(false);
+  }
+};
   const isTrainer = (studio) => studio?.trainer_id === currentUser.id;
 
   const getSignupStatus = (session) => {
@@ -306,10 +341,11 @@ function MyStudio() {
                 </span>
               </div>
               {isTrainer(selectedStudio) && (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button className="btn btn-primary" onClick={() => setShowCreateSession(true)}>+ Novi trening</button>
-                  <button className="btn btn-secondary" onClick={() => setShowAddMember(true)}>+ Dodaj klijenta</button>
-                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+  <button className="btn btn-primary" onClick={() => setShowCreateSession(true)}>+ Novi trening</button>
+  <button className="btn btn-secondary" onClick={() => setShowCopyWeek(true)}>📋 Kopiraj tjedan</button>
+  <button className="btn btn-secondary" onClick={() => setShowAddMember(true)}>+ Dodaj klijenta</button>
+</div>
               )}
             </div>
 
@@ -568,6 +604,31 @@ function MyStudio() {
           </div>
         </div>
       )}
+      {/* ── Modal: Kopiraj tjedan ── */}
+{showCopyWeek && (
+  <div className="modal-overlay" onClick={() => setShowCopyWeek(false)}>
+    <div className="studio-modal card" onClick={e => e.stopPropagation()}>
+      <h2>📋 Kopiraj tjedan treninga</h2>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.9rem' }}>
+        Odaberi bilo koji dan iz tjedna koji želiš kopirati. Svi treninzi tog tjedna bit će duplicirani u sljedeći tjedan.
+      </p>
+      <div className="form-group">
+        <label>Odaberi dan iz tjedna koji kopiraš *</label>
+        <input
+          type="date"
+          value={copyWeekDate}
+          onChange={e => setCopyWeekDate(e.target.value)}
+        />
+      </div>
+      <div className="modal-actions">
+        <button className="btn btn-secondary" onClick={() => setShowCopyWeek(false)}>Odustani</button>
+        <button className="btn btn-primary" onClick={handleCopyWeek} disabled={copyLoading}>
+          {copyLoading ? 'Kopiranje...' : '📋 Kopiraj u sljedeći tjedan'}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const studioController = require('../controllers/studioController');
 const auth = require('../middleware/auth');
-
+const { copyWeekSessions } = require('../controllers/studioController');
 // Studios
 router.get('/my', auth, studioController.getMyStudios);
 router.get('/member', auth, studioController.getMyMemberStudios);
@@ -18,7 +18,7 @@ router.delete('/:id/members/:memberId', auth, studioController.removeMember);
 router.get('/:id/sessions', auth, studioController.getStudioSessions);
 router.post('/:id/sessions', auth, studioController.createSession);
 router.delete('/:id/sessions/:sessionId', auth, studioController.deleteSession);
-
+router.post('/:id/sessions/copy-week', auth, copyWeekSessions);
 // Signups
 router.post('/:id/sessions/:sessionId/signup', auth, studioController.signupSession);
 router.put('/sessions/:sessionId/cancel', auth, studioController.cancelSignup);
