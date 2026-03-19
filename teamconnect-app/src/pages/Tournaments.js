@@ -9,9 +9,9 @@ import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
 import './Tournaments.css';
 import { useLanguage } from '../i18n/LanguageContext'; 
-const { t, language } = useLanguage();
+
 function Tournaments() {
-   const { t } = useLanguage();
+   const { t , language} = useLanguage();
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -122,7 +122,7 @@ function Tournaments() {
         const diff = eventDate - now;
         const oneDayMs = 24 * 60 * 60 * 1000;
         if (diff > 0 && diff < oneDayMs && Notification.permission === 'granted') {
-          new Notification('TeamConnect - Podsjetnik', {
+          new Notification('TeamConnects - Podsjetnik', {
             body: `${reminder.name} počinje sutra!`,
             icon: '🏆'
           });

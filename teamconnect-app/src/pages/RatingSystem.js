@@ -7,7 +7,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { getAllSports } from '../data/sports';
 
 function RatingSystem() {
-  const { t } = useLanguage();
+  const { t , language} = useLanguage();
   const [activeTab, setActiveTab] = useState('my-ratings');
   const [toast, setToast] = useState(null);
   const [sportRatings, setSportRatings] = useState([]);

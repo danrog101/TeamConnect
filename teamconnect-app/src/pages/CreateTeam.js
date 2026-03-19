@@ -6,13 +6,13 @@ import Toast from '../components/Toast';
 import { getAllSports, addCustomSport } from '../data/sports';
 import { europeanCities, searchCities, addCustomCity } from '../data/cities';
 import './CreateTeam.css';
- const { language } = useLanguage(); // dodaj import useLanguage ako već nije
+
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function CreateTeam() {
   
   const navigate = useNavigate();
- 
+ const { t, language } = useLanguage();
   const [toast, setToast] = useState(null);
   const [showCustomSportModal, setShowCustomSportModal] = useState(false);
   const [customSportName, setCustomSportName] = useState('');
@@ -373,7 +373,7 @@ const handleAddCustomCity = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>{t('createTeam.minPlayersLabel')}</label>
+                  <label>{t('createTeam.minSkill')}</label>
                   <select
                     name="min_skill_level"
                     value={formData.min_skill_level}
