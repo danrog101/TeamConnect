@@ -15,7 +15,8 @@ const {
   unregisterTeam,
   generateBracket,
   updateMatchScore,
-  resetBracket
+  resetBracket,
+  createManualBracket 
 } = require('../controllers/tournamentController');
 
 // Public routes
@@ -35,7 +36,7 @@ router.delete('/:id/teams/:registrationId', auth, removeTeamFromTournament);
 router.post('/:id/bracket/generate', auth, generateBracket);
 router.post('/:id/bracket/reset', auth, resetBracket);
 router.put('/:id/bracket/score', auth, updateMatchScore);
-
+router.post('/:id/bracket/manual', auth, createManualBracket);
 // Admin/maintenance routes
 router.post('/maintenance/cleanup', auth, cleanupExpired);
 router.post('/maintenance/update-statuses', auth, updateTournamentStatuses);

@@ -1023,3 +1023,44 @@ exports.resetBracket = async (req, res) => {
     res.status(500).json({ message: 'Greška pri resetiranju bracketa' });
   }
 };
+// Ručno kreiraj bracket
+exports.createManualBracket = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+    const { matches } = req.body; // [{team1, team2, round, matchNumber}]
+
+    const { data: tournament } = await supabase
+      .from('tournaments').select('*').eq('id', id).single();
+
+    if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+    if (tournament.creator_id !== userId) return res.status(403).json({ message: 'Not authorized' });
+
+    if (!matches || matches.length === 0) {
+      return res.status(400).json({ message: 'Nema parova za bracket' });
+    }
+
+    const bracket = matches.map((m, i) => ({
+      round: m.round || 1,
+      matchNumber: m.matchNumber || (i + 1),
+      team1: m.team1 || null,
+      team2: m.team2 || null,
+      score1: null,
+      score2: null,
+      winner: null,
+      status: 'pending'
+    }));
+
+    const { error } = await supabase
+      .from('tournaments')
+      .update({ bracket, bracket_generated: true })
+      .eq('id', id);
+
+    if (error) return res.status(500).json({ message: 'Failed to save bracket' });
+
+    res.json({ bracket, message: '✅ Ručni bracket kreiran!' });
+  } catch (error) {
+    console.error('❌ Create manual bracket error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

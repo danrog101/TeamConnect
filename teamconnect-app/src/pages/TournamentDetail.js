@@ -22,6 +22,9 @@ function TournamentDetail() {
   const [isUserRegistered, setIsUserRegistered] = useState(false);
   const [userTeamId, setUserTeamId]             = useState(null);
   const [registerLoading, setRegisterLoading]   = useState(false);
+  const [showManualBracket, setShowManualBracket] = useState(false);
+const [manualMatches, setManualMatches] = useState([{ team1: '', team2: '' }]);
+const [manualLoading, setManualLoading] = useState(false);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -145,6 +148,41 @@ useEffect(() => {
       setTimeout(() => setRegisterLoading(false), 1000);
     }
   };
+  const handleCreateManualBracket = async () => {
+  const validMatches = manualMatches.filter(m => m.team1.trim() && m.team2.trim());
+  if (validMatches.length === 0) {
+    setToast({ message: 'Dodaj barem jedan par!', type: 'error' });
+    return;
+  }
+  try {
+    setManualLoading(true);
+    const token = localStorage.getItem('token');
+    const matches = validMatches.map((m, i) => ({
+      team1: m.team1.trim(),
+      team2: m.team2.trim(),
+      round: 1,
+      matchNumber: i + 1
+    }));
+    const res = await fetch(`${API_URL}/tournaments/${id}/bracket/manual`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matches })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setToast({ message: data.message, type: 'success' });
+      setShowManualBracket(false);
+      setManualMatches([{ team1: '', team2: '' }]);
+      loadTournament();
+    } else {
+      setToast({ message: data.message, type: 'error' });
+    }
+  } catch (e) {
+    setToast({ message: 'Greška', type: 'error' });
+  } finally {
+    setManualLoading(false);
+  }
+};
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Datum nije postavljen';
@@ -353,30 +391,38 @@ useEffect(() => {
             <div className="bracket-tab">
 
               {/* Organizer controls */}
-              {isOrganizer && (
-                <div className="bracket-controls">
-                  {!tournament.bracket_generated && registeredTeams.length >= 2 && (
-                    <div className="bracket-generate-box">
-                      <p>{t('tournaments.teamsReady') || `Prijavljeno ${registeredTeams.length} timova. Generiraj bracket!`}</p>
-                      <button className="btn btn-primary" onClick={handleGenerateBracket}>
-                        🏆 {t('tournaments.generateBracket') || 'Generiraj Bracket'}
-                      </button>
-                    </div>
-                  )}
-
-                  {tournament.bracket_generated && (
-                    <div className="bracket-reset-box">
-                      <p>⚠️ Bracket je već generiran. Možeš ga resetirati i generirati novi.</p>
-                      <button
-                        className="btn btn-danger"
-                        onClick={() => setConfirmResetBracket(true)}
-                      >
-                        🔄 Resetiraj bracket
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+        {isOrganizer && registeredTeams.length >= 2 && (
+  <div className="bracket-controls">
+    <div className="bracket-generate-box">
+      <p>
+        {tournament.bracket_generated
+          ? '⚠️ Bracket je već generiran. Možeš ga resetirati ili kreirati novi.'
+          : (t('tournaments.teamsReady') || `Prijavljeno ${registeredTeams.length} timova. Generiraj bracket!`)}
+      </p>
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <button className="btn btn-primary" onClick={handleGenerateBracket}>
+          🏆 {t('tournaments.generateBracket') || 'Generiraj Bracket'}
+        </button>
+        <button className="btn btn-secondary" onClick={() => {
+          const teams = registeredTeams.map(t => t.team_name || t.teamName || '');
+          const pairs = [];
+          for (let i = 0; i < teams.length; i += 2) {
+            pairs.push({ team1: teams[i] || '', team2: teams[i+1] || '' });
+          }
+          setManualMatches(pairs.length > 0 ? pairs : [{ team1: '', team2: '' }]);
+          setShowManualBracket(true);
+        }}>
+          ✏️ Ručni bracket
+        </button>
+        {tournament.bracket_generated && (
+          <button className="btn btn-danger" onClick={() => setConfirmResetBracket(true)}>
+            🔄 Resetiraj bracket
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
               {tournament.bracket && tournament.bracket.length > 0 ? (
                 <BracketGenerator
@@ -465,6 +511,71 @@ useEffect(() => {
         title="⚠️ Resetiraj bracket"
         message="Jesi li siguran/a? Svi rezultati bit će izbrisani i bracket će se morati generirati iznova."
       />
+
+      {/* Modal: Ručni bracket */}
+      {showManualBracket && (
+        <div className="modal-overlay" onClick={() => setShowManualBracket(false)}>
+          <div className="modal-content card" onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '540px', width: '90%', maxHeight: '80vh', overflowY: 'auto', padding: '30px', borderRadius: '16px' }}>
+            <h3 style={{ marginBottom: '8px' }}>✏️ Ručni bracket</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+              Upiši parove timova koji igraju jedan protiv drugog.
+            </p>
+
+            {manualMatches.map((match, i) => (
+              <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontWeight: '700', minWidth: '24px', color: 'var(--text-secondary)' }}>{i + 1}.</span>
+                <input
+                  type="text"
+                  placeholder="Tim 1"
+                  value={match.team1}
+                  onChange={e => {
+                    const updated = [...manualMatches];
+                    updated[i] = { ...updated[i], team1: e.target.value };
+                    setManualMatches(updated);
+                  }}
+                  style={{ flex: 1, padding: '8px 12px', border: '2px solid var(--border-primary)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                />
+                <span style={{ fontWeight: '700', color: 'var(--text-tertiary)' }}>vs</span>
+                <input
+                  type="text"
+                  placeholder="Tim 2"
+                  value={match.team2}
+                  onChange={e => {
+                    const updated = [...manualMatches];
+                    updated[i] = { ...updated[i], team2: e.target.value };
+                    setManualMatches(updated);
+                  }}
+                  style={{ flex: 1, padding: '8px 12px', border: '2px solid var(--border-primary)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                />
+                {manualMatches.length > 1 && (
+                  <button
+                    onClick={() => setManualMatches(manualMatches.filter((_, idx) => idx !== i))}
+                    style={{ background: '#fee2e2', border: 'none', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer', color: '#dc2626', fontWeight: '700' }}
+                  >✕</button>
+                )}
+              </div>
+            ))}
+
+            <button
+              className="btn btn-secondary"
+              onClick={() => setManualMatches([...manualMatches, { team1: '', team2: '' }])}
+              style={{ marginBottom: '20px', width: '100%' }}
+            >
+              + Dodaj par
+            </button>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button className="btn btn-secondary" onClick={() => setShowManualBracket(false)}>
+                Odustani
+              </button>
+              <button className="btn btn-primary" onClick={handleCreateManualBracket} disabled={manualLoading}>
+                {manualLoading ? 'Spremanje...' : '✅ Spremi bracket'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
