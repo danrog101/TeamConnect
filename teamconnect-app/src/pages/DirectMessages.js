@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
@@ -17,13 +17,12 @@ function DirectMessages() {
   const [otherUser, setOtherUser]         = useState(null);
   const [newMessage, setNewMessage]       = useState('');
   const [loading, setLoading]             = useState(true);
-  const [isTyping, setIsTyping]           = useState(false);
   const [typingUsers, setTypingUsers]     = useState([]);
   const [toast, setToast]                 = useState(null);
   const [searchQuery, setSearchQuery]     = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  // Mobile: shows chat panel when a conversation is selected
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const [isTyping, setIsTyping]           = useState(false);
 
   const messagesEndRef   = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -32,12 +31,10 @@ function DirectMessages() {
   const currentUser   = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUserId = currentUser._id || currentUser.id;
 
-  // ── Open chat panel automatically when URL has userId ──────────────────────
   useEffect(() => {
     if (otherUserId) setMobileChatOpen(true);
   }, [otherUserId]);
 
-  // ── Socket setup ────────────────────────────────────────────────────────────
   useEffect(() => {
     socketRef.current = getSocket();
     socketRef.current.emit('join_dm', currentUserId);
@@ -48,7 +45,7 @@ function DirectMessages() {
         message.recipient_id === otherUserId;
       if (isRelevant) {
         setMessages(prev => [...prev, message]);
-        setTimeout(scrollToBottom, 100);
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       }
       loadConversations();
     });
@@ -70,12 +67,10 @@ function DirectMessages() {
     };
   }, [currentUserId]);
 
-  // ── Load messages when otherUserId changes ──────────────────────────────────
   useEffect(() => {
     if (otherUserId) loadMessages();
   }, [otherUserId]);
 
-  // ── API helpers ─────────────────────────────────────────────────────────────
   const loadConversations = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -101,8 +96,14 @@ function DirectMessages() {
             ? data[0].recipient
             : data[0].sender;
           setOtherUser(other);
+        } else {
+          // dohvati usera ako nema poruka
+          const userRes = await fetch(`${API_URL}/users/${otherUserId}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
+          if (userRes.ok) setOtherUser(await userRes.json());
         }
-        setTimeout(scrollToBottom, 100);
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       }
     } catch (e) { console.error('Load messages error:', e); }
     finally { setLoading(false); }
@@ -113,20 +114,17 @@ function DirectMessages() {
     if (query.length < 2) { setSearchResults([]); return; }
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/users/search?q=${query}`, {
+      const res = await fetch(`${API_URL}/profile/search?q=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
-        setSearchResults(data.filter(u => u.id !== currentUserId));
+        setSearchResults(Array.isArray(data) ? data.filter(u => u.id !== currentUserId) : []);
       }
     } catch (e) { console.error(e); }
   };
 
-  const scrollToBottom = () =>
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-
-  const handleSendMessage = (e) => {
+  const handleSendMessage = useCallback((e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
     socketRef.current.emit('send_dm', {
@@ -139,9 +137,9 @@ function DirectMessages() {
       senderId: currentUserId,
       recipientId: otherUserId
     });
-  };
+  }, [newMessage, currentUserId, otherUserId]);
 
-  const handleTyping = () => {
+  const handleTyping = useCallback(() => {
     if (!isTyping) {
       setIsTyping(true);
       socketRef.current.emit('dm_typing', {
@@ -157,7 +155,7 @@ function DirectMessages() {
         recipientId: otherUserId
       });
     }, 2000);
-  };
+  }, [isTyping, currentUserId, otherUserId]);
 
   const openConversation = (userId) => {
     navigate(`/messages/${userId}`);
@@ -166,7 +164,6 @@ function DirectMessages() {
     setMobileChatOpen(true);
   };
 
-  // ── Formatters ──────────────────────────────────────────────────────────────
   const formatTime = (ts) =>
     new Date(ts).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' });
 
@@ -180,7 +177,6 @@ function DirectMessages() {
     return date.toLocaleDateString('hr-HR');
   };
 
-  // ── Message renderer ────────────────────────────────────────────────────────
   const renderMessage = (message, index) => {
     const isOwn = message.sender_id === currentUserId;
     const showDate =
@@ -208,131 +204,108 @@ function DirectMessages() {
     );
   };
 
-  // ── Chat panel (reusable for both desktop right column & mobile full screen) ─
-  const ChatPanel = () => (
-    <div className="chat-messages-container card">
-      <div className="chat-header-dm">
-        {/* Mobile back button */}
-        <button
-          className="dm-back-btn"
-          onClick={() => { setMobileChatOpen(false); navigate('/messages'); }}
-        >
-          ←
-        </button>
-        <div className="chat-header-info">
-          <span className="dm-avatar">{otherUser?.avatar || '👤'}</span>
-          <h2>{otherUser?.username || '...'}</h2>
-        </div>
-      </div>
-
-      <div className="chat-messages">
-        {loading ? (
-          <div className="loading-container"><div className="loading-spinner" /></div>
-        ) : messages.length === 0 ? (
-          <div className="no-messages">
-            <span className="empty-icon">💬</span>
-            <p>Nema poruka. Pošalji prvu!</p>
-          </div>
-        ) : (
-          messages.map(renderMessage)
-        )}
-
-        {typingUsers.length > 0 && (
-          <div className="typing-indicator">
-            <div className="typing-dots"><span /><span /><span /></div>
-            <span className="typing-text">piše...</span>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <form className="chat-input-container" onSubmit={handleSendMessage}>
-        <input
-          type="text"
-          className="chat-input"
-          value={newMessage}
-          onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
-          placeholder="Napiši poruku..."
-          autoComplete="off"
-        />
-        <button type="submit" className="btn-send" disabled={!newMessage.trim()}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13" />
-            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
-        </button>
-      </form>
-    </div>
-  );
-
-  // ── Sidebar ─────────────────────────────────────────────────────────────────
-  const Sidebar = () => (
-    <div className="dm-sidebar card">
-      <h3>💬 {t('dm.title') || 'Poruke'}</h3>
-
-      {/* Search box */}
-      <div className="dm-search-box">
-        <input
-          type="text"
-          placeholder="🔍 Pretraži korisnike..."
-          value={searchQuery}
-          onChange={(e) => handleSearchUsers(e.target.value)}
-        />
-      </div>
-
-      {/* Search results */}
-      {searchResults.length > 0 && (
-        <div className="dm-search-results">
-          {searchResults.map(user => (
-            <div key={user.id} className="search-result-item"
-              onClick={() => openConversation(user.id)}>
-              <div className="conv-avatar">{user.avatar || '👤'}</div>
-              <div className="conv-name">{user.username}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Conversation list */}
-      {conversations.length === 0 ? (
-        <div className="no-conversations">
-          <span>📭</span>
-          <p>{t('dm.noConversations') || 'Nema konverzacija'}</p>
-        </div>
-      ) : (
-        conversations.map(conv => (
-          <div
-            key={conv.userId}
-            className={`conversation-item ${conv.userId === otherUserId ? 'active' : ''}`}
-            onClick={() => openConversation(conv.userId)}
-          >
-            <div className="conv-avatar">{conv.user?.avatar || '👤'}</div>
-            <div className="conv-info">
-              <div className="conv-name">{conv.user?.username}</div>
-              <div className="conv-last">
-                {conv.lastMessage?.text?.substring(0, 30)}...
-              </div>
-            </div>
-            {conv.unreadCount > 0 && (
-              <div className="conv-unread">{conv.unreadCount}</div>
-            )}
-          </div>
-        ))
-      )}
-    </div>
-  );
-
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="team-chat-page">
       <Navbar />
 
-      {/* DESKTOP layout — always side by side */}
+      {/* DESKTOP */}
       <div className="chat-container dm-layout dm-desktop">
-        <Sidebar />
+
+        {/* SIDEBAR */}
+        <div className="dm-sidebar card">
+          <h3>💬 {t('dm.title') || 'Poruke'}</h3>
+          <div className="dm-search-box">
+            <input
+              type="text"
+              placeholder="🔍 Pretraži korisnike..."
+              value={searchQuery}
+              onChange={(e) => handleSearchUsers(e.target.value)}
+            />
+          </div>
+          {searchResults.length > 0 && (
+            <div className="dm-search-results">
+              {searchResults.map(user => (
+                <div key={user.id} className="search-result-item"
+                  onClick={() => openConversation(user.id)}>
+                  <div className="conv-avatar">{user.avatar || '👤'}</div>
+                  <div className="conv-name">{user.username}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          {conversations.length === 0 ? (
+            <div className="no-conversations">
+              <span>📭</span>
+              <p>{t('dm.noConversations') || 'Nema konverzacija'}</p>
+            </div>
+          ) : (
+            conversations.map(conv => (
+              <div
+                key={conv.userId}
+                className={`conversation-item ${conv.userId === otherUserId ? 'active' : ''}`}
+                onClick={() => openConversation(conv.userId)}
+              >
+                <div className="conv-avatar">{conv.user?.avatar || '👤'}</div>
+                <div className="conv-info">
+                  <div className="conv-name">{conv.user?.username}</div>
+                  <div className="conv-last">
+                    {conv.lastMessage?.text?.substring(0, 30)}...
+                  </div>
+                </div>
+                {conv.unreadCount > 0 && (
+                  <div className="conv-unread">{conv.unreadCount}</div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* CHAT PANEL */}
         {otherUserId ? (
-          <ChatPanel />
+          <div className="chat-messages-container card">
+            <div className="chat-header-dm">
+              <div className="chat-header-info">
+                <span className="dm-avatar">{otherUser?.avatar || '👤'}</span>
+                <h2>{otherUser?.username || '...'}</h2>
+              </div>
+            </div>
+            <div className="chat-messages">
+              {loading ? (
+                <div className="loading-container"><div className="loading-spinner" /></div>
+              ) : messages.length === 0 ? (
+                <div className="no-messages">
+                  <span className="empty-icon">💬</span>
+                  <p>Nema poruka. Pošalji prvu!</p>
+                </div>
+              ) : (
+                messages.map(renderMessage)
+              )}
+              {typingUsers.length > 0 && (
+                <div className="typing-indicator">
+                  <div className="typing-dots"><span /><span /><span /></div>
+                  <span className="typing-text">piše...</span>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+            <form className="chat-input-container" onSubmit={handleSendMessage}>
+              <input
+                type="text"
+                className="chat-input"
+                value={newMessage}
+                onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
+                placeholder="Napiši poruku..."
+                autoComplete="off"
+              />
+              <button type="submit" className="btn-send" disabled={!newMessage.trim()}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </form>
+          </div>
         ) : (
           <div className="dm-empty card">
             <span>💬</span>
@@ -342,12 +315,105 @@ function DirectMessages() {
         )}
       </div>
 
-      {/* MOBILE layout — sidebar OR chat, never both */}
+      {/* MOBILE */}
       <div className="dm-mobile">
         {mobileChatOpen && otherUserId ? (
-          <ChatPanel />
+          <div className="chat-messages-container card">
+            <div className="chat-header-dm">
+              <button
+                className="dm-back-btn"
+                onClick={() => { setMobileChatOpen(false); navigate('/messages'); }}
+              >←</button>
+              <div className="chat-header-info">
+                <span className="dm-avatar">{otherUser?.avatar || '👤'}</span>
+                <h2>{otherUser?.username || '...'}</h2>
+              </div>
+            </div>
+            <div className="chat-messages">
+              {loading ? (
+                <div className="loading-container"><div className="loading-spinner" /></div>
+              ) : messages.length === 0 ? (
+                <div className="no-messages">
+                  <span className="empty-icon">💬</span>
+                  <p>Nema poruka. Pošalji prvu!</p>
+                </div>
+              ) : (
+                messages.map(renderMessage)
+              )}
+              {typingUsers.length > 0 && (
+                <div className="typing-indicator">
+                  <div className="typing-dots"><span /><span /><span /></div>
+                  <span className="typing-text">piše...</span>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+            <form className="chat-input-container" onSubmit={handleSendMessage}>
+              <input
+                type="text"
+                className="chat-input"
+                value={newMessage}
+                onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
+                placeholder="Napiši poruku..."
+                autoComplete="off"
+              />
+              <button type="submit" className="btn-send" disabled={!newMessage.trim()}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </form>
+          </div>
         ) : (
-          <Sidebar />
+          <div className="dm-sidebar card">
+            <h3>💬 {t('dm.title') || 'Poruke'}</h3>
+            <div className="dm-search-box">
+              <input
+                type="text"
+                placeholder="🔍 Pretraži korisnike..."
+                value={searchQuery}
+                onChange={(e) => handleSearchUsers(e.target.value)}
+              />
+            </div>
+            {searchResults.length > 0 && (
+              <div className="dm-search-results">
+                {searchResults.map(user => (
+                  <div key={user.id} className="search-result-item"
+                    onClick={() => openConversation(user.id)}>
+                    <div className="conv-avatar">{user.avatar || '👤'}</div>
+                    <div className="conv-name">{user.username}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {conversations.length === 0 ? (
+              <div className="no-conversations">
+                <span>📭</span>
+                <p>{t('dm.noConversations') || 'Nema konverzacija'}</p>
+              </div>
+            ) : (
+              conversations.map(conv => (
+                <div
+                  key={conv.userId}
+                  className={`conversation-item ${conv.userId === otherUserId ? 'active' : ''}`}
+                  onClick={() => openConversation(conv.userId)}
+                >
+                  <div className="conv-avatar">{conv.user?.avatar || '👤'}</div>
+                  <div className="conv-info">
+                    <div className="conv-name">{conv.user?.username}</div>
+                    <div className="conv-last">
+                      {conv.lastMessage?.text?.substring(0, 30)}...
+                    </div>
+                  </div>
+                  {conv.unreadCount > 0 && (
+                    <div className="conv-unread">{conv.unreadCount}</div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         )}
       </div>
 

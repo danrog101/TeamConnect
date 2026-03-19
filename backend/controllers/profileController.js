@@ -255,5 +255,31 @@ exports.getUserActivity = async (req, res) => {
     res.status(500).json({ message: 'Greška servera' });
   }
 };
+exports.searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const currentUserId = req.user.id;
+
+    if (!q || q.length < 2) {
+      return res.json([]);
+    }
+
+    const { supabase } = require('../config/supabase');
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, avatar, city, sport')
+      .or(`username.ilike.%${q}%,email.ilike.%${q}%`)
+      .neq('id', currentUserId)
+      .limit(10);
+
+    if (error) return res.status(500).json({ message: 'Server error' });
+
+    res.json(data || []);
+  } catch (e) {
+    console.error('Search users error:', e);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
 module.exports = exports;

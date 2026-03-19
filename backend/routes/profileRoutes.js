@@ -5,12 +5,14 @@ const {
   updateProfile,
   changePassword,
   uploadAvatar,
-  getUserActivity
+  getUserActivity,
+  searchUsers
 } = require('../controllers/profileController');
 const auth = require('../middleware/auth');
 const { updateProfileValidator, userIdValidator } = require('../middleware/validators');
 
 // Get user profile
+router.get('/search', auth, searchUsers);
 router.get('/:userId', auth, userIdValidator, getProfile);
 
 // Get user activity
