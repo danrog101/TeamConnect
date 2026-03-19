@@ -530,34 +530,31 @@ function AdminDashboard() {
             <div className="admin-table-container">
               <table className="admin-table">
                 <thead>
-                  <tr>
-                    <th>Naziv</th>
-                    <th>Sport</th>
-                    <th>Grad</th>
-                    <th>Trener</th>
-                    <th>Članova</th>
-                    <th>Kreiran</th>
-                    <th>Akcije</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {studios.map(studio => (
-                    <tr key={studio.id}>
-                      <td><strong>{studio.name}</strong></td>
-                      <td>{studio.sport || '-'}</td>
-                      <td>{studio.city || '-'}</td>
-                      <td>{studio.trainer?.username || studio.owner?.username || '-'}</td>
-                      <td>{studio.member_count || studio.studio_members?.length || 0}</td>
-                      <td>{formatDate(studio.created_at)}</td>
-                      <td className="action-buttons">
-                        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'studio', id: studio.id, name: studio.name })}>🗑️</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {studios.length === 0 && (
-                    <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema studija</td></tr>
-                  )}
-                </tbody>
+  <tr>
+    <th>Naziv</th>
+    <th>Opis</th>
+    <th>Trener</th>
+    <th>Kreiran</th>
+    <th>Akcije</th>
+  </tr>
+</thead>
+<tbody>
+  {studios.map(studio => (
+    <tr key={studio.id}>
+      <td><strong>{studio.name}</strong></td>
+      <td>{studio.description ? studio.description.substring(0, 50) + '...' : '-'}</td>
+      <td>{studio.trainer?.username || '-'}</td>
+      <td>{formatDate(studio.created_at)}</td>
+      <td className="action-buttons">
+        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'studio', id: studio.id, name: studio.name })}>🗑️</button>
+      </td>
+    </tr>
+  ))}
+  {studios.length === 0 && (
+    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema studija</td></tr>
+  )}
+</tbody>
+            
               </table>
             </div>
             <Pagination />
@@ -570,39 +567,31 @@ function AdminDashboard() {
             <SearchBar placeholder="Pretraži grupe..." />
             <div className="admin-table-container">
               <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Naziv</th>
-                    <th>Sport</th>
-                    <th>Organizator</th>
-                    <th>Članova</th>
-                    <th>Javna</th>
-                    <th>Kreirana</th>
-                    <th>Akcije</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groups.map(group => (
-                    <tr key={group.id}>
-                      <td><strong>{group.name}</strong></td>
-                      <td>{group.sport || '-'}</td>
-                      <td>{group.creator?.username || group.owner?.username || '-'}</td>
-                      <td>{group.member_count || group.group_members?.length || 0}</td>
-                      <td>
-                        <span className={`badge ${group.is_public ? 'badge-success' : 'badge-warning'}`}>
-                          {group.is_public ? 'Da' : 'Ne'}
-                        </span>
-                      </td>
-                      <td>{formatDate(group.created_at)}</td>
-                      <td className="action-buttons">
-                        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'group', id: group.id, name: group.name })}>🗑️</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {groups.length === 0 && (
-                    <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema grupa</td></tr>
-                  )}
-                </tbody>
+         <thead>
+  <tr>
+    <th>Naziv</th>
+    <th>Sport</th>
+    <th>Organizator</th>
+    <th>Kreirana</th>
+    <th>Akcije</th>
+  </tr>
+</thead>
+<tbody>
+  {groups.map(group => (
+    <tr key={group.id}>
+      <td><strong>{group.name}</strong></td>
+      <td>{group.sport || '-'}</td>
+      <td>{group.creator?.username || '-'}</td>
+      <td>{formatDate(group.created_at)}</td>
+      <td className="action-buttons">
+        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'group', id: group.id, name: group.name })}>🗑️</button>
+      </td>
+    </tr>
+  ))}
+  {groups.length === 0 && (
+    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema grupa</td></tr>
+  )}
+</tbody>
               </table>
             </div>
             <Pagination />

@@ -414,6 +414,7 @@ exports.adminDeleteField = async (req, res) => {
 };
 
 // Get all studios
+// Get all studios
 exports.getAllStudios = async (req, res) => {
   try {
     const { page = 1, limit = 20, search = '' } = req.query;
@@ -422,18 +423,21 @@ exports.getAllStudios = async (req, res) => {
     let query = supabase
       .from('studios')
       .select(`
-        id, name, sport, city, created_at,
+        id, name, description, created_at,
         trainer:users!studios_trainer_id_fkey (id, username)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (search) {
-      query = query.or(`name.ilike.%${search}%,sport.ilike.%${search}%,city.ilike.%${search}%`);
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
     const { data: studios, error, count } = await query;
-    if (error) return res.status(500).json({ message: 'Greška pri dohvaćanju studija' });
+    if (error) {
+      console.error('Get studios error:', error);
+      return res.status(500).json({ message: 'Greška pri dohvaćanju studija' });
+    }
 
     res.json({ studios: studios || [], total: count || 0, page: parseInt(page), totalPages: Math.ceil((count || 0) / limit) });
   } catch (error) {
@@ -462,7 +466,7 @@ exports.getAllGroups = async (req, res) => {
     let query = supabase
       .from('groups')
       .select(`
-        id, name, sport, is_public, created_at,
+        id, name, sport, created_at,
         creator:users!groups_creator_id_fkey (id, username)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
@@ -473,7 +477,10 @@ exports.getAllGroups = async (req, res) => {
     }
 
     const { data: groups, error, count } = await query;
-    if (error) return res.status(500).json({ message: 'Greška pri dohvaćanju grupa' });
+    if (error) {
+      console.error('Get groups error:', error);
+      return res.status(500).json({ message: 'Greška pri dohvaćanju grupa' });
+    }
 
     res.json({ groups: groups || [], total: count || 0, page: parseInt(page), totalPages: Math.ceil((count || 0) / limit) });
   } catch (error) {
