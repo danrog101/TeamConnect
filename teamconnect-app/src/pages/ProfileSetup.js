@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css';
-import { useLanguage } from '../i18n/LanguageContext'; 
+import { useLanguage } from '../i18n/LanguageContext';
+
 function ProfileSetup() {
-   const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    sport: '',
-    location: ''
-  });
+  const [formData, setFormData] = useState({ sport: '', location: '' });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,55 +14,38 @@ function ProfileSetup() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Ažuriraj korisnika u localStorage
     const user = JSON.parse(localStorage.getItem('user'));
-    const updatedUser = { ...user, ...formData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-
+    localStorage.setItem('user', JSON.stringify({ ...user, ...formData }));
     navigate('/dashboard');
   };
 
   const sportovi = [
-    '⚽ Nogomet',
-    '🏀 Košarka',
-    '🏐 Odbojka',
-    '🎾 Tenis',
-    '🤾 Rukomet',
-    '⚾ Baseball',
-    '🏸 Badminton',
-    '🏓 Stolni tenis'
+    '⚽ Nogomet', '🏀 Košarka', '🏐 Odbojka', '🎾 Tenis',
+    '🤾 Rukomet', '⚾ Baseball', '🏸 Badminton', '🏓 Stolni tenis'
   ];
 
   const gradovi = [
-    'Zagreb',
-    'Split',
-    'Rijeka',
-    'Osijek',
-    'Zadar',
-    'Pula',
-    'Slavonski Brod',
-    'Karlovac',
-    'Varaždin',
-    'Šibenik',
-    'Sisak',
-    'Dubrovnik'
+    'Zagreb', 'Split', 'Rijeka', 'Osijek', 'Zadar',
+    'Pula', 'Slavonski Brod', 'Karlovac', 'Varaždin',
+    'Šibenik', 'Sisak', 'Dubrovnik'
   ];
 
   return (
     <div className="auth-container">
       <div className="auth-card card">
         <h1 className="auth-title">⚙️</h1>
-        <h2>Postavi svoj profil</h2>
+        <h2>{language === 'en' ? 'Set up your profile' : 'Postavi svoj profil'}</h2>
         <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px' }}>
-          Odaberi sport i lokaciju kako bi pronašao/la timove
+          {language === 'en'
+            ? 'Choose a sport and location to find teams near you'
+            : 'Odaberi sport i lokaciju kako bi pronašao/la timove'}
         </p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Koji sport te zanima?</label>
+            <label>{language === 'en' ? 'Which sport interests you?' : 'Koji sport te zanima?'}</label>
             <select name="sport" value={formData.sport} onChange={handleChange} required>
-              <option value="">-- Odaberi sport --</option>
+              <option value="">{language === 'en' ? '-- Select sport --' : '-- Odaberi sport --'}</option>
               {sportovi.map(sport => (
                 <option key={sport} value={sport}>{sport}</option>
               ))}
@@ -72,9 +53,9 @@ function ProfileSetup() {
           </div>
 
           <div className="form-group">
-            <label>U kojem gradu si?</label>
+            <label>{language === 'en' ? 'Which city are you in?' : 'U kojem gradu si?'}</label>
             <select name="location" value={formData.location} onChange={handleChange} required>
-              <option value="">-- Odaberi grad --</option>
+              <option value="">{language === 'en' ? '-- Select city --' : '-- Odaberi grad --'}</option>
               {gradovi.map(grad => (
                 <option key={grad} value={grad}>{grad}</option>
               ))}
@@ -82,7 +63,7 @@ function ProfileSetup() {
           </div>
 
           <button type="submit" className="btn btn-primary">
-            Nastavi na Dashboard
+            {language === 'en' ? 'Continue to Dashboard' : 'Nastavi na Dashboard'}
           </button>
         </form>
       </div>

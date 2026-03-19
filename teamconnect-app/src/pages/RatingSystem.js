@@ -67,9 +67,11 @@ function RatingSystem() {
   };
 
   const getLevelLabel = (level) => {
-    const map = { 1: 'Amater', 2: 'Početnik', 3: 'Srednji', 4: 'Napredni', 5: 'Pro' };
-    return map[level] || '-';
-  };
+  const map = language === 'en'
+    ? { 1: 'Amateur', 2: 'Beginner', 3: 'Intermediate', 4: 'Advanced', 5: 'Pro' }
+    : { 1: 'Amater', 2: 'Početnik', 3: 'Srednji', 4: 'Napredni', 5: 'Pro' };
+  return map[level] || '-';
+};
 
   const getLevelIcon = (level) => {
     const map = { 1: '🌱', 2: '⭐', 3: '⭐⭐', 4: '🔥', 5: '👑' };
@@ -82,15 +84,23 @@ function RatingSystem() {
   };
 
   const getLevelDesc = (level) => {
-    const map = {
-      1: 'Igram rekreativno, nemam posebnog iskustva.',
-      2: 'Znam osnove, igram povremeno.',
-      3: 'Imam iskustva, igram redovito.',
-      4: 'Igram na visokoj razini, imam natjecateljskog iskustva.',
-      5: 'Profesionalni ili polu-profesionalni igrač.'
-    };
-    return map[level] || '';
-  };
+  const map = language === 'en'
+    ? {
+        1: 'I play recreationally, no special experience.',
+        2: 'I know the basics, play occasionally.',
+        3: 'I have experience, play regularly.',
+        4: 'I play at a high level, have competitive experience.',
+        5: 'Professional or semi-professional player.'
+      }
+    : {
+        1: 'Igram rekreativno, nemam posebnog iskustva.',
+        2: 'Znam osnove, igram povremeno.',
+        3: 'Imam iskustva, igram redovito.',
+        4: 'Igram na visokoj razini, imam natjecateljskog iskustva.',
+        5: 'Profesionalni ili polu-profesionalni igrač.'
+        };
+  return map[level] || '';
+};
 
   if (loadingRatings) {
     return (
@@ -106,8 +116,8 @@ function RatingSystem() {
       <Navbar />
       <div className="rating-container">
         <div className="rating-header">
-          <h1>⭐ Moje Ocjene</h1>
-          <p>Ocijeni se po sportovima koje igraš</p>
+          <h1>⭐ {language === 'en' ? 'My Ratings' : 'Moje Ocjene'}</h1>
+<p>{language === 'en' ? 'Rate yourself for the sports you play' : 'Ocijeni se po sportovima koje igraš'}</p>
         </div>
 
         <div className="rating-tabs">
@@ -115,13 +125,13 @@ function RatingSystem() {
             className={`tab ${activeTab === 'my-ratings' ? 'active' : ''}`}
             onClick={() => setActiveTab('my-ratings')}
           >
-            🏅 Moje ocjene
+            🏅{language === 'en' ? 'My Ratings' : 'Moje ocjene'}
           </button>
           <button
             className={`tab ${activeTab === 'add-rating' ? 'active' : ''}`}
             onClick={() => setActiveTab('add-rating')}
           >
-            ➕ Dodaj ocjenu
+            ➕ {language === 'en' ? 'Add Rating' : 'Dodaj ocjenu'}
           </button>
         </div>
 
@@ -134,7 +144,7 @@ function RatingSystem() {
                 <h2>Još nisi ocijenjen/a</h2>
                 <p>Dodaj ocjenu za sportove koje igraš</p>
                 <button className="btn btn-primary" onClick={() => setActiveTab('add-rating')}>
-                  ➕ Dodaj ocjenu
+                  ➕ {language === 'en' ? 'Add Rating' : 'Dodaj ocjenu'}
                 </button>
               </div>
             ) : (

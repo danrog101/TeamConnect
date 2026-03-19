@@ -6,7 +6,7 @@ import Toast from '../components/Toast';
 import { getAllSports, addCustomSport } from '../data/sports';
 import { europeanCities, searchCities, addCustomCity } from '../data/cities';
 import './CreateTeam.css';
- 
+ const { language } = useLanguage(); // dodaj import useLanguage ako već nije
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function CreateTeam() {
@@ -159,12 +159,11 @@ const handleAddCustomCity = () => {
       
       <div className="create-team-container">
         <div className="create-team-card card">
-          <h1>⚽ Kreiraj novi tim</h1>
-          <p className="subtitle">Organiziraj utakmicu i pozovi igrače</p>
-
+          <h1>⚽ {language === 'en' ? 'Create New Team' : 'Kreiraj novi tim'}</h1>
+<p className="subtitle">{language === 'en' ? 'Organize a match and invite players' : 'Organiziraj utakmicu i pozovi igrače'}</p>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Naziv tima *</label>
+              <label>{t('createTeam.teamNameLabel')}</label>
               <input
                 type="text"
                 name="name"
@@ -177,7 +176,7 @@ const handleAddCustomCity = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Sport *</label>
+               <label>{t('createTeam.sportLabel')}</label>
                 <div className="sport-select-wrapper">
                   <select name="sport" value={formData.sport} onChange={handleChange} required>
                     <option value="">Odaberi sport</option>
@@ -204,7 +203,7 @@ const handleAddCustomCity = () => {
               </div>
 
               <div className="form-group">
-                <label>Država *</label>
+                <label>{t('createTeam.countryLabel')}</label>
                 <select name="country" value={formData.country} onChange={handleChange} required>
                   {countries.map(country => (
                     <option key={country} value={country}>{country}</option>
@@ -214,7 +213,7 @@ const handleAddCustomCity = () => {
             </div>
 
             <div className="form-group">
-              <label>Grad *</label>
+              <label>{t('createTeam.cityLabel')}</label>
               <div className="city-search-wrapper">
                 <input
                   type="text"
@@ -264,7 +263,7 @@ const handleAddCustomCity = () => {
             </div>
 
             <div className="form-group">
-              <label>Lokacija/Teren *</label>
+              <label>{t('createTeam.locationLabel')}</label>
               <input
                 type="text"
                 name="location"
@@ -301,7 +300,7 @@ const handleAddCustomCity = () => {
             </div>
 
             <div className="form-group">
-              <label>Maksimalan broj igrača</label>
+              <label>{t('createTeam.maxPlayersLabel')}</label>
               <input
                 type="number"
                 name="maxPlayers"
@@ -374,7 +373,7 @@ const handleAddCustomCity = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Min. razina vještine</label>
+                  <label>{t('createTeam.minPlayersLabel')}</label>
                   <select
                     name="min_skill_level"
                     value={formData.min_skill_level}
@@ -408,7 +407,7 @@ const handleAddCustomCity = () => {
             </div>
 
             <div className="form-group">
-              <label>Opis (opcionalno)</label>
+              <label>{t('createTeam.descriptionLabel')}</label>
               <textarea
                 name="description"
                 value={formData.description}

@@ -9,6 +9,7 @@ import { getAllSports } from '../data/sports';
 import { europeanCities } from '../data/cities';
 import './Tournaments.css';
 import { useLanguage } from '../i18n/LanguageContext'; 
+const { t, language } = useLanguage();
 function Tournaments() {
    const { t } = useLanguage();
   const navigate = useNavigate();
@@ -391,7 +392,7 @@ function Tournaments() {
               </select>
             </div>
             <div className="filter-group">
-              <label>Grad</label>
+              <label>{t('createTeam.cityLabel') || 'Grad *'}</label>
               <select value={filters.city} onChange={(e) => setFilters({...filters, city: e.target.value})}>
                 <option value="">{t('dashboard.allCities')}</option>
                 {[...new Set(tournaments.map(t => t.city).filter(Boolean))].sort().map(city => (
@@ -413,9 +414,9 @@ function Tournaments() {
               <span className="empty-icon">🏆</span>
               <h2>{t('tournaments.noTournaments')}</h2>
               <p>
-                {activeTab === 'active' && 'Trenutno nema aktivnih turnira.'}
-                {activeTab === 'upcoming' && 'Nema nadolazećih turnira.'}
-                {activeTab === 'finished' && 'Nema završenih turnira.'}
+                {activeTab === 'active' && (language === 'en' ? 'No active tournaments.' : 'Trenutno nema aktivnih turnira.')}
+{activeTab === 'upcoming' && (language === 'en' ? 'No upcoming tournaments.' : 'Nema nadolazećih turnira.')}
+{activeTab === 'finished' && (language === 'en' ? 'No finished tournaments.' : 'Nema završenih turnira.')}
               </p>
               <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
                 {t('tournaments.createTournament')}
@@ -560,7 +561,7 @@ function Tournaments() {
             
             <div className="modal-form">
               <div className="form-group">
-                <label>Naziv turnira *</label>
+                <label>{language === 'en' ? 'Tournament name *' : 'Naziv turnira *'}</label>
                 <input
                   type="text"
                   name="name"
@@ -590,7 +591,7 @@ function Tournaments() {
                 </div>
 
                 <div className="form-group">
-                  <label>Država *</label>
+                  <label>{language === 'en' ? 'Country *' : 'Država *'}</label>
                   <select name="country" value={formData.country} onChange={handleChange}>
                     {countries.map(country => (
                       <option key={country} value={country}>{country}</option>
@@ -600,7 +601,7 @@ function Tournaments() {
               </div>
 
               <div className="form-group">
-                <label>Grad *</label>
+                <label>{language === 'en' ? 'City *' : 'Grad *'}</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type="text"
@@ -631,7 +632,7 @@ function Tournaments() {
               </div>
 
               <div className="form-group">
-                <label>Lokacija/Teren *</label>
+                <label>{language === 'en' ? 'Location/Field *' : 'Lokacija/Teren *'}</label>
                 <input
                   type="text"
                   name="location"
@@ -643,7 +644,7 @@ function Tournaments() {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Početak *</label>
+                  <label>{language === 'en' ? 'Start *' : 'Početak *'}</label>
                   <input
                     type="date"
                     name="startDate"
@@ -654,7 +655,7 @@ function Tournaments() {
                 </div>
 
                 <div className="form-group">
-                  <label>Kraj *</label>
+                  <label>{language === 'en' ? 'End *' : 'Kraj *'}</label>
                   <input
                     type="date"
                     name="endDate"
@@ -666,7 +667,7 @@ function Tournaments() {
               </div>
 
               <div className="form-group">
-                <label>Broj timova *</label>
+                <label>{language === 'en' ? 'Number of teams *' : 'Broj timova *'}</label>
                 <select 
                   name="maxTeams" 
                   value={formData.maxTeams} 

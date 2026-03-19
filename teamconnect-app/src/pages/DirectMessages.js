@@ -10,7 +10,7 @@ import './DirectMessages.css';
 function DirectMessages() {
   const { userId: otherUserId } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+const { t, language } = useLanguage();
 
   const [messages, setMessages]           = useState([]);
   const [conversations, setConversations] = useState([]);
@@ -217,7 +217,7 @@ function DirectMessages() {
           <div className="dm-search-box">
             <input
               type="text"
-              placeholder="🔍 Pretraži korisnike..."
+             placeholder={language === 'en' ? '🔍 Search users...' : '🔍 Pretraži korisnike...'}
               value={searchQuery}
               onChange={(e) => handleSearchUsers(e.target.value)}
             />
@@ -275,7 +275,7 @@ function DirectMessages() {
               ) : messages.length === 0 ? (
                 <div className="no-messages">
                   <span className="empty-icon">💬</span>
-                  <p>Nema poruka. Pošalji prvu!</p>
+                  <p>{language === 'en' ? 'No messages. Send the first one!' : 'Nema poruka. Pošalji prvu!'}</p>
                 </div>
               ) : (
                 messages.map(renderMessage)
@@ -283,7 +283,7 @@ function DirectMessages() {
               {typingUsers.length > 0 && (
                 <div className="typing-indicator">
                   <div className="typing-dots"><span /><span /><span /></div>
-                  <span className="typing-text">piše...</span>
+                  <span className="typing-text">{language === 'en' ? 'typing...' : 'piše...'}</span>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -310,7 +310,7 @@ function DirectMessages() {
           <div className="dm-empty card">
             <span>💬</span>
             <h3>{t('dm.selectConversation') || 'Odaberi konverzaciju'}</h3>
-            <p>Ili pretraži korisnika gore pa mu pošalji poruku</p>
+            <p>{language === 'en' ? 'Or search for a user above and send them a message' : 'Ili pretraži korisnika gore pa mu pošalji poruku'}</p>
           </div>
         )}
       </div>
@@ -335,7 +335,8 @@ function DirectMessages() {
               ) : messages.length === 0 ? (
                 <div className="no-messages">
                   <span className="empty-icon">💬</span>
-                  <p>Nema poruka. Pošalji prvu!</p>
+                  <p>{language === 'en' ? 'No messages. Send the first one!' : 'Nema poruka. Pošalji prvu!'}</p>
+
                 </div>
               ) : (
                 messages.map(renderMessage)
@@ -354,7 +355,7 @@ function DirectMessages() {
                 className="chat-input"
                 value={newMessage}
                 onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
-                placeholder="Napiši poruku..."
+                placeholder={language === 'en' ? 'Write a message...' : 'Napiši poruku...'}
                 autoComplete="off"
               />
               <button type="submit" className="btn-send" disabled={!newMessage.trim()}>
@@ -372,7 +373,7 @@ function DirectMessages() {
             <div className="dm-search-box">
               <input
                 type="text"
-                placeholder="🔍 Pretraži korisnike..."
+                placeholder={language === 'en' ? 'Write a message...' : 'Napiši poruku...'}
                 value={searchQuery}
                 onChange={(e) => handleSearchUsers(e.target.value)}
               />
