@@ -439,3 +439,9 @@
   .member-actions   { width: 100%; justify-content: flex-start; }
   .btn-membership   { flex: 1; justify-content: center; }
 }
+.copy-week-pairs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}

@@ -13,12 +13,11 @@ router.delete('/:id', auth, studioController.deleteStudio);
 router.get('/:id/members', auth, studioController.getStudioMembers);
 router.post('/:id/members', auth, studioController.addMember);
 router.delete('/:id/members/:memberId', auth, studioController.removeMember);
-
-// Sessions
+// Sessions — copy-week MORA biti prije /:sessionId ruta
 router.get('/:id/sessions', auth, studioController.getStudioSessions);
 router.post('/:id/sessions', auth, studioController.createSession);
-router.delete('/:id/sessions/:sessionId', auth, studioController.deleteSession);
 router.post('/:id/sessions/copy-week', auth, copyWeekSessions);
+router.delete('/:id/sessions/:sessionId', auth, studioController.deleteSession);
 // Signups
 router.post('/:id/sessions/:sessionId/signup', auth, studioController.signupSession);
 router.put('/sessions/:sessionId/cancel', auth, studioController.cancelSignup);
