@@ -15,7 +15,38 @@ const SESSION_TYPES = [
   'Trening', 'Utakmica', 'Prijateljska utakmica', 'Turnir',
   'Piknik', 'Rekreacija', 'Slobodna igra'
 ];
-
+function SignupsList({ signups }) {
+  const [open, setOpen] = React.useState(false);
+  const active = signups?.filter(s => !s.cancelled_at) || [];
+  return (
+    <div>
+      <button
+        className="btn btn-secondary btn-small"
+        onClick={() => setOpen(!open)}
+        style={{ marginTop: '6px' }}
+      >
+        {open ? '🔼 Sakrij prijavljene' : `👥 Prijavljeni (${active.length})`}
+      </button>
+      {open && (
+        <div style={{ marginTop: '8px' }}>
+          {active.length === 0 ? (
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nema prijavljenih</p>
+          ) : (
+            active.map((s, index) => (
+              <div key={s.id} className="signup-person" style={{ marginBottom: '4px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', minWidth: '20px' }}>
+                  {index + 1}.
+                </span>
+                <span className="signup-avatar">{s.user?.avatar || '👤'}</span>
+                <span className="signup-name">{s.user?.username}</span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 function Groups() {
   const navigate = useNavigate();
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -453,17 +484,7 @@ function Groups() {
                               <span className="signed-up-badge">✅ Prijavljen/a</span>
                             )}
 
-                            <div className="trainer-signups">
-  {session.signups?.filter(s => !s.cancelled_at).map(s => (
-    <div key={s.id} className="signup-person">
-      <span className="signup-avatar">{s.user?.avatar || '👤'}</span>
-      <span className="signup-name">{s.user?.username}</span>
-    </div>
-  ))}
-  {count === 0 && (
-    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nema prijavljenih</p>
-  )}
-</div>
+                            <SignupsList signups={session.signups} />
 
 {isCreator(selectedGroup) && (
   <>
