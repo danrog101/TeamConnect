@@ -453,20 +453,21 @@ function Groups() {
                               <span className="signed-up-badge">✅ Prijavljen/a</span>
                             )}
 
-                            {isCreator(selectedGroup) && (
-                              <>
-                                <div className="trainer-signups">
-                                  {session.signups?.filter(s => !s.cancelled_at).map(s => (
-                                    <div key={s.id} className="signup-person">
-                                      <span className="signup-avatar">{s.user?.avatar || '👤'}</span>
-                                      <span className="signup-name">{s.user?.username}</span>
-                                    </div>
-                                  ))}
-                                  {count === 0 && (
-                                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nema prijavljenih</p>
-                                  )}
-                                </div>
-                                {!isPast && belowMin && (
+                            <div className="trainer-signups">
+  {session.signups?.filter(s => !s.cancelled_at).map(s => (
+    <div key={s.id} className="signup-person">
+      <span className="signup-avatar">{s.user?.avatar || '👤'}</span>
+      <span className="signup-name">{s.user?.username}</span>
+    </div>
+  ))}
+  {count === 0 && (
+    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nema prijavljenih</p>
+  )}
+</div>
+
+{isCreator(selectedGroup) && (
+  <>
+    {!isPast && belowMin && (
                                   <button
                                     className={`btn btn-small ${session.is_public ? 'btn-secondary' : 'btn-primary'}`}
                                     onClick={() => handleTogglePublic(session.id)}
