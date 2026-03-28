@@ -15,6 +15,10 @@ const {
   getAllTournaments,
   deleteTournament,
   updateTournamentStatus,
+  getGroupDetails,
+adminDeleteGroupSession,
+getStudioDetails,
+adminDeleteStudioSession,
   // ✅ Novo:
   getAllFields,
   adminDeleteField,
@@ -58,5 +62,8 @@ router.delete('/studios/:studioId', adminDeleteStudio);
 // ✅ Groups
 router.get('/groups', getAllGroups);
 router.delete('/groups/:groupId', adminDeleteGroup);
-
+router.get('/groups/:groupId/details', getGroupDetails);
+router.delete('/groups/sessions/:sessionId', adminDeleteGroupSession);
+router.get('/studios/:studioId/details', getStudioDetails);
+router.delete('/studios/sessions/:sessionId', adminDeleteStudioSession);
 module.exports = router;

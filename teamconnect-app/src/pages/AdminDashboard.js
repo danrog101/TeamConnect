@@ -6,8 +6,6 @@ import api from '../services/api';
 import './AdminDashboard.css';
 import { useLanguage } from '../i18n/LanguageContext';
 
-const ADMIN_EMAIL = 'teamconnect0102@gmail.com';
-
 function AdminDashboard() {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -28,9 +26,17 @@ function AdminDashboard() {
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(null);
   const [newPassword, setNewPassword] = useState('');
 
+  // Detail panels
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [groupDetails, setGroupDetails] = useState(null);
+  const [selectedStudio, setSelectedStudio] = useState(null);
+  const [studioDetails, setStudioDetails] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailTab, setDetailTab] = useState('sessions');
+
   useEffect(() => {
-   const user = JSON.parse(localStorage.getItem('user') || '{}');
-if (!user.is_admin) {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.is_admin) {
       setToast({ message: 'Pristup odbijen. Samo administrator može pristupiti.', type: 'error' });
       setTimeout(() => navigate('/dashboard'), 2000);
       return;
@@ -125,6 +131,56 @@ if (!user.is_admin) {
     } catch (error) {
       setToast({ message: 'Greška pri učitavanju grupa', type: 'error' });
     } finally { setLoading(false); }
+  };
+
+  // Load group details
+  const loadGroupDetails = async (group) => {
+    setSelectedGroup(group);
+    setDetailTab('sessions');
+    setDetailLoading(true);
+    try {
+      const response = await api.get(`/admin/groups/${group.id}/details`);
+      setGroupDetails(response.data);
+    } catch (error) {
+      setToast({ message: 'Greška pri učitavanju grupe', type: 'error' });
+    } finally { setDetailLoading(false); }
+  };
+
+  // Load studio details
+  const loadStudioDetails = async (studio) => {
+    setSelectedStudio(studio);
+    setDetailTab('sessions');
+    setDetailLoading(true);
+    try {
+      const response = await api.get(`/admin/studios/${studio.id}/details`);
+      setStudioDetails(response.data);
+    } catch (error) {
+      setToast({ message: 'Greška pri učitavanju studija', type: 'error' });
+    } finally { setDetailLoading(false); }
+  };
+
+  // Delete group session (admin)
+  const handleDeleteGroupSession = async (sessionId) => {
+    try {
+      await api.delete(`/admin/groups/sessions/${sessionId}`);
+      setToast({ message: 'Trening obrisan!', type: 'success' });
+      setShowDeleteConfirm(null);
+      loadGroupDetails(selectedGroup);
+    } catch (error) {
+      setToast({ message: 'Greška pri brisanju treninga', type: 'error' });
+    }
+  };
+
+  // Delete studio session (admin)
+  const handleDeleteStudioSession = async (sessionId) => {
+    try {
+      await api.delete(`/admin/studios/sessions/${sessionId}`);
+      setToast({ message: 'Sesija obrisana!', type: 'success' });
+      setShowDeleteConfirm(null);
+      loadStudioDetails(selectedStudio);
+    } catch (error) {
+      setToast({ message: 'Greška pri brisanju sesije', type: 'error' });
+    }
   };
 
   const handleVerifyUser = async (userId) => {
@@ -237,6 +293,8 @@ if (!user.is_admin) {
     else if (type === 'field') handleDeleteField(id);
     else if (type === 'studio') handleDeleteStudio(id);
     else if (type === 'group') handleDeleteGroup(id);
+    else if (type === 'group_session') handleDeleteGroupSession(id);
+    else if (type === 'studio_session') handleDeleteStudioSession(id);
   };
 
   const formatDate = (dateString) => {
@@ -246,10 +304,20 @@ if (!user.is_admin) {
     });
   };
 
+  const formatDateTime = (date, time) => {
+    if (!date) return '-';
+    const d = new Date(`${date}T${time || '00:00'}`);
+    return d.toLocaleDateString('hr-HR', { weekday: 'short', day: '2-digit', month: '2-digit' }) + (time ? ' u ' + time.slice(0, 5) : '');
+  };
+
   const switchTab = (tab) => {
     setActiveTab(tab);
     setCurrentPage(1);
     setSearchTerm('');
+    setSelectedGroup(null);
+    setSelectedStudio(null);
+    setGroupDetails(null);
+    setStudioDetails(null);
   };
 
   const Pagination = () => totalPages > 1 ? (
@@ -379,9 +447,7 @@ if (!user.is_admin) {
                           <button className="btn-action btn-verify" onClick={() => handleVerifyUser(user.id)} title="Verificiraj">✓</button>
                         )}
                         <button className="btn-action btn-password" onClick={() => setShowResetPasswordModal(user)} title="Reset lozinke">🔑</button>
-                        {user.email !== ADMIN_EMAIL && (
-                          <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'user', id: user.id, name: user.username })} title="Obriši">🗑️</button>
-                        )}
+                        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'user', id: user.id, name: user.username })} title="Obriši">🗑️</button>
                       </td>
                     </tr>
                   ))}
@@ -525,77 +591,324 @@ if (!user.is_admin) {
 
         {/* ── STUDIOS ── */}
         {activeTab === 'studios' && (
-          <div className="admin-section">
-            <SearchBar placeholder="Pretraži studije..." />
-            <div className="admin-table-container">
-              <table className="admin-table">
-                <thead>
-  <tr>
-    <th>Naziv</th>
-    <th>Opis</th>
-    <th>Trener</th>
-    <th>Kreiran</th>
-    <th>Akcije</th>
-  </tr>
-</thead>
-<tbody>
-  {studios.map(studio => (
-    <tr key={studio.id}>
-      <td><strong>{studio.name}</strong></td>
-      <td>{studio.description ? studio.description.substring(0, 50) + '...' : '-'}</td>
-      <td>{studio.trainer?.username || '-'}</td>
-      <td>{formatDate(studio.created_at)}</td>
-      <td className="action-buttons">
-        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'studio', id: studio.id, name: studio.name })}>🗑️</button>
-      </td>
-    </tr>
-  ))}
-  {studios.length === 0 && (
-    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema studija</td></tr>
-  )}
-</tbody>
-            
-              </table>
-            </div>
-            <Pagination />
-          </div>
+          <>
+            {!selectedStudio ? (
+              <div className="admin-section">
+                <SearchBar placeholder="Pretraži studije..." />
+                <div className="admin-table-container">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Naziv</th>
+                        <th>Opis</th>
+                        <th>Trener</th>
+                        <th>Kreiran</th>
+                        <th>Akcije</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studios.map(studio => (
+                        <tr key={studio.id} style={{ cursor: 'pointer' }}>
+                          <td><strong>{studio.name}</strong></td>
+                          <td>{studio.description ? studio.description.substring(0, 50) + '...' : '-'}</td>
+                          <td>{studio.trainer?.username || '-'}</td>
+                          <td>{formatDate(studio.created_at)}</td>
+                          <td className="action-buttons">
+                            <button className="btn-action btn-verify" onClick={() => loadStudioDetails(studio)} title="Detalji">👁️</button>
+                            <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'studio', id: studio.id, name: studio.name })}>🗑️</button>
+                          </td>
+                        </tr>
+                      ))}
+                      {studios.length === 0 && (
+                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema studija</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination />
+              </div>
+            ) : (
+              /* ── STUDIO DETAIL PANEL ── */
+              <div className="admin-section">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                  <button className="btn btn-secondary" onClick={() => { setSelectedStudio(null); setStudioDetails(null); }}>← Natrag</button>
+                  <div>
+                    <h2 style={{ margin: 0, color: '#1e293b' }}>🏋️ {selectedStudio.name}</h2>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Trener: {selectedStudio.trainer?.username || '-'}</p>
+                  </div>
+                  <button className="btn-action btn-delete" style={{ marginLeft: 'auto' }}
+                    onClick={() => setShowDeleteConfirm({ type: 'studio', id: selectedStudio.id, name: selectedStudio.name })}>
+                    🗑️ Obriši studio
+                  </button>
+                </div>
+
+                <div className="admin-tabs" style={{ justifyContent: 'flex-start', marginBottom: '20px' }}>
+                  {['sessions', 'members'].map(tab => (
+                    <button key={tab} className={`admin-tab ${detailTab === tab ? 'active' : ''}`}
+                      onClick={() => setDetailTab(tab)} style={{ padding: '8px 20px' }}>
+                      {tab === 'sessions' ? '📅 Sesije' : `👥 Članovi (${studioDetails?.members?.length || 0})`}
+                    </button>
+                  ))}
+                </div>
+
+                {detailLoading ? (
+                  <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Učitavanje...</div>
+                ) : studioDetails && (
+                  <>
+                    {detailTab === 'sessions' && (
+                      <div className="admin-table-container">
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th>Naziv</th>
+                              <th>Vrsta</th>
+                              <th>Datum & Vrijeme</th>
+                              <th>Prijavljeni</th>
+                              <th>Akcije</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {studioDetails.sessions.length === 0 && (
+                              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>Nema sesija</td></tr>
+                            )}
+                            {studioDetails.sessions.map(session => {
+                              const activeSignups = session.signups?.filter(s => !s.cancelled_at) || [];
+                              const isPast = new Date(`${session.date}T${session.time}`) < new Date();
+                              return (
+                                <tr key={session.id} style={{ opacity: isPast ? 0.6 : 1 }}>
+                                  <td>
+                                    <strong>{session.title}</strong>
+                                    {isPast && <span style={{ marginLeft: '8px', fontSize: '0.75rem', color: '#94a3b8' }}>(prošlo)</span>}
+                                  </td>
+                                  <td>{session.type}</td>
+                                  <td>{formatDateTime(session.date, session.time)}</td>
+                                  <td>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                      <span>{activeSignups.length}/{session.max_participants}</span>
+                                      {activeSignups.map(s => (
+                                        <span key={s.id} style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                                          {s.user?.avatar || '👤'} {s.user?.username}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </td>
+                                  <td className="action-buttons">
+                                    <button className="btn-action btn-delete"
+                                      onClick={() => setShowDeleteConfirm({ type: 'studio_session', id: session.id, name: session.title })}>
+                                      🗑️
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {detailTab === 'members' && (
+                      <div className="admin-table-container">
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th>Avatar</th>
+                              <th>Korisnik</th>
+                              <th>Email</th>
+                              <th>Članarina</th>
+                              <th>Dodan</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {studioDetails.members.length === 0 && (
+                              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>Nema članova</td></tr>
+                            )}
+                            {studioDetails.members.map(member => (
+                              <tr key={member.id}>
+                                <td><span className="user-avatar-small">{member.user?.avatar || '👤'}</span></td>
+                                <td><strong>{member.user?.username}</strong></td>
+                                <td>{member.user?.email || '-'}</td>
+                                <td>
+                                  <span className={`badge ${member.membership_paid ? 'badge-success' : 'badge-warning'}`}>
+                                    {member.membership_paid ? '✅ Plaćena' : '❌ Nije plaćena'}
+                                  </span>
+                                </td>
+                                <td>{formatDate(member.added_at)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </>
         )}
 
         {/* ── GROUPS ── */}
         {activeTab === 'groups' && (
-          <div className="admin-section">
-            <SearchBar placeholder="Pretraži grupe..." />
-            <div className="admin-table-container">
-              <table className="admin-table">
-         <thead>
-  <tr>
-    <th>Naziv</th>
-    <th>Sport</th>
-    <th>Organizator</th>
-    <th>Kreirana</th>
-    <th>Akcije</th>
-  </tr>
-</thead>
-<tbody>
-  {groups.map(group => (
-    <tr key={group.id}>
-      <td><strong>{group.name}</strong></td>
-      <td>{group.sport || '-'}</td>
-      <td>{group.creator?.username || '-'}</td>
-      <td>{formatDate(group.created_at)}</td>
-      <td className="action-buttons">
-        <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'group', id: group.id, name: group.name })}>🗑️</button>
-      </td>
-    </tr>
-  ))}
-  {groups.length === 0 && (
-    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema grupa</td></tr>
-  )}
-</tbody>
-              </table>
-            </div>
-            <Pagination />
-          </div>
+          <>
+            {!selectedGroup ? (
+              <div className="admin-section">
+                <SearchBar placeholder="Pretraži grupe..." />
+                <div className="admin-table-container">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Naziv</th>
+                        <th>Sport</th>
+                        <th>Organizator</th>
+                        <th>Kreirana</th>
+                        <th>Akcije</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groups.map(group => (
+                        <tr key={group.id}>
+                          <td><strong>{group.name}</strong></td>
+                          <td>{group.sport || '-'}</td>
+                          <td>{group.creator?.username || '-'}</td>
+                          <td>{formatDate(group.created_at)}</td>
+                          <td className="action-buttons">
+                            <button className="btn-action btn-verify" onClick={() => loadGroupDetails(group)} title="Detalji">👁️</button>
+                            <button className="btn-action btn-delete" onClick={() => setShowDeleteConfirm({ type: 'group', id: group.id, name: group.name })}>🗑️</button>
+                          </td>
+                        </tr>
+                      ))}
+                      {groups.length === 0 && (
+                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Nema grupa</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination />
+              </div>
+            ) : (
+              /* ── GROUP DETAIL PANEL ── */
+              <div className="admin-section">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                  <button className="btn btn-secondary" onClick={() => { setSelectedGroup(null); setGroupDetails(null); }}>← Natrag</button>
+                  <div>
+                    <h2 style={{ margin: 0, color: '#1e293b' }}>🏃 {selectedGroup.name}</h2>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>
+                      ⚽ {selectedGroup.sport} &nbsp;|&nbsp; Organizator: {selectedGroup.creator?.username || '-'}
+                    </p>
+                  </div>
+                  <button className="btn-action btn-delete" style={{ marginLeft: 'auto' }}
+                    onClick={() => setShowDeleteConfirm({ type: 'group', id: selectedGroup.id, name: selectedGroup.name })}>
+                    🗑️ Obriši grupu
+                  </button>
+                </div>
+
+                <div className="admin-tabs" style={{ justifyContent: 'flex-start', marginBottom: '20px' }}>
+                  {['sessions', 'members'].map(tab => (
+                    <button key={tab} className={`admin-tab ${detailTab === tab ? 'active' : ''}`}
+                      onClick={() => setDetailTab(tab)} style={{ padding: '8px 20px' }}>
+                      {tab === 'sessions' ? '📅 Treninzi' : `👥 Članovi (${groupDetails?.members?.length || 0})`}
+                    </button>
+                  ))}
+                </div>
+
+                {detailLoading ? (
+                  <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Učitavanje...</div>
+                ) : groupDetails && (
+                  <>
+                    {detailTab === 'sessions' && (
+                      <div className="admin-table-container">
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th>Naziv</th>
+                              <th>Vrsta</th>
+                              <th>Datum & Vrijeme</th>
+                              <th>Prijavljeni</th>
+                              <th>Javno</th>
+                              <th>Akcije</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {groupDetails.sessions.length === 0 && (
+                              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>Nema treninga</td></tr>
+                            )}
+                            {groupDetails.sessions.map(session => {
+                              const activeSignups = session.signups?.filter(s => !s.cancelled_at) || [];
+                              const isPast = new Date(`${session.date}T${session.time}`) < new Date();
+                              return (
+                                <tr key={session.id} style={{ opacity: isPast ? 0.6 : 1 }}>
+                                  <td>
+                                    <strong>{session.title}</strong>
+                                    {isPast && <span style={{ marginLeft: '8px', fontSize: '0.75rem', color: '#94a3b8' }}>(prošlo)</span>}
+                                  </td>
+                                  <td>{session.type}</td>
+                                  <td>{formatDateTime(session.date, session.time)}</td>
+                                  <td>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                      <span>{activeSignups.length}/{session.max_participants}</span>
+                                      {activeSignups.map(s => (
+                                        <span key={s.id} style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                                          {s.user?.avatar || '👤'} {s.user?.username}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <span className={`badge ${session.is_public ? 'badge-success' : 'badge-warning'}`}>
+                                      {session.is_public ? '🌍 Da' : '🔒 Ne'}
+                                    </span>
+                                  </td>
+                                  <td className="action-buttons">
+                                    <button className="btn-action btn-delete"
+                                      onClick={() => setShowDeleteConfirm({ type: 'group_session', id: session.id, name: session.title })}>
+                                      🗑️
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {detailTab === 'members' && (
+                      <div className="admin-table-container">
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th>Avatar</th>
+                              <th>Korisnik</th>
+                              <th>Email</th>
+                              <th>Uloga</th>
+                              <th>Pridružen</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {groupDetails.members.length === 0 && (
+                              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>Nema članova</td></tr>
+                            )}
+                            {groupDetails.members.map(member => (
+                              <tr key={member.id}>
+                                <td><span className="user-avatar-small">{member.user?.avatar || '👤'}</span></td>
+                                <td><strong>{member.user?.username}</strong></td>
+                                <td>{member.user?.email || '-'}</td>
+                                <td>
+                                  <span className={`badge ${member.role === 'admin' ? 'badge-success' : 'badge-warning'}`}>
+                                    {member.role === 'admin' ? '👑 Organizator' : '🏃 Član'}
+                                  </span>
+                                </td>
+                                <td>{formatDate(member.joined_at)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 

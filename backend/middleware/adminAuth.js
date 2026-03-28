@@ -1,6 +1,6 @@
 const { supabase } = require('../config/supabase');
 
-const ADMIN_EMAIL = 'teamconnect0102@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 const adminAuth = async (req, res, next) => {
   try {

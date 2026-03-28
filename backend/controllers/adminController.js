@@ -499,4 +499,73 @@ exports.adminDeleteGroup = async (req, res) => {
     res.status(500).json({ message: 'Greška servera' });
   }
 };
+// Get group details (admin)
+exports.getGroupDetails = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const [groupRes, membersRes, sessionsRes] = await Promise.all([
+      supabase.from('groups').select(`*, creator:users!groups_creator_id_fkey(id, username, email)`).eq('id', groupId).single(),
+      supabase.from('group_members').select(`*, user:users!group_members_user_id_fkey(id, username, email, avatar)`).eq('group_id', groupId),
+      supabase.from('group_sessions').select(`*, signups:group_signups!group_signups_session_id_fkey(id, user_id, cancelled_at, user:users!group_signups_user_id_fkey(id, username, avatar))`).eq('group_id', groupId).order('date', { ascending: true })
+    ]);
+
+    if (!groupRes.data) return res.status(404).json({ message: 'Grupa nije pronađena' });
+
+    res.json({
+      group: groupRes.data,
+      members: membersRes.data || [],
+      sessions: sessionsRes.data || []
+    });
+  } catch (e) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Delete group session (admin)
+exports.adminDeleteGroupSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { error } = await supabase.from('group_sessions').delete().eq('id', sessionId);
+    if (error) return res.status(500).json({ message: 'Greška pri brisanju treninga' });
+    res.json({ message: 'Trening obrisan' });
+  } catch (e) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get studio details (admin)
+exports.getStudioDetails = async (req, res) => {
+  try {
+    const { studioId } = req.params;
+
+    const [studioRes, membersRes, sessionsRes] = await Promise.all([
+      supabase.from('studios').select(`*, trainer:users!studios_trainer_id_fkey(id, username, email)`).eq('id', studioId).single(),
+      supabase.from('studio_members').select(`*, user:users!studio_members_user_id_fkey(id, username, email, avatar)`).eq('studio_id', studioId),
+      supabase.from('studio_sessions').select(`*, signups:session_signups!session_signups_session_id_fkey(id, user_id, cancelled_at, user:users!session_signups_user_id_fkey(id, username, avatar))`).eq('studio_id', studioId).order('date', { ascending: true })
+    ]);
+
+    if (!studioRes.data) return res.status(404).json({ message: 'Studio nije pronađen' });
+
+    res.json({
+      studio: studioRes.data,
+      members: membersRes.data || [],
+      sessions: sessionsRes.data || []
+    });
+  } catch (e) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Delete studio session (admin)
+exports.adminDeleteStudioSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { error } = await supabase.from('studio_sessions').delete().eq('id', sessionId);
+    if (error) return res.status(500).json({ message: 'Greška pri brisanju sesije' });
+    res.json({ message: 'Sesija obrisana' });
+  } catch (e) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 module.exports = exports;
