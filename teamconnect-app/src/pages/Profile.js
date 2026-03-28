@@ -85,6 +85,7 @@ function Profile() {
       }
 
       setProfile(user);
+      console.log('isOwnProfile:', isOwnProfile, 'userId:', userId, 'currentUser.id:', currentUser.id);
       setEditForm({
         username:          user.username        || '',
         firstName:         user.first_name      || user.firstName    || '',
@@ -125,7 +126,6 @@ function Profile() {
         date_of_birth:       editForm.dateOfBirth,
         gender:              editForm.gender,
         sport:               editForm.sport,
-        favorite_sports:     editForm.favoriteSports,
         skill_level:         editForm.skillLevel,
         position:            editForm.position,
         country:             editForm.country,
