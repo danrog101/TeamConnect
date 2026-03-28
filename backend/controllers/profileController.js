@@ -132,9 +132,12 @@ exports.updateProfile = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Update profile error:', error);
-      return res.status(500).json({ message: 'Ažuriranje profila nije uspjelo' });
-    }
+  console.error('Update profile error:', error);
+  if (error.code === '23505') {
+    return res.status(400).json({ message: 'To korisničko ime je već zauzeto!' });
+  }
+  return res.status(400).json({ message: error.message || 'Ažuriranje profila nije uspjelo' });
+}
 
     res.json({ message: 'Profil je uspješno ažuriran!', user });
   } catch (error) {
