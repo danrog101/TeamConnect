@@ -39,11 +39,11 @@ const { t, language } = useLanguage();
     socketRef.current = getSocket();
     socketRef.current.emit('join_dm', currentUserId);
 
-    socketRef.current.on('new_dm', (message) => {
-      const isRelevant =
-        message.sender_id === otherUserId ||
-        message.recipient_id === otherUserId;
-      if (isRelevant) {
+socketRef.current.on('new_dm', (message) => {
+  const isRelevant =
+    (message.sender_id === currentUserId && message.recipient_id === otherUserId) ||
+    (message.sender_id === otherUserId && message.recipient_id === currentUserId);
+  if (isRelevant) {
         setMessages(prev => [...prev, message]);
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       }
