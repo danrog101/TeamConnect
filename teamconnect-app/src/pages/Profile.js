@@ -122,7 +122,7 @@ function Profile() {
         first_name:          editForm.firstName,
         last_name:           editForm.lastName,
         bio:                 editForm.bio,
-        gender:              editForm.gender,
+        gender:              editForm.gender || null,
         sport:               editForm.sport,
         position:            editForm.position,
         country:             editForm.country,
