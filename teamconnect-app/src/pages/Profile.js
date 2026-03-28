@@ -655,11 +655,12 @@ function Profile() {
       )}
 
       {showRateModal && (
-        <SportRatingModal
-          sport={profile.sport || 'Nogomet'}
-          onSubmit={handleRatePlayer}
-          onCancel={() => setShowRateModal(false)}
-        />
+       <SportRatingModal
+  sport={null}
+  isRatingOther={true}
+  onSubmit={handleRatePlayer}
+  onCancel={() => setShowRateModal(false)}
+/>
       )}
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
