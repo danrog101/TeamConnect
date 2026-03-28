@@ -19,9 +19,9 @@ function MyStudio() {
   const [members, setMembers]             = useState([]);
   const [loading, setLoading]             = useState(true);
   const [toast, setToast]                 = useState(null);
-const [showCopyWeek, setShowCopyWeek] = useState(false);
-const [copyWeekDate, setCopyWeekDate] = useState('');
-const [copyLoading, setCopyLoading] = useState(false);
+  const [showCopyWeek, setShowCopyWeek]   = useState(false);
+  const [copyWeekDate, setCopyWeekDate]   = useState('');
+  const [copyLoading, setCopyLoading]     = useState(false);
   const [showCreateStudio, setShowCreateStudio]   = useState(false);
   const [showCreateSession, setShowCreateSession] = useState(false);
   const [showAddMember, setShowAddMember]         = useState(false);
@@ -68,7 +68,7 @@ const [copyLoading, setCopyLoading] = useState(false);
       if (myRes.ok)     setMyStudios(await myRes.json());
       if (memberRes.ok) setMemberStudios(await memberRes.json());
     } catch (e) {
-      setToast({ message: 'Greška pri učitavanju', type: 'error' });
+      setToast({ message: t('common.error'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -76,24 +76,20 @@ const [copyLoading, setCopyLoading] = useState(false);
 
   const loadSessions = async (studioId) => {
     try {
-      const res = await fetch(`${API_URL}/studios/${studioId}/sessions`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await fetch(`${API_URL}/studios/${studioId}/sessions`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) setSessions(await res.json());
     } catch (e) { console.error(e); }
   };
 
   const loadMembers = async (studioId) => {
     try {
-      const res = await fetch(`${API_URL}/studios/${studioId}/members`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await fetch(`${API_URL}/studios/${studioId}/members`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) setMembers(await res.json());
     } catch (e) { console.error(e); }
   };
 
   const handleCreateStudio = async () => {
-    if (!studioForm.name) { setToast({ message: 'Naziv je obavezan!', type: 'error' }); return; }
+    if (!studioForm.name) { setToast({ message: t('common.required'), type: 'error' }); return; }
     try {
       const res = await fetch(`${API_URL}/studios`, {
         method: 'POST',
@@ -109,12 +105,12 @@ const [copyLoading, setCopyLoading] = useState(false);
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
+    } catch (e) { setToast({ message: t('common.error'), type: 'error' }); }
   };
 
   const handleCreateSession = async () => {
     if (!sessionForm.title || !sessionForm.type || !sessionForm.date || !sessionForm.time) {
-      setToast({ message: 'Popuni sva obavezna polja!', type: 'error' });
+      setToast({ message: t('common.required'), type: 'error' });
       return;
     }
     try {
@@ -132,7 +128,7 @@ const [copyLoading, setCopyLoading] = useState(false);
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
+    } catch (e) { setToast({ message: t('common.error'), type: 'error' }); }
   };
 
   const handleAddMember = async () => {
@@ -152,25 +148,23 @@ const [copyLoading, setCopyLoading] = useState(false);
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
+    } catch (e) { setToast({ message: t('common.error'), type: 'error' }); }
   };
 
   const handleRemoveMember = async (memberId) => {
     try {
       await fetch(`${API_URL}/studios/${selectedStudio.id}/members/${memberId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
       });
       setToast({ message: 'Član uklonjen', type: 'info' });
       loadMembers(selectedStudio.id);
-    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
+    } catch (e) { setToast({ message: t('common.error'), type: 'error' }); }
   };
 
   const handleSignup = async (sessionId) => {
     try {
       const res = await fetch(`${API_URL}/studios/${selectedStudio.id}/sessions/${sessionId}/signup`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       if (res.ok) {
@@ -179,14 +173,13 @@ const [copyLoading, setCopyLoading] = useState(false);
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
+    } catch (e) { setToast({ message: t('common.error'), type: 'error' }); }
   };
 
   const handleCancel = async (sessionId) => {
     try {
       const res = await fetch(`${API_URL}/studios/sessions/${sessionId}/cancel`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` }
+        method: 'PUT', headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       if (res.ok) {
@@ -195,82 +188,74 @@ const [copyLoading, setCopyLoading] = useState(false);
       } else {
         setToast({ message: data.message, type: 'error' });
       }
-    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
+    } catch (e) { setToast({ message: t('common.error'), type: 'error' }); }
   };
 
   const handleDeleteSession = async (sessionId) => {
     try {
       await fetch(`${API_URL}/studios/${selectedStudio.id}/sessions/${sessionId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
       });
       setToast({ message: 'Trening obrisan', type: 'info' });
       loadSessions(selectedStudio.id);
-    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
+    } catch (e) { setToast({ message: t('common.error'), type: 'error' }); }
   };
 
   const handleToggleMembership = async (memberId) => {
     try {
       const res = await fetch(`${API_URL}/studios/${selectedStudio.id}/members/${memberId}/membership`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` }
+        method: 'PUT', headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) loadMembers(selectedStudio.id);
-    } catch (e) { setToast({ message: 'Greška', type: 'error' }); }
+    } catch (e) { setToast({ message: t('common.error'), type: 'error' }); }
   };
-const handleCopyWeek = async () => {
-  if (!copyWeekDate) {
-    setToast({ message: 'Odaberi tjedan!', type: 'error' });
-    return;
-  }
-  // Nađi ponedjeljak odabranog tjedna
-  const d = new Date(copyWeekDate);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  const weekStart = d.toISOString().split('T')[0];
 
-  try {
-    setCopyLoading(true);
-    const res = await fetch(`${API_URL}/studios/${selectedStudio.id}/sessions/copy-week`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ weekStart })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setToast({ message: data.message, type: 'success' });
-      setShowCopyWeek(false);
-      setCopyWeekDate('');
-      loadSessions(selectedStudio.id);
-    } else {
-      setToast({ message: data.message, type: 'error' });
+  const handleCopyWeek = async () => {
+    if (!copyWeekDate) { setToast({ message: 'Odaberi tjedan!', type: 'error' }); return; }
+    const d = new Date(copyWeekDate);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    const weekStart = d.toISOString().split('T')[0];
+    try {
+      setCopyLoading(true);
+      const res = await fetch(`${API_URL}/studios/${selectedStudio.id}/sessions/copy-week`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ weekStart })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToast({ message: data.message, type: 'success' });
+        setShowCopyWeek(false);
+        setCopyWeekDate('');
+        loadSessions(selectedStudio.id);
+      } else {
+        setToast({ message: data.message, type: 'error' });
+      }
+    } catch (e) {
+      setToast({ message: t('common.error'), type: 'error' });
+    } finally {
+      setCopyLoading(false);
     }
-  } catch (e) {
-    setToast({ message: 'Greška', type: 'error' });
-  } finally {
-    setCopyLoading(false);
-  }
-};
+  };
+
   const isTrainer = (studio) => studio?.trainer_id === currentUser.id;
 
   const getSignupStatus = (session) => {
     if (!session.signups) return { isSignedUp: false, count: 0 };
     const activeSignups = session.signups.filter(s => !s.cancelled_at);
-    const isSignedUp = activeSignups.some(s => s.user_id === currentUser.id);
-    return { isSignedUp, count: activeSignups.length };
+    return { isSignedUp: activeSignups.some(s => s.user_id === currentUser.id), count: activeSignups.length };
   };
 
   const canSignup = (session) => {
     const dt = new Date(`${session.date}T${session.time}`);
-    const deadline = new Date(dt.getTime() - session.signup_deadline_hours * 3600000);
-    return new Date() <= deadline;
+    return new Date() <= new Date(dt.getTime() - session.signup_deadline_hours * 3600000);
   };
 
   const canCancel = (session) => {
     const dt = new Date(`${session.date}T${session.time}`);
-    const deadline = new Date(dt.getTime() - session.cancel_deadline_hours * 3600000);
-    return new Date() <= deadline;
+    return new Date() <= new Date(dt.getTime() - session.cancel_deadline_hours * 3600000);
   };
 
   const formatDateTime = (date, time) => {
@@ -284,18 +269,17 @@ const handleCopyWeek = async () => {
   ];
 
   if (loading) return (
-    <div className="studio-page"><Navbar /><div className="loading">Učitavanje...</div></div>
+    <div className="studio-page"><Navbar /><div className="loading">{t('common.loading')}</div></div>
   );
 
   return (
     <div className="studio-page">
       <Navbar />
-
       <div className="studio-container">
         {!selectedStudio ? (
           <>
             <div className="studio-header">
-              <h1>💪 {t('nav.myStudio') || 'Moj Studio'}</h1>
+              <h1>💪 {t('nav.myStudio')}</h1>
               <p>Upravljaj treninzima i klijentima</p>
               <button className="btn btn-primary" onClick={() => setShowCreateStudio(true)}>
                 + Kreiraj Studio
@@ -322,7 +306,7 @@ const handleCopyWeek = async () => {
                       </div>
                     </div>
                     {studio.description && <p className="studio-desc">{studio.description}</p>}
-                    <div className="studio-card-footer">Klikni za detalje →</div>
+                    <div className="studio-card-footer">{t('common.select')} →</div>
                   </div>
                 ))}
               </div>
@@ -332,7 +316,7 @@ const handleCopyWeek = async () => {
           <>
             <div className="studio-detail-header">
               <button className="btn btn-secondary" onClick={() => { setSelectedStudio(null); setSessions([]); setMembers([]); }}>
-                ← Natrag
+                ← {t('common.back')}
               </button>
               <div>
                 <h1>💪 {selectedStudio.name}</h1>
@@ -342,10 +326,10 @@ const handleCopyWeek = async () => {
               </div>
               {isTrainer(selectedStudio) && (
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-  <button className="btn btn-primary" onClick={() => setShowCreateSession(true)}>+ Novi trening</button>
-  <button className="btn btn-secondary" onClick={() => setShowCopyWeek(true)}>📋 Kopiraj tjedan</button>
-  <button className="btn btn-secondary" onClick={() => setShowAddMember(true)}>+ Dodaj klijenta</button>
-</div>
+                  <button className="btn btn-primary" onClick={() => setShowCreateSession(true)}>+ Novi trening</button>
+                  <button className="btn btn-secondary" onClick={() => setShowCopyWeek(true)}>📋 Kopiraj tjedan</button>
+                  <button className="btn btn-secondary" onClick={() => setShowAddMember(true)}>+ Dodaj klijenta</button>
+                </div>
               )}
             </div>
 
@@ -360,7 +344,6 @@ const handleCopyWeek = async () => {
               </div>
             )}
 
-            {/* ── SESSIONS ── */}
             {(activeTab === 'sessions' || !isTrainer(selectedStudio)) && (
               <div className="sessions-list">
                 {sessions.length === 0 ? (
@@ -397,22 +380,12 @@ const handleCopyWeek = async () => {
                           <div className="session-actions">
                             {!isTrainer(selectedStudio) && !isPast && (
                               isSignedUp ? (
-                                <button
-                                  className="btn btn-danger"
-                                  onClick={() => handleCancel(session.id)}
-                                  disabled={!canCan}
-                                  title={!canCan ? `Otkaz nije moguć ${session.cancel_deadline_hours}h prije` : ''}
-                                >
-                                  ❌ Otkaži
+                                <button className="btn btn-danger" onClick={() => handleCancel(session.id)} disabled={!canCan}>
+                                  ❌ {t('common.cancel')}
                                 </button>
                               ) : (
-                                <button
-                                  className="btn btn-primary"
-                                  onClick={() => handleSignup(session.id)}
-                                  disabled={!canSign || count >= session.max_participants}
-                                  title={!canSign ? `Prijava zatvorena ${session.signup_deadline_hours}h prije` : ''}
-                                >
-                                  ✅ Prijavi se
+                                <button className="btn btn-primary" onClick={() => handleSignup(session.id)} disabled={!canSign || count >= session.max_participants}>
+                                  ✅ {t('common.confirm')}
                                 </button>
                               )
                             )}
@@ -434,9 +407,7 @@ const handleCopyWeek = async () => {
                                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nema prijavljenih</p>
                                   )}
                                 </div>
-                                <button className="btn btn-danger btn-small" onClick={() => handleDeleteSession(session.id)}>
-                                  🗑️
-                                </button>
+                                <button className="btn btn-danger btn-small" onClick={() => handleDeleteSession(session.id)}>🗑️</button>
                               </>
                             )}
                           </div>
@@ -448,7 +419,6 @@ const handleCopyWeek = async () => {
               </div>
             )}
 
-            {/* ── MEMBERS ── */}
             {isTrainer(selectedStudio) && activeTab === 'members' && (
               <div className="members-list">
                 {members.length === 0 ? (
@@ -460,29 +430,22 @@ const handleCopyWeek = async () => {
                 ) : (
                   members.map(member => (
                     <div key={member.id} className="member-card card">
-                      {/* Left: avatar + info */}
                       <div className="member-info">
                         <span className="member-avatar">{member.user?.avatar || '👤'}</span>
                         <div>
                           <strong>{member.user?.username}</strong>
                           <p>{member.user?.email}</p>
-                          {/* ✅ FIXED: CSS klase umjesto inline stilova */}
                           <span className={`membership-status ${member.membership_paid ? 'paid' : 'unpaid'}`}>
                             {member.membership_paid ? '✅ Plaćeno' : '❌ Nije plaćeno'}
                           </span>
                         </div>
                       </div>
-
-                      {/* Right: action buttons */}
                       <div className="member-actions">
-                        <button
-                          className={`btn-membership ${member.membership_paid ? 'mark-unpaid' : 'mark-paid'}`}
-                          onClick={() => handleToggleMembership(member.id)}
-                        >
+                        <button className={`btn-membership ${member.membership_paid ? 'mark-unpaid' : 'mark-paid'}`} onClick={() => handleToggleMembership(member.id)}>
                           {member.membership_paid ? '❌ Označi neplaćeno' : '✅ Označi plaćeno'}
                         </button>
                         <button className="btn btn-danger btn-small" onClick={() => handleRemoveMember(member.id)}>
-                          Ukloni
+                          {t('common.delete')}
                         </button>
                       </div>
                     </div>
@@ -494,7 +457,7 @@ const handleCopyWeek = async () => {
         )}
       </div>
 
-      {/* ── Modal: Kreiraj Studio ── */}
+      {/* Modal: Kreiraj Studio */}
       {showCreateStudio && (
         <div className="modal-overlay" onClick={() => setShowCreateStudio(false)}>
           <div className="studio-modal card" onClick={e => e.stopPropagation()}>
@@ -510,14 +473,14 @@ const handleCopyWeek = async () => {
                 onChange={e => setStudioForm({ ...studioForm, description: e.target.value })} rows={3} />
             </div>
             <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowCreateStudio(false)}>Odustani</button>
-              <button className="btn btn-primary" onClick={handleCreateStudio}>Kreiraj</button>
+              <button className="btn btn-secondary" onClick={() => setShowCreateStudio(false)}>{t('common.cancel')}</button>
+              <button className="btn btn-primary" onClick={handleCreateStudio}>{t('common.confirm')}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Modal: Kreiraj Sesiju ── */}
+      {/* Modal: Kreiraj Sesiju */}
       {showCreateSession && (
         <div className="modal-overlay" onClick={() => setShowCreateSession(false)}>
           <div className="studio-modal card" onClick={e => e.stopPropagation()}>
@@ -541,7 +504,7 @@ const handleCopyWeek = async () => {
             </div>
             <div className="form-row">
               <div className="form-group">
-                <label>Datum *</label>
+                <label>{t('statistics.dateLabel')}</label>
                 <input type="date" value={sessionForm.date} min={new Date().toISOString().split('T')[0]}
                   onChange={e => setSessionForm({ ...sessionForm, date: e.target.value })} />
               </div>
@@ -580,14 +543,14 @@ const handleCopyWeek = async () => {
                 onChange={e => setSessionForm({ ...sessionForm, notes: e.target.value })} rows={2} />
             </div>
             <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowCreateSession(false)}>Odustani</button>
-              <button className="btn btn-primary" onClick={handleCreateSession}>Kreiraj</button>
+              <button className="btn btn-secondary" onClick={() => setShowCreateSession(false)}>{t('common.cancel')}</button>
+              <button className="btn btn-primary" onClick={handleCreateSession}>{t('common.confirm')}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Modal: Dodaj Člana ── */}
+      {/* Modal: Dodaj Člana */}
       {showAddMember && (
         <div className="modal-overlay" onClick={() => setShowAddMember(false)}>
           <div className="studio-modal card" onClick={e => e.stopPropagation()}>
@@ -598,37 +561,34 @@ const handleCopyWeek = async () => {
                 value={memberInput} onChange={e => setMemberInput(e.target.value)} />
             </div>
             <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowAddMember(false)}>Odustani</button>
-              <button className="btn btn-primary" onClick={handleAddMember}>Dodaj</button>
+              <button className="btn btn-secondary" onClick={() => setShowAddMember(false)}>{t('common.cancel')}</button>
+              <button className="btn btn-primary" onClick={handleAddMember}>{t('common.confirm')}</button>
             </div>
           </div>
         </div>
       )}
-      {/* ── Modal: Kopiraj tjedan ── */}
-{showCopyWeek && (
-  <div className="modal-overlay" onClick={() => setShowCopyWeek(false)}>
-    <div className="studio-modal card" onClick={e => e.stopPropagation()}>
-      <h2>📋 Kopiraj tjedan treninga</h2>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.9rem' }}>
-        Odaberi bilo koji dan iz tjedna koji želiš kopirati. Svi treninzi tog tjedna bit će duplicirani u sljedeći tjedan.
-      </p>
-      <div className="form-group">
-        <label>Odaberi dan iz tjedna koji kopiraš *</label>
-        <input
-          type="date"
-          value={copyWeekDate}
-          onChange={e => setCopyWeekDate(e.target.value)}
-        />
-      </div>
-      <div className="modal-actions">
-        <button className="btn btn-secondary" onClick={() => setShowCopyWeek(false)}>Odustani</button>
-        <button className="btn btn-primary" onClick={handleCopyWeek} disabled={copyLoading}>
-          {copyLoading ? 'Kopiranje...' : '📋 Kopiraj u sljedeći tjedan'}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+
+      {/* Modal: Kopiraj tjedan */}
+      {showCopyWeek && (
+        <div className="modal-overlay" onClick={() => setShowCopyWeek(false)}>
+          <div className="studio-modal card" onClick={e => e.stopPropagation()}>
+            <h2>📋 Kopiraj tjedan treninga</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.9rem' }}>
+              Odaberi bilo koji dan iz tjedna koji želiš kopirati.
+            </p>
+            <div className="form-group">
+              <label>Odaberi dan iz tjedna *</label>
+              <input type="date" value={copyWeekDate} onChange={e => setCopyWeekDate(e.target.value)} />
+            </div>
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={() => setShowCopyWeek(false)}>{t('common.cancel')}</button>
+              <button className="btn btn-primary" onClick={handleCopyWeek} disabled={copyLoading}>
+                {copyLoading ? t('common.saving') : '📋 Kopiraj u sljedeći tjedan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

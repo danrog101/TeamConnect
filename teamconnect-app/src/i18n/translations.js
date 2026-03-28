@@ -217,7 +217,7 @@ dm: {
 
     // Landing Page
     landing: {
-      badge: '🏀 Sportska platforma #1',
+      badge: '🏀 Sportska platforma',
       heroTitle1: 'Pronađi svoj tim.',
       heroTitle2: 'Igraj. Pobijedi.',
       heroDesc: 'TeamConnects povezuje sportaše i rekreativce po lokaciji i sportu. Pronađi suigrače, pridruži se timovima ili organiziraj vlastite sportske događaje.',

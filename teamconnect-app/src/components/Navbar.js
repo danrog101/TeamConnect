@@ -92,10 +92,10 @@ function Navbar() {
             <button className="nav-link" onClick={() => goTo('/messages')}>
   <span className="nav-icon">💬</span>{t('nav.messages')}
 </button>
-          <button className="nav-link" onClick={() => goTo('/my-studio')}>
-            <span className="nav-icon">💪</span>
-           Moj Studio
-          </button>
+        <button className="nav-link" onClick={() => goTo('/my-studio')}>
+  <span className="nav-icon">💪</span>
+  {t('nav.myStudio')}
+</button>
           
          <button className="nav-link" onClick={() => goTo('/groups')}>
   <span className="nav-icon">🏃</span>{t('nav.groups')}
