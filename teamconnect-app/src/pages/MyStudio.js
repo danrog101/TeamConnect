@@ -10,7 +10,7 @@ function MyStudio() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-
+const [customType, setCustomType] = useState('');
   const [myStudios, setMyStudios]         = useState([]);
   const [memberStudios, setMemberStudios] = useState([]);
   const [activeTab, setActiveTab]         = useState('my-studios');
@@ -124,7 +124,8 @@ function MyStudio() {
         setToast({ message: '✅ Trening kreiran!', type: 'success' });
         setShowCreateSession(false);
         setSessionForm({ title: '', type: '', date: '', time: '', max_participants: 10, signup_deadline_hours: 2, cancel_deadline_hours: 1, notes: '' });
-        loadSessions(selectedStudio.id);
+setCustomType('');
+loadSessions(selectedStudio.id);
       } else {
         setToast({ message: data.message, type: 'error' });
       }
@@ -492,15 +493,35 @@ function MyStudio() {
             </div>
             <div className="form-group">
               <label>Vrsta treninga *</label>
-              <select value={sessionForm.type} onChange={e => setSessionForm({ ...sessionForm, type: e.target.value })}>
-                <option value="">-- Odaberi vrstu --</option>
-                {sessionTypes.map(type => <option key={type} value={type}>{type}</option>)}
-                <option value="custom">✏️ Unesi vlastitu vrstu</option>
-              </select>
-              {sessionForm.type === 'custom' && (
-                <input type="text" placeholder="Upiši vrstu treninga..." style={{ marginTop: '8px' }}
-                  onChange={e => setSessionForm({ ...sessionForm, type: e.target.value })} />
-              )}
+              <select
+  value={sessionTypes.includes(sessionForm.type) || sessionForm.type === '' ? sessionForm.type : 'custom'}
+  onChange={e => {
+    if (e.target.value === 'custom') {
+      setSessionForm({ ...sessionForm, type: '' });
+    } else {
+      setSessionForm({ ...sessionForm, type: e.target.value });
+      setCustomType('');
+    }
+  }}
+>
+  <option value="">-- Odaberi vrstu --</option>
+  {sessionTypes.map(type => <option key={type} value={type}>{type}</option>)}
+  <option value="custom">✏️ Unesi vlastitu vrstu</option>
+</select>
+
+{(!sessionTypes.includes(sessionForm.type) && sessionForm.type === '') || 
+ (!sessionTypes.includes(sessionForm.type) && customType !== '') ? (
+  <input
+    type="text"
+    placeholder="Upiši vrstu treninga npr. HIIT trening..."
+    style={{ marginTop: '8px' }}
+    value={customType}
+    onChange={e => {
+      setCustomType(e.target.value);
+      setSessionForm({ ...sessionForm, type: e.target.value });
+    }}
+  />
+) : null}
             </div>
             <div className="form-row">
               <div className="form-group">
