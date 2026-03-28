@@ -40,14 +40,13 @@ function Profile() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showAvatarModal, setShowAvatarModal]     = useState(false);
   const [showRateModal, setShowRateModal]         = useState(false);
-  const [canRateUser, setCanRateUser]   = useState(false);
   const [hasRatedUser, setHasRatedUser] = useState(false);
   const [saving, setSaving]             = useState(false);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   const [editForm, setEditForm] = useState({
-    firstName: '', lastName: '', bio: '', dateOfBirth: '',
+    username: '', firstName: '', lastName: '', bio: '', dateOfBirth: '',
     gender: '', sport: '', favoriteSports: [], skillLevel: '',
     position: '', country: '', city: '', phone: '',
     instagram: '', twitter: '', facebook: '',
@@ -62,86 +61,65 @@ function Profile() {
   useEffect(() => { loadProfile(); }, [userId]);
 
   const loadProfile = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) { navigate('/login'); return; }
-
-    let user;
-    if (userId && userId !== currentUser.id) {
-      // Tuđi profil
-      const res = await fetch(`${API_URL}/profile/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) { setToast({ message: 'Profil nije pronađen', type: 'error' }); return; }
-      user = await res.json();
-      setIsOwnProfile(false);
-      checkCanRate(userId);
-    } else {
-      // Vlastiti profil
-      user = await authAPI.getCurrentUser();
-      if (!user) return;
-      setIsOwnProfile(true);
-
-      let friends = [], stats = {};
-      try { friends = await authAPI.getFriends(); } catch (e) {}
-      try { stats   = await authAPI.getUserStats(); } catch (e) {}
-
-      user = { ...user, friends: friends || [], stats: stats || {} };
-    }
-
-    setProfile(user);
-
-    setEditForm({
-      username:          user.username        || '',
-      firstName:         user.first_name      || user.firstName    || '',
-      lastName:          user.last_name       || user.lastName     || '',
-      bio:               user.bio             || '',
-      dateOfBirth:       user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
-      gender:            user.gender          || '',
-      sport:             user.sport           || '',
-      favoriteSports:    user.favorite_sports || user.favoriteSports || [],
-      skillLevel:        user.skill_level     || user.skillLevel   || '',
-      position:          user.position        || '',
-      country:           user.country         || '',
-      city:              user.city            || '',
-      phone:             user.phone           || '',
-      instagram:         user.instagram       || '',
-      twitter:           user.twitter         || '',
-      facebook:          user.facebook        || '',
-      profileVisibility: user.profile_visibility || user.profileVisibility || 'public',
-      showEmail:         user.show_email      || user.showEmail    || false,
-      showPhone:         user.show_phone      || user.showPhone    || false,
-      leagueLevel:       user.league_level    || user.leagueLevel  || '',
-      yearsExperience:   user.years_experience || user.yearsExperience || '',
-      selfRating:        user.self_rating     || user.selfRating   || 5,
-    });
-  } catch (e) {
-    setToast({ message: 'Greška pri učitavanju profila', type: 'error' });
-  }
-};
-
-  const checkCanRate = async (targetId) => {
     try {
       const token = localStorage.getItem('token');
-      const [myRes, targetRes] = await Promise.all([
-        fetch(`${API_URL}/teams?member=${currentUser.id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_URL}/teams?member=${targetId}`,       { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
-      if (myRes.ok && targetRes.ok) {
-        const myTeams     = await myRes.json();
-        const targetTeams = await targetRes.json();
-        const myIds = new Set(myTeams.map(t => t.id));
-        setCanRateUser(targetTeams.some(t => myIds.has(t.id)));
+      if (!token) { navigate('/login'); return; }
+
+      let user;
+      if (userId && userId !== currentUser.id) {
+        const res = await fetch(`${API_URL}/profile/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) { setToast({ message: 'Profil nije pronađen', type: 'error' }); return; }
+        user = await res.json();
+        setIsOwnProfile(false);
+      } else {
+        user = await authAPI.getCurrentUser();
+        if (!user) return;
+        setIsOwnProfile(true);
+
+        let friends = [], stats = {};
+        try { friends = await authAPI.getFriends(); } catch (e) {}
+        try { stats   = await authAPI.getUserStats(); } catch (e) {}
+        user = { ...user, friends: friends || [], stats: stats || {} };
       }
-    } catch (e) {}
+
+      setProfile(user);
+      setEditForm({
+        username:          user.username        || '',
+        firstName:         user.first_name      || user.firstName    || '',
+        lastName:          user.last_name       || user.lastName     || '',
+        bio:               user.bio             || '',
+        dateOfBirth:       user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
+        gender:            user.gender          || '',
+        sport:             user.sport           || '',
+        favoriteSports:    user.favorite_sports || user.favoriteSports || [],
+        skillLevel:        user.skill_level     || user.skillLevel   || '',
+        position:          user.position        || '',
+        country:           user.country         || '',
+        city:              user.city            || '',
+        phone:             user.phone           || '',
+        instagram:         user.instagram       || '',
+        twitter:           user.twitter         || '',
+        facebook:          user.facebook        || '',
+        profileVisibility: user.profile_visibility || user.profileVisibility || 'public',
+        showEmail:         user.show_email      || user.showEmail    || false,
+        showPhone:         user.show_phone      || user.showPhone    || false,
+        leagueLevel:       user.league_level    || user.leagueLevel  || '',
+        yearsExperience:   user.years_experience || user.yearsExperience || '',
+        selfRating:        user.self_rating     || user.selfRating   || 5,
+      });
+    } catch (e) {
+      setToast({ message: 'Greška pri učitavanju profila', type: 'error' });
+    }
   };
 
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
       const dbData = {
-  username: editForm.username,
-  first_name: editForm.firstName,
+        username:            editForm.username,
+        first_name:          editForm.firstName,
         last_name:           editForm.lastName,
         bio:                 editForm.bio,
         date_of_birth:       editForm.dateOfBirth,
@@ -237,8 +215,7 @@ function Profile() {
   };
 
   const getSkillLabel = (val) => SKILL_LEVELS.find(s => s.value === val)?.label || val;
-
-  const ef = editForm; // shorthand
+  const ef = editForm;
 
   if (!profile) {
     return (
@@ -254,6 +231,8 @@ function Profile() {
     : profile.firstName && profile.lastName
     ? `${profile.firstName} ${profile.lastName}`
     : profile.username;
+
+  const canRate = !isOwnProfile && !hasRatedUser;
 
   return (
     <div className="profile-page">
@@ -333,8 +312,12 @@ function Profile() {
                     🔒 Lozinka
                   </button>
                 </>
-              ) : canRateUser && (
-                <button className="btn btn-primary" onClick={() => setShowRateModal(true)} disabled={hasRatedUser}>
+              ) : (
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setShowRateModal(true)}
+                  disabled={hasRatedUser}
+                >
                   {hasRatedUser ? '✅ Ocijenjeno' : '⭐ Ocijeni igrača'}
                 </button>
               )}
@@ -366,14 +349,13 @@ function Profile() {
                     </button>
                   </div>
 
-                  {/* Osobni podaci */}
                   <div className="edit-section">
                     <h3 className="edit-section-title">👤 Osobni podaci</h3>
                     <div className="form-group">
-  <label>Korisničko ime</label>
-  <input type="text" placeholder="username" value={ef.username}
-    onChange={e => setEditForm({...ef, username: e.target.value})} />
-</div>
+                      <label>Korisničko ime</label>
+                      <input type="text" placeholder="username" value={ef.username}
+                        onChange={e => setEditForm({...ef, username: e.target.value})} />
+                    </div>
                     <div className="edit-grid-2">
                       <div className="form-group">
                         <label>Ime</label>
@@ -410,7 +392,6 @@ function Profile() {
                     </div>
                   </div>
 
-                  {/* Sport */}
                   <div className="edit-section">
                     <h3 className="edit-section-title">🏅 Sportski podaci</h3>
                     <div className="edit-grid-2">
@@ -453,7 +434,6 @@ function Profile() {
                     </div>
                   </div>
 
-                  {/* Lokacija */}
                   <div className="edit-section">
                     <h3 className="edit-section-title">📍 Lokacija</h3>
                     <div className="edit-grid-2">
@@ -470,7 +450,6 @@ function Profile() {
                     </div>
                   </div>
 
-                  {/* Kontakt & Social */}
                   <div className="edit-section">
                     <h3 className="edit-section-title">📱 Kontakt & Društvene mreže</h3>
                     <div className="edit-grid-2">
@@ -519,7 +498,6 @@ function Profile() {
                     {profile.gender && <div className="info-item"><span className="info-label">Spol</span><span className="info-value">{{male:'Muško',female:'Žensko',other:'Drugo',prefer_not_to_say:'—'}[profile.gender]||profile.gender}</span></div>}
                   </div>
 
-                  {/* Social */}
                   {(profile.instagram||profile.twitter||profile.facebook) && (
                     <div style={{marginTop:'24px'}}>
                       <h3 style={{marginBottom:'14px',fontSize:'1rem',fontWeight:700}}>📱 Društvene mreže</h3>
@@ -663,9 +641,7 @@ function Profile() {
                   if (!file) return;
                   if (file.size > 2*1024*1024) { setToast({message:'Max 2MB',type:'error'}); return; }
                   const reader = new FileReader();
-                  reader.onload = async ev => {
-                    await handleChangeAvatar(ev.target.result);
-                  };
+                  reader.onload = async ev => { await handleChangeAvatar(ev.target.result); };
                   reader.readAsDataURL(file);
                 }}
               />

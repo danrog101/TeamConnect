@@ -122,5 +122,50 @@ export const api = {
   delete: (endpoint, options = {}) => 
     apiCall(endpoint, { method: 'DELETE', ...options }),
 };
+// Wrapper za fetch koji automatski refresha token
+export const authFetch = async (url, options = {}) => {
+  const token = localStorage.getItem('token');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
 
+  let response = await fetch(url, { ...options, headers });
+
+  // Ako je 401, probaj refresh
+  if (response.status === 401) {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      try {
+        const refreshRes = await fetch(`${API_URL}/auth/refresh-token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken })
+        });
+
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          localStorage.setItem('token', data.accessToken);
+          localStorage.setItem('refreshToken', data.refreshToken);
+
+          // Ponovi originalni request s novim tokenom
+          headers.Authorization = `Bearer ${data.accessToken}`;
+          response = await fetch(url, { ...options, headers });
+        } else {
+          throw new Error('Refresh failed');
+        }
+      } catch (e) {
+        localStorage.clear();
+        window.dispatchEvent(new CustomEvent('session-expired'));
+        throw e;
+      }
+    } else {
+      localStorage.clear();
+      window.dispatchEvent(new CustomEvent('session-expired'));
+    }
+  }
+
+  return response;
+};
 export default api;
