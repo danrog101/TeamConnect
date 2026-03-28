@@ -204,44 +204,42 @@ const createFieldValidator = [
 ];
 
 // Profile validators
+
 const updateProfileValidator = [
   body('first_name')
     .optional()
     .trim()
     .isLength({ max: 50 })
-    .withMessage('First name can be max 50 characters')
-    .escape(),
+    .withMessage('First name can be max 50 characters'),
   
   body('last_name')
     .optional()
     .trim()
     .isLength({ max: 50 })
-    .withMessage('Last name can be max 50 characters')
-    .escape(),
+    .withMessage('Last name can be max 50 characters'),
   
   body('bio')
     .optional()
     .trim()
     .isLength({ max: 500 })
-    .withMessage('Bio can be max 500 characters')
-    .escape(),
+    .withMessage('Bio can be max 500 characters'),
   
   body('phone')
     .optional()
     .trim()
-    .matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/)
+    .isLength({ max: 30 })
     .withMessage('Invalid phone format'),
   
   body('instagram')
     .optional()
     .trim()
-    .matches(/^[A-Za-z0-9._]+$/)
+    .isLength({ max: 50 })
     .withMessage('Invalid Instagram username'),
   
   body('twitter')
     .optional()
     .trim()
-    .matches(/^[A-Za-z0-9_]+$/)
+    .isLength({ max: 50 })
     .withMessage('Invalid Twitter username'),
   
   validate
