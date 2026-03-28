@@ -62,48 +62,63 @@ function Profile() {
   useEffect(() => { loadProfile(); }, [userId]);
 
   const loadProfile = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) { navigate('/login'); return; }
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) { navigate('/login'); return; }
 
-      const user = await authAPI.getCurrentUser();
+    let user;
+    if (userId && userId !== currentUser.id) {
+      // Tuđi profil
+      const res = await fetch(`${API_URL}/profile/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) { setToast({ message: 'Profil nije pronađen', type: 'error' }); return; }
+      user = await res.json();
+      setIsOwnProfile(false);
+      checkCanRate(userId);
+    } else {
+      // Vlastiti profil
+      user = await authAPI.getCurrentUser();
       if (!user) return;
+      setIsOwnProfile(true);
 
       let friends = [], stats = {};
       try { friends = await authAPI.getFriends(); } catch (e) {}
       try { stats   = await authAPI.getUserStats(); } catch (e) {}
 
-      setProfile({ ...user, friends: friends || [], stats: stats || {} });
-      setIsOwnProfile(!userId || userId === currentUser.id);
-      if (userId && userId !== currentUser.id) checkCanRate(userId);
-
-      setEditForm({
-        firstName:         user.first_name    || user.firstName    || '',
-        lastName:          user.last_name     || user.lastName     || '',
-        bio:               user.bio           || '',
-        dateOfBirth:       user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
-        gender:            user.gender        || '',
-        sport:             user.sport         || '',
-        favoriteSports:    user.favorite_sports || user.favoriteSports || [],
-        skillLevel:        user.skill_level   || user.skillLevel   || '',
-        position:          user.position      || '',
-        country:           user.country       || '',
-        city:              user.city          || '',
-        phone:             user.phone         || '',
-        instagram:         user.instagram     || '',
-        twitter:           user.twitter       || '',
-        facebook:          user.facebook      || '',
-        profileVisibility: user.profile_visibility || user.profileVisibility || 'public',
-        showEmail:         user.show_email    || user.showEmail    || false,
-        showPhone:         user.show_phone    || user.showPhone    || false,
-        leagueLevel:       user.league_level  || user.leagueLevel  || '',
-        yearsExperience:   user.years_experience || user.yearsExperience || '',
-        selfRating:        user.self_rating   || user.selfRating   || 5,
-      });
-    } catch (e) {
-      setToast({ message: 'Greška pri učitavanju profila', type: 'error' });
+      user = { ...user, friends: friends || [], stats: stats || {} };
     }
-  };
+
+    setProfile(user);
+
+    setEditForm({
+      username:          user.username        || '',
+      firstName:         user.first_name      || user.firstName    || '',
+      lastName:          user.last_name       || user.lastName     || '',
+      bio:               user.bio             || '',
+      dateOfBirth:       user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
+      gender:            user.gender          || '',
+      sport:             user.sport           || '',
+      favoriteSports:    user.favorite_sports || user.favoriteSports || [],
+      skillLevel:        user.skill_level     || user.skillLevel   || '',
+      position:          user.position        || '',
+      country:           user.country         || '',
+      city:              user.city            || '',
+      phone:             user.phone           || '',
+      instagram:         user.instagram       || '',
+      twitter:           user.twitter         || '',
+      facebook:          user.facebook        || '',
+      profileVisibility: user.profile_visibility || user.profileVisibility || 'public',
+      showEmail:         user.show_email      || user.showEmail    || false,
+      showPhone:         user.show_phone      || user.showPhone    || false,
+      leagueLevel:       user.league_level    || user.leagueLevel  || '',
+      yearsExperience:   user.years_experience || user.yearsExperience || '',
+      selfRating:        user.self_rating     || user.selfRating   || 5,
+    });
+  } catch (e) {
+    setToast({ message: 'Greška pri učitavanju profila', type: 'error' });
+  }
+};
 
   const checkCanRate = async (targetId) => {
     try {
@@ -125,7 +140,8 @@ function Profile() {
     setSaving(true);
     try {
       const dbData = {
-        first_name:          editForm.firstName,
+  username: editForm.username,
+  first_name: editForm.firstName,
         last_name:           editForm.lastName,
         bio:                 editForm.bio,
         date_of_birth:       editForm.dateOfBirth,
@@ -353,6 +369,11 @@ function Profile() {
                   {/* Osobni podaci */}
                   <div className="edit-section">
                     <h3 className="edit-section-title">👤 Osobni podaci</h3>
+                    <div className="form-group">
+  <label>Korisničko ime</label>
+  <input type="text" placeholder="username" value={ef.username}
+    onChange={e => setEditForm({...ef, username: e.target.value})} />
+</div>
                     <div className="edit-grid-2">
                       <div className="form-group">
                         <label>Ime</label>
