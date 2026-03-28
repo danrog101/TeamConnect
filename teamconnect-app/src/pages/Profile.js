@@ -80,7 +80,6 @@ function Profile() {
 
         let friends = [], stats = {};
         try { friends = await authAPI.getFriends(); } catch (e) {}
-        try { stats   = await authAPI.getUserStats(); } catch (e) {}
         user = { ...user, friends: friends || [], stats: stats || {} };
       }
 
