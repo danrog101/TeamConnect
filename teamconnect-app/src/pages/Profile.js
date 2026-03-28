@@ -122,7 +122,6 @@ function Profile() {
         first_name:          editForm.firstName,
         last_name:           editForm.lastName,
         bio:                 editForm.bio,
-        date_of_birth:       editForm.dateOfBirth,
         gender:              editForm.gender,
         sport:               editForm.sport,
         skill_level:         editForm.skillLevel,
@@ -136,9 +135,6 @@ function Profile() {
         profile_visibility:  editForm.profileVisibility,
         show_email:          editForm.showEmail,
         show_phone:          editForm.showPhone,
-        league_level:        editForm.leagueLevel,
-        years_experience:    editForm.yearsExperience,
-        self_rating:         editForm.selfRating,
       };
       const response = await authAPI.updateProfile(dbData);
       const updated = response.data;
