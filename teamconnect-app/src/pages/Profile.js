@@ -124,7 +124,6 @@ function Profile() {
         bio:                 editForm.bio,
         gender:              editForm.gender,
         sport:               editForm.sport,
-        skill_level:         editForm.skillLevel,
         position:            editForm.position,
         country:             editForm.country,
         city:                editForm.city,
