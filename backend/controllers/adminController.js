@@ -2,7 +2,7 @@ const { supabase } = require('../config/supabase');
 const bcrypt = require('bcryptjs');
 
 // Admin email
-const ADMIN_EMAIL = 'teamconnect0102@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 // Check if user is admin
 exports.isAdmin = (email) => {

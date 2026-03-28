@@ -13,19 +13,17 @@ const transporter = nodemailer.createTransport({
   }
 });
 // Generate access and refresh tokens
-const generateTokens = (userId) => {
+const generateTokens = (userId, isAdmin = false) => {
   const accessToken = jwt.sign(
-    { id: userId },
+    { id: userId, is_admin: isAdmin },
     process.env.JWT_SECRET,
     { expiresIn: '15m' }
   );
-
   const refreshToken = jwt.sign(
-    { id: userId },
+    { id: userId, is_admin: isAdmin },
     process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET + '_refresh',
     { expiresIn: '7d' }
   );
-
   return { accessToken, refreshToken };
 };
 
@@ -235,13 +233,14 @@ exports.verifyCode = async (req, res) => {
       accessToken,
       refreshToken,
       user: {
-        id: userData.id,
-        email: userData.email,
-        username: userData.username,
-        sport: userData.sport,
-        location: userData.location,
-        avatar: userData.avatar
-      }
+  id: user.id,
+  email: user.email,
+  username: user.username,
+  avatar: user.avatar,
+  sport: user.sport,
+  location: user.location,
+  is_admin: isAdmin
+}
     });
   } catch (error) {
     console.error('❌ Verify error:', error);
@@ -318,7 +317,8 @@ exports.login = async (req, res) => {
     }
 
     // Generiraj tokene
-    const { accessToken, refreshToken } = generateTokens(user.id);
+const isAdmin = user.email === process.env.ADMIN_EMAIL;
+const { accessToken, refreshToken } = generateTokens(user.id, isAdmin);
 
     // Spremi refresh token u bazu
     await supabase
@@ -334,14 +334,15 @@ exports.login = async (req, res) => {
       message: 'Login successful!',
       accessToken,
       refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        avatar: user.avatar,
-        sport: user.sport,
-        location: user.location
-      }
+     user: {
+  id: user.id,
+  email: user.email,
+  username: user.username,
+  avatar: user.avatar,
+  sport: user.sport,
+  location: user.location,
+  is_admin: isAdmin
+}
     });
   } catch (error) {
     console.error('❌ Login error:', error);

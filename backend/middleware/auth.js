@@ -40,7 +40,7 @@ const auth = async (req, res, next) => {
     }
 
     // Attach user to request object
-    req.user = user;
+  req.user = { ...user, is_admin: decoded.is_admin || false };
     
     // Update last active timestamp (optional - don't await to avoid slowing down requests)
     supabase

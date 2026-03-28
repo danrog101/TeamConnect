@@ -29,8 +29,8 @@ function AdminDashboard() {
   const [newPassword, setNewPassword] = useState('');
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user.email !== ADMIN_EMAIL) {
+   const user = JSON.parse(localStorage.getItem('user') || '{}');
+if (!user.is_admin) {
       setToast({ message: 'Pristup odbijen. Samo administrator može pristupiti.', type: 'error' });
       setTimeout(() => navigate('/dashboard'), 2000);
       return;
