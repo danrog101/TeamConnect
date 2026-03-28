@@ -511,3 +511,5 @@ textarea { min-height: 100px; resize: vertical; }
   .form-actions { flex-direction: column; }
   .form-actions .btn { width: 100%; }
 }
+.goog-te-banner-frame { display: none !important; }
+body { top: 0 !important; }

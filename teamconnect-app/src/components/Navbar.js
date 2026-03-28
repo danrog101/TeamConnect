@@ -131,6 +131,7 @@ function Navbar() {
         </div>
 
         <div className="navbar-user">
+          <div id="google_translate_element"></div>
           <LanguageSelector />
           <button className="theme-toggle" onClick={toggleTheme} title={isDark ? t('nav.switchToLight') : t('nav.switchToDark')}>
             {isDark ? '☀️' : '🌙'}
