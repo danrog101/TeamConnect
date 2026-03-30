@@ -4,13 +4,12 @@ import './index.css';
 import App from './App';
 import { ThemeProvider } from './context/ThemeContext';
 import reportWebVitals from './reportWebVitals';
-// Global fetch interceptor — automatski refresh tokena
+
 const originalFetch = window.fetch;
 
 window.fetch = async (...args) => {
   let [resource, options = {}] = args;
 
-  // Dodaj token
   const token = localStorage.getItem('token');
   if (token) {
     options.headers = {
@@ -21,7 +20,6 @@ window.fetch = async (...args) => {
 
   let response = await originalFetch(resource, options);
 
-  // Ako je 401, pokušaj refresh
   if (response.status === 401) {
     const refreshToken = localStorage.getItem('refreshToken');
 
@@ -40,8 +38,6 @@ window.fetch = async (...args) => {
           const data = await refreshResponse.json();
           localStorage.setItem('token', data.accessToken);
           localStorage.setItem('refreshToken', data.refreshToken);
-
-          // Ponovi originalni request s novim tokenom
           options.headers = {
             ...options.headers,
             Authorization: `Bearer ${data.accessToken}`
@@ -52,16 +48,17 @@ window.fetch = async (...args) => {
         }
       } catch (e) {
         localStorage.clear();
-        window.dispatchEvent(new CustomEvent('session-expired'));
+        window.location.href = '/login';
       }
     } else {
       localStorage.clear();
-      window.dispatchEvent(new CustomEvent('session-expired'));
+      window.location.href = '/login';
     }
   }
 
   return response;
 };
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -71,7 +68,4 @@ root.render(
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
