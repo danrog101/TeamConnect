@@ -44,7 +44,9 @@ const io = socketIo(server, {
 app.use(cors({
   origin: [
     'https://teamconnect-frontendte.onrender.com',
-    'http://localhost:3000'
+    'http://localhost:3000' ,
+    'https://www.teamconnects.team',
+    'https://teamconnects.team'
   ],
   credentials: true
 }));
