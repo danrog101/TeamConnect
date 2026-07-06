@@ -233,13 +233,13 @@ exports.verifyCode = async (req, res) => {
       accessToken,
       refreshToken,
       user: {
-  id: user.id,
-  email: user.email,
-  username: user.username,
-  avatar: user.avatar,
-  sport: user.sport,
-  location: user.location,
-  is_admin: isAdmin
+ id: userData.id,
+    email: userData.email,
+    username: userData.username,
+    avatar: userData.avatar,
+    sport: userData.sport,
+    location: userData.location,
+    is_admin: isAdmin
 }
     });
   } catch (error) {
