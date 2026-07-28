@@ -2,14 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import Modal from '../components/Modal';
 import { getSocket } from '../utils/socket';
+import { API_URL } from '../config';
+import { useLanguage } from '../i18n/LanguageContext';
 import './TeamChat.css';
-
+ 
 function TeamChat() {
   const { teamId } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [messages, setMessages] = useState([]);
+  const [confirmDeleteMsg, setConfirmDeleteMsg] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -65,12 +70,12 @@ function TeamChat() {
 
   const loadTeam = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/teams/${teamId}`);
+      const response = await fetch(`${API_URL}/teams/${teamId}`);
       if (response.ok) {
         const data = await response.json();
         setTeam(data);
       } else {
-        setToast({ message: 'Tim ne postoji', type: 'error' });
+        setToast({ message: t('chat.teamNotFound'), type: 'error' });
         setTimeout(() => navigate('/my-teams'), 2000);
       }
     } catch (error) {
@@ -82,7 +87,7 @@ function TeamChat() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/chat/${teamId}/messages`, {
+      const response = await fetch(`${API_URL}/chat/${teamId}/messages`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -145,7 +150,7 @@ function TeamChat() {
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
-      setToast({ message: 'Geolokacija nije podržana', type: 'error' });
+      setToast({ message: t('chat.locationNotSupported'), type: 'error' });
       return;
     }
 
@@ -159,18 +164,23 @@ function TeamChat() {
           text: '📍 Lokacija',
           location: { latitude, longitude }
         });
-        setToast({ message: 'Lokacija poslana!', type: 'success' });
+        setToast({ message: t('chat.locationShared'), type: 'success' });
       },
-      () => setToast({ message: 'Nije moguće dohvatiti lokaciju', type: 'error' })
+      () => setToast({ message: t('chat.locationError'), type: 'error' })
     );
   };
 
-  const handleDeleteMessage = async (messageId) => {
-    if (!window.confirm('Obriši poruku?')) return;
+  const handleDeleteMessage = (messageId) => {
+    setConfirmDeleteMsg(messageId);
+  };
+
+  const confirmDeleteMessage = async () => {
+    const messageId = confirmDeleteMsg;
+    setConfirmDeleteMsg(null);
 
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/chat/${teamId}/messages/${messageId}`, {
+      await fetch(`${API_URL}/chat/${teamId}/messages/${messageId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -188,8 +198,8 @@ function TeamChat() {
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    if (date.toDateString() === today.toDateString()) return 'Danas';
-    if (date.toDateString() === yesterday.toDateString()) return 'Jučer';
+    if (date.toDateString() === today.toDateString()) return t('chat.today');
+    if (date.toDateString() === yesterday.toDateString()) return t('chat.yesterday');
     return date.toLocaleDateString('hr-HR');
   };
 
@@ -227,7 +237,7 @@ function TeamChat() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Vidi lokaciju na mapi
+                  {t('chat.viewOnMap')}
                 </a>
               </div>
             ) : (
@@ -256,7 +266,7 @@ function TeamChat() {
         <Navbar />
         <div className="loading-container">
           <div className="loading-spinner" />
-          <p>Učitavanje chata...</p>
+          <p>{t('chat.loadingChat')}</p>
         </div>
       </div>
     );
@@ -269,12 +279,15 @@ function TeamChat() {
       <div className="chat-container">
         <div className="chat-header card">
           <button className="back-button" onClick={() => navigate('/my-teams')}>
-            ← Natrag
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            {t('chat.back')}
           </button>
 
           <div className="chat-header-info">
             <h2>💬 {team?.name}</h2>
-            <p>{team?.currentPlayers}/{team?.maxPlayers} igrača</p>
+            <p>{t('chat.playersCount').replace('{current}', team?.currentPlayers).replace('{max}', team?.maxPlayers)}</p>
           </div>
         </div>
 
@@ -283,8 +296,8 @@ function TeamChat() {
             {messages.length === 0 ? (
               <div className="no-messages">
                 <span className="empty-icon">💬</span>
-                <p>Nema poruka</p>
-                <p>Budi prvi koji će nešto napisati!</p>
+                <p>{t('chat.noMessages')}</p>
+                <p>{t('chat.beFirst')}</p>
               </div>
             ) : (
               messages.map(renderMessage)
@@ -298,7 +311,7 @@ function TeamChat() {
                   <span />
                 </div>
                 <span className="typing-text">
-                  {typingUsers[0].username} piše...
+                  {t('chat.isTyping').replace('{name}', typingUsers[0].username)}
                 </span>
               </div>
             )}
@@ -311,7 +324,7 @@ function TeamChat() {
               type="button"
               className="btn-location"
               onClick={handleShareLocation}
-              title="Podijeli lokaciju"
+              title={t('chat.shareLocation')}
             >
               📍
             </button>
@@ -324,7 +337,7 @@ function TeamChat() {
                 setNewMessage(e.target.value);
                 handleTyping();
               }}
-              placeholder="Napiši poruku..."
+              placeholder={t('chat.writeMessage')}
             />
 
             <button
@@ -332,11 +345,22 @@ function TeamChat() {
               className="btn-send"
               disabled={!newMessage.trim()}
             >
-              Pošalji
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
             </button>
           </form>
         </div>
       </div>
+
+      <Modal
+        isOpen={!!confirmDeleteMsg}
+        onClose={() => setConfirmDeleteMsg(null)}
+        onConfirm={confirmDeleteMessage}
+        title={t('chat.deleteMessage')}
+        message={t('chat.deleteMessage')}
+      />
 
       {toast && (
         <Toast

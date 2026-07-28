@@ -1,24 +1,38 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import './Modal.css';
+import { useLanguage } from '../i18n/LanguageContext'; 
 
 function Modal({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText }) {
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2>{title}</h2>
         <p>{message}</p>
         <div className="modal-actions">
           <button className="btn btn-cancel" onClick={onClose}>
-            {cancelText || 'Odustani'}
+            {cancelText || t('common.cancel')}
           </button>
           <button className="btn btn-confirm" onClick={onConfirm}>
-            {confirmText || 'Potvrdi'}
+            {confirmText || t('common.confirm')}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

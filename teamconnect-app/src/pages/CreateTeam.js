@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { getAllSports, addCustomSport } from '../data/sports';
 import { europeanCities, searchCities, addCustomCity } from '../data/cities';
 import './CreateTeam.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 function CreateTeam() {
+  
   const navigate = useNavigate();
+ const { t, language } = useLanguage();
   const [toast, setToast] = useState(null);
   const [showCustomSportModal, setShowCustomSportModal] = useState(false);
   const [customSportName, setCustomSportName] = useState('');
@@ -23,7 +28,13 @@ function CreateTeam() {
     date: '',
     time: '',
     maxPlayers: 10,
-    description: ''
+    description: '',
+    gender_preference: 'mix',
+    min_skill_level: '',
+    max_skill_level: '',
+    amateur_only: false,
+    join_as_player: false,
+    position: ''
   });
 
   const sportsList = getAllSports();
@@ -72,15 +83,34 @@ function CreateTeam() {
       return;
     }
 
+    // Prepare data for backend
+    const submitData = {
+      name: formData.name,
+      sport: formData.sport,
+      country: formData.country,
+      city: formData.city,
+      location: formData.location,
+      date: formData.date,
+      time: formData.time,
+      max_players: formData.maxPlayers,
+      description: formData.description,
+      gender_preference: formData.gender_preference,
+      min_skill_level: formData.min_skill_level ? parseInt(formData.min_skill_level) : null,
+      max_skill_level: formData.max_skill_level ? parseInt(formData.max_skill_level) : null,
+      amateur_only: formData.amateur_only,
+      join_as_player: formData.join_as_player,
+      position: formData.join_as_player ? formData.position : null
+    };
+
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/teams', {
+      const response = await fetch(`${API_URL}/teams`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(submitData)
       });
 
       const data = await response.json();
@@ -129,12 +159,11 @@ const handleAddCustomCity = () => {
       
       <div className="create-team-container">
         <div className="create-team-card card">
-          <h1>⚽ Kreiraj novi tim</h1>
-          <p className="subtitle">Organiziraj utakmicu i pozovi igrače</p>
-
+          <h1>⚽ {language === 'en' ? 'Create New Team' : 'Kreiraj novi tim'}</h1>
+<p className="subtitle">{language === 'en' ? 'Organize a match and invite players' : 'Organiziraj utakmicu i pozovi igrače'}</p>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Naziv tima *</label>
+              <label>{t('createTeam.teamNameLabel')}</label>
               <input
                 type="text"
                 name="name"
@@ -147,7 +176,7 @@ const handleAddCustomCity = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Sport *</label>
+               <label>{t('createTeam.sportLabel')}</label>
                 <div className="sport-select-wrapper">
                   <select name="sport" value={formData.sport} onChange={handleChange} required>
                     <option value="">Odaberi sport</option>
@@ -174,7 +203,7 @@ const handleAddCustomCity = () => {
               </div>
 
               <div className="form-group">
-                <label>Država *</label>
+                <label>{t('createTeam.countryLabel')}</label>
                 <select name="country" value={formData.country} onChange={handleChange} required>
                   {countries.map(country => (
                     <option key={country} value={country}>{country}</option>
@@ -184,7 +213,7 @@ const handleAddCustomCity = () => {
             </div>
 
             <div className="form-group">
-              <label>Grad *</label>
+              <label>{t('createTeam.cityLabel')}</label>
               <div className="city-search-wrapper">
                 <input
                   type="text"
@@ -234,7 +263,7 @@ const handleAddCustomCity = () => {
             </div>
 
             <div className="form-group">
-              <label>Lokacija/Teren *</label>
+              <label>{t('createTeam.locationLabel')}</label>
               <input
                 type="text"
                 name="location"
@@ -271,7 +300,7 @@ const handleAddCustomCity = () => {
             </div>
 
             <div className="form-group">
-              <label>Maksimalan broj igrača</label>
+              <label>{t('createTeam.maxPlayersLabel')}</label>
               <input
                 type="number"
                 name="maxPlayers"
@@ -280,11 +309,105 @@ const handleAddCustomCity = () => {
                 min="2"
                 max="50"
               />
-              <small>Uključujući tebe</small>
+            </div>
+
+            <div className="form-group join-as-player-option">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="join_as_player"
+                  checked={formData.join_as_player}
+                  onChange={(e) => setFormData({ ...formData, join_as_player: e.target.checked, position: '' })}
+                />
+                <span className="checkbox-text">Pridruži se kao igrač</span>
+              </label>
+              <small>Ako označiš ovu opciju, bit ćeš registriran kao igrač u timu. Inače ćeš biti samo kreator/organizator.</small>
+            </div>
+
+            {formData.join_as_player && (
+              <div className="form-group position-select">
+                <label>Tvoja pozicija u timu</label>
+                <input
+                  type="text"
+                  name="position"
+                  value={formData.position}
+                  onChange={handleChange}
+                  placeholder="npr. Napadač, Vratar, Centar, Playmaker..."
+                />
+                <small>Upiši poziciju na kojoj želiš igrati (opcionalno)</small>
+              </div>
+            )}
+
+            {/* Player Filtering Options */}
+            <div className="filter-section">
+              <h3>🎯 Filteri za igrače</h3>
+              <p className="filter-description">Postavi uvjete tko se može pridružiti timu</p>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Spol igrača</label>
+                  <select
+                    name="gender_preference"
+                    value={formData.gender_preference}
+                    onChange={handleChange}
+                  >
+                    <option value="mix">Mješovito (svi)</option>
+                    <option value="male">Samo muškarci</option>
+                    <option value="female">Samo žene</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="amateur_only"
+                      checked={formData.amateur_only}
+                      onChange={(e) => setFormData({ ...formData, amateur_only: e.target.checked })}
+                    />
+                    {' '}Samo amateri
+                  </label>
+                  <small>Igrači s ratingom manjim od 60%</small>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>{t('createTeam.minSkill')}</label>
+                  <select
+                    name="min_skill_level"
+                    value={formData.min_skill_level}
+                    onChange={handleChange}
+                  >
+                    <option value="">Bez ograničenja</option>
+                    <option value="1">1 - Početnik</option>
+                    <option value="2">2 - Srednji</option>
+                    <option value="3">3 - Napredni</option>
+                    <option value="4">4 - Ekspert</option>
+                    <option value="5">5 - Pro</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Max. razina vještine</label>
+                  <select
+                    name="max_skill_level"
+                    value={formData.max_skill_level}
+                    onChange={handleChange}
+                  >
+                    <option value="">Bez ograničenja</option>
+                    <option value="1">1 - Početnik</option>
+                    <option value="2">2 - Srednji</option>
+                    <option value="3">3 - Napredni</option>
+                    <option value="4">4 - Ekspert</option>
+                    <option value="5">5 - Pro</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div className="form-group">
-              <label>Opis (opcionalno)</label>
+              <label>{t('createTeam.descriptionLabel')}</label>
               <textarea
                 name="description"
                 value={formData.description}

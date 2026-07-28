@@ -1,36 +1,42 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  createTeam, 
-  getTeams, 
-  getTeam, 
-  joinTeam, 
-  leaveTeam,
-  deleteTeam,
-  getMyTeams
-} = require('../controllers/teamController');
+const teamController = require('../controllers/teamController');
 const auth = require('../middleware/auth');
-const { createTeamValidator, teamIdValidator } = require('../middleware/validators');
 
-// ✅ Get all teams - JAVNA ruta (svi mogu vidjeti)
-router.get('/', getTeams);
+// ✅ Get all teams - PUBLIC route (everyone can see)
+router.get('/', teamController.getAllTeams);
 
-// ✅ Get MY teams - PRIVATNA ruta (mora biti prije /:id!)
-router.get('/my-teams', auth, getMyTeams);
+// ✅ Get MY teams - PRIVATE route (must be BEFORE /:id!)
+router.get('/my', auth, teamController.getMyTeams);
 
-// ✅ Get single team - JAVNA ruta
-router.get('/:id', teamIdValidator, getTeam);
+// ✅ Get single team - PUBLIC route
+router.get('/:id', teamController.getTeamById);
 
-// ✅ Create team - PRIVATNA ruta
-router.post('/', auth, createTeamValidator, createTeam);
+// ✅ Create team - PRIVATE route
+router.post('/', auth, teamController.createTeam);
 
-// ✅ Join team - PRIVATNA ruta
-router.post('/:teamId/join', auth, teamIdValidator, joinTeam);
+// ✅ Join team - PRIVATE route
+router.post('/:id/join', auth, teamController.joinTeam);
 
-// ✅ Leave team - PRIVATNA ruta
-router.post('/:teamId/leave', auth, teamIdValidator, leaveTeam);
+// ✅ Leave team - PRIVATE route
+router.post('/:id/leave', auth, teamController.leaveTeam);
 
-// ✅ Delete team - PRIVATNA ruta
-router.delete('/:teamId', auth, teamIdValidator, deleteTeam);
+// ✅ Update team - PRIVATE route
+router.put('/:id', auth, teamController.updateTeam);
+
+// ✅ Delete team - PRIVATE route
+router.delete('/:id', auth, teamController.deleteTeam);
+
+// ✅ Get team messages - PRIVATE route
+router.get('/:id/messages', auth, teamController.getTeamMessages);
+
+// ✅ Send team message - PRIVATE route
+router.post('/:id/messages', auth, teamController.sendTeamMessage);
+
+// ✅ Get team stats - PUBLIC route
+router.get('/:id/stats', teamController.getTeamStats);
+
+// ✅ Get team members - PRIVATE route (for team creator to see registered players)
+router.get('/:id/members', auth, teamController.getTeamMembers);
 
 module.exports = router;

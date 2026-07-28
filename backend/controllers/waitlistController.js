@@ -1,6 +1,5 @@
-const Team = require('../models/Team');
+const { supabase } = require('../config/supabase');
 const nodemailer = require('nodemailer');
-const { createNotificationHelper } = require('./notificationController'); // ✅ DODANO
 
 // Email transporter
 const transporter = nodemailer.createTransport({
@@ -11,157 +10,197 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Dodaj se na waitlist
+// Join waitlist
 exports.joinWaitlist = async (req, res) => {
   try {
     const { teamId } = req.params;
     const userId = req.user.id;
     const userEmail = req.user.email;
 
-    const team = await Team.findById(teamId);
-    
-    if (!team) {
-      return res.status(404).json({ message: 'Tim ne postoji' });
+    // Check if team exists
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('id, name, sport, city, location, date, time, max_players, current_players')
+      .eq('id', teamId)
+      .single();
+
+    if (teamError || !team) {
+      return res.status(404).json({ message: 'Team not found' });
     }
 
-    // Provjeri je li već na waitlistu
-    const alreadyOnWaitlist = team.waitlist.some(
-      item => item.user.toString() === userId
-    );
+    // Check if already on waitlist
+    const { data: existingWaitlist } = await supabase
+      .from('team_waitlist')
+      .select('id')
+      .eq('team_id', teamId)
+      .eq('user_id', userId)
+      .single();
 
-    if (alreadyOnWaitlist) {
-      return res.status(400).json({ message: 'Već si na listi čekanja!' });
+    if (existingWaitlist) {
+      return res.status(400).json({ message: 'Već ste na listi čekanja!' });
     }
 
-    // Provjeri je li već igrač
-    if (team.players.includes(userId)) {
-      return res.status(400).json({ message: 'Već si u timu!' });
+    // Check if already a member
+    const { data: membership } = await supabase
+      .from('team_members')
+      .select('team_id')
+      .eq('team_id', teamId)
+      .eq('user_id', userId)
+      .single();
+
+    if (membership) {
+      return res.status(400).json({ message: 'Već ste član tima!' });
     }
 
-    // Dodaj na waitlist
-    team.waitlist.push({
-      user: userId,
-      email: userEmail,
-      addedAt: new Date()
+    // Add to waitlist
+    const { error: insertError } = await supabase
+      .from('team_waitlist')
+      .insert({
+        team_id: teamId,
+        user_id: userId,
+        email: userEmail,
+        added_at: new Date().toISOString()
+      });
+
+    if (insertError) {
+      console.error('Join waitlist error:', insertError);
+      return res.status(500).json({ message: 'Failed to join waitlist' });
+    }
+
+    res.json({
+      message: 'Dodani ste na listu čekanja! Obavijestit ćemo vas emailom kada se oslobodi mjesto.'
     });
-
-    await team.save();
-
-    res.json({ message: 'Dodan si na listu čekanja! Obavijestit ćemo te emailom kada se oslobodi mjesto.' });
   } catch (error) {
     console.error('Waitlist error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Ukloni se s waitlista
+// Leave waitlist
 exports.leaveWaitlist = async (req, res) => {
   try {
     const { teamId } = req.params;
     const userId = req.user.id;
 
-    const team = await Team.findById(teamId);
-    
+    // Check if team exists
+    const { data: team } = await supabase
+      .from('teams')
+      .select('id')
+      .eq('id', teamId)
+      .single();
+
     if (!team) {
-      return res.status(404).json({ message: 'Tim ne postoji' });
+      return res.status(404).json({ message: 'Team not found' });
     }
 
-    team.waitlist = team.waitlist.filter(
-      item => item.user.toString() !== userId
-    );
+    // Remove from waitlist
+    const { error } = await supabase
+      .from('team_waitlist')
+      .delete()
+      .eq('team_id', teamId)
+      .eq('user_id', userId);
 
-    await team.save();
+    if (error) {
+      console.error('Leave waitlist error:', error);
+      return res.status(500).json({ message: 'Failed to leave waitlist' });
+    }
 
-    res.json({ message: 'Uklonjen si s liste čekanja' });
+    res.json({ message: 'Uklonjeni ste s liste čekanja' });
   } catch (error) {
     console.error('Leave waitlist error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Pošalji notifikaciju waitlist korisnicima kada se mjesto oslobodi
+// Notify waitlist when spot opens (called internally)
 exports.notifyWaitlist = async (teamId) => {
   try {
-    const team = await Team.findById(teamId).populate('waitlist.user');
-    
-    if (!team || team.waitlist.length === 0) {
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('id, name, sport, city, location, date, time, max_players, current_players')
+      .eq('id', teamId)
+      .single();
+
+    if (teamError || !team) {
+      console.error('Team not found for waitlist notification');
       return;
     }
 
-    // Ako tim nije pun, obavijesti sve na waitlistu
-    if (team.currentPlayers < team.maxPlayers) {
-      const emailPromises = team.waitlist.map(item => {
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: item.email,
-          subject: `🎉 Oslobodilo se mjesto u timu: ${team.name}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px;">
-              <h1 style="color: white; text-align: center;">🎉 Dobra vijest!</h1>
-              
-              <div style="background: white; padding: 30px; border-radius: 10px; margin: 20px 0;">
-                <h2 style="color: #667eea;">Oslobodilo se mjesto u timu!</h2>
-                
-                <p style="font-size: 16px; color: #333; line-height: 1.6;">
-                  Upravo se oslobodilo mjesto u timu na koji si bio zainteresiran:
-                </p>
-                
-                <div style="background: #f5f7fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                  <p style="margin: 10px 0;"><strong>Tim:</strong> ${team.name}</p>
-                  <p style="margin: 10px 0;"><strong>Sport:</strong> ${team.sport}</p>
-                  <p style="margin: 10px 0;"><strong>Lokacija:</strong> ${team.city}, ${team.location}</p>
-                  <p style="margin: 10px 0;"><strong>Datum:</strong> ${new Date(team.date).toLocaleDateString('hr-HR')}</p>
-                  <p style="margin: 10px 0;"><strong>Vrijeme:</strong> ${team.time}</p>
-                  <p style="margin: 10px 0;"><strong>Slobodna mjesta:</strong> ${team.maxPlayers - team.currentPlayers}/${team.maxPlayers}</p>
-                </div>
-                
-                <p style="font-size: 16px; color: #333;">
-                  Žuri! Prijavi se što prije jer mjesta brzo nestaju.
-                </p>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="http://localhost:3000/dashboard" 
-                     style="background: linear-gradient(135deg, #667eea, #764ba2); 
-                            color: white; 
-                            padding: 15px 40px; 
-                            text-decoration: none; 
-                            border-radius: 25px; 
-                            font-weight: bold;
-                            display: inline-block;">
-                    Prijavi se u tim
-                  </a>
-                </div>
-              </div>
-              
-              <p style="color: white; text-align: center; font-size: 14px;">
-                TeamConnect - Povežite se s igračima 🏆
-              </p>
-            </div>
-          `
-        };
-
-        return transporter.sendMail(mailOptions);
-      });
-
-      // ✅ NOVO - Kreiraj notifikacije za sve na waitlistu
-      const notificationPromises = team.waitlist.map(waitlistUser => {
-        return createNotificationHelper(
-          waitlistUser.user,
-          'waitlist_spot_available',
-          '🎉 Mjesto dostupno!',
-          `Oslobodilo se mjesto u timu "${team.name}"`,
-          '/dashboard',
-          { teamId: team._id }
-        ).catch(err => {
-          console.error('Greška pri kreiranju notifikacije za waitlist:', err);
-        });
-      });
-
-      // Šalji sve emailove i notifikacije paralelno
-      await Promise.all([...emailPromises, ...notificationPromises]);
-      
-      console.log(`Waitlist notifikacije poslane za tim: ${team.name}`);
+    // Check if team has available spots
+    if (team.current_players >= team.max_players) {
+      return; // Team is still full
     }
+
+    // Get waitlist users
+    const { data: waitlist, error: waitlistError } = await supabase
+      .from('team_waitlist')
+      .select('user_id, email, users (username)')
+      .eq('team_id', teamId)
+      .order('added_at', { ascending: true });
+
+    if (waitlistError || !waitlist || waitlist.length === 0) {
+      return;
+    }
+
+    // Send email notifications to all waitlist users
+    const emailPromises = waitlist.map(item => {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: item.email,
+        subject: `🎉 Oslobodilo se mjesto u timu: ${team.name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px;">
+            <h1 style="color: white; text-align: center;">🎉 Odlične vijesti!</h1>
+
+            <div style="background: white; padding: 30px; border-radius: 10px; margin: 20px 0;">
+              <h2 style="color: #667eea;">Oslobodilo se mjesto!</h2>
+
+              <p style="font-size: 16px; color: #333; line-height: 1.6;">
+                Mjesto je sada dostupno u timu za koji ste bili zainteresirani:
+              </p>
+
+              <div style="background: #f5f7fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <p style="margin: 10px 0;"><strong>Tim:</strong> ${team.name}</p>
+                <p style="margin: 10px 0;"><strong>Sport:</strong> ${team.sport}</p>
+                <p style="margin: 10px 0;"><strong>Lokacija:</strong> ${team.city}, ${team.location}</p>
+                <p style="margin: 10px 0;"><strong>Datum:</strong> ${new Date(team.date).toLocaleDateString('hr-HR')}</p>
+                <p style="margin: 10px 0;"><strong>Vrijeme:</strong> ${team.time}</p>
+                <p style="margin: 10px 0;"><strong>Dostupna mjesta:</strong> ${team.max_players - team.current_players}/${team.max_players}</p>
+              </div>
+
+              <p style="font-size: 16px; color: #333;">
+                Požurite! Pridružite se brzo jer se mjesta brzo popunjavaju.
+              </p>
+
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL}/dashboard"
+                   style="background: linear-gradient(135deg, #667eea, #764ba2);
+                          color: white;
+                          padding: 15px 40px;
+                          text-decoration: none;
+                          border-radius: 25px;
+                          font-weight: bold;
+                          display: inline-block;">
+                  Pridruži se timu
+                </a>
+              </div>
+            </div>
+
+            <p style="color: white; text-align: center; font-size: 14px;">
+              TeamConnect - Poveži se s igračima 🏆
+            </p>
+          </div>
+        `
+      };
+
+      return transporter.sendMail(mailOptions).catch(err => {
+        console.error('Email send error:', err);
+      });
+    });
+
+    await Promise.all(emailPromises);
+    
+    console.log(`Waitlist notifications sent for team: ${team.name}`);
   } catch (error) {
     console.error('Notify waitlist error:', error);
   }

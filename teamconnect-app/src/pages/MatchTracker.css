@@ -1,7 +1,7 @@
 .match-tracker-page {
   min-height: 100vh;
   background: 
-    linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(14, 165, 233, 0.95) 100%),
     url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1920&q=80') center/cover no-repeat fixed;
   background-blend-mode: overlay;
 }
@@ -51,7 +51,7 @@
 }
 
 .match-status-badge[data-status="live"] {
-  background: #4caf50;
+  background: #3b82f6;
   color: white;
   animation: pulse 2s infinite;
 }
@@ -62,7 +62,7 @@
 }
 
 .match-status-badge[data-status="scheduled"] {
-  background: #ff9800;
+  background: #f59e0b;
   color: white;
 }
 
@@ -109,7 +109,7 @@
 
 .team-section h2 {
   margin: 0 0 20px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 2rem;
   font-weight: 800;
 }
@@ -117,7 +117,7 @@
 .team-score {
   font-size: 5rem;
   font-weight: 900;
-  color: #667eea;
+  color: var(--color-primary);
   line-height: 1;
 }
 
@@ -189,10 +189,10 @@
 .match-timeline h3,
 .match-statistics h3 {
   margin: 0 0 25px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.5rem;
   padding-bottom: 15px;
-  border-bottom: 3px solid #667eea;
+  border-bottom: 3px solid var(--color-primary);
 }
 
 .no-events {
@@ -220,21 +220,21 @@
 
 .timeline-event:hover {
   transform: translateX(10px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
 }
 
 .home-event {
-  border-left: 5px solid #667eea;
+  border-left: 5px solid var(--color-primary);
 }
 
 .away-event {
-  border-left: 5px solid #764ba2;
+  border-left: 5px solid var(--color-accent);
 }
 
 .event-minute {
   font-size: 1.3rem;
   font-weight: 800;
-  color: #667eea;
+  color: var(--color-primary);
   text-align: center;
 }
 
@@ -256,11 +256,11 @@
 
 .event-type {
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .event-player {
-  color: #667eea;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
@@ -284,7 +284,7 @@
 
 .stat-label {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1rem;
   text-align: center;
 }
@@ -303,16 +303,16 @@
 }
 
 .stat-value.home {
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .stat-value.away {
-  color: #764ba2;
+  color: var(--color-accent);
 }
 
 .stat-bar {
   height: 30px;
-  background: #e0e0e0;
+  background: var(--bg-tertiary);
   border-radius: 15px;
   overflow: hidden;
   display: flex;
@@ -325,11 +325,11 @@
 }
 
 .home-fill {
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 
 .away-fill {
-  background: linear-gradient(90deg, #764ba2, #f093fb);
+  background: linear-gradient(90deg, var(--color-accent), #f093fb);
 }
 
 .add-event-modal {
@@ -356,7 +356,7 @@
 
 .add-event-modal h2 {
   margin: 0 0 30px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 2rem;
 }
 

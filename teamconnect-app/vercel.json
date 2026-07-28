@@ -1,0 +1,8 @@
+{
+  "buildCommand": "CI=false REACT_APP_API_URL=https://teamconnect-cd34.onrender.com/api npm run build",
+  "outputDirectory": "build",
+  "framework": "create-react-app",
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/" }
+  ]
+}

@@ -1,38 +1,36 @@
 const { body, param, query, validationResult } = require('express-validator');
 
-// Helper da provjerava validaciju
+// Helper to check validation results
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ 
-      message: 'Validacijska greška',
+      message: 'Validation error',
       errors: errors.array() 
     });
   }
   next();
 };
 
-// Validatori za auth
+// Auth validators
 const registerValidator = [
   body('username')
     .trim()
     .isLength({ min: 3, max: 30 })
-    .withMessage('Username mora biti između 3-30 karaktera')
+    .withMessage('Username must be between 3-30 characters')
     .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('Username može sadržavati samo slova, brojeve i _'),
+    .withMessage('Username can only contain letters, numbers and _'),
   
   body('email')
     .trim()
     .isEmail()
-    .withMessage('Unesite valjan email')
+    .withMessage('Enter a valid email')
     .normalizeEmail(),
   
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Lozinka mora imati minimalno 6 karaktera'),
-    // ✅ Uklonio sam strogi .matches() - sada prihvaća bilo koju lozinku 6+ karaktera
+    .withMessage('Password must be at least 6 characters'),
   
-  // ✅ NOVO - sport i location kao optional:
   body('sport')
     .optional()
     .trim()
@@ -50,258 +48,281 @@ const loginValidator = [
   body('email')
     .trim()
     .isEmail()
-    .withMessage('Unesite valjan email')
+    .withMessage('Enter a valid email')
     .normalizeEmail(),
   
   body('password')
     .notEmpty()
-    .withMessage('Lozinka je obavezna'),
+    .withMessage('Password is required'),
   
   validate
 ];
 
-// Validatori za team
+// Team validators
 const createTeamValidator = [
   body('name')
     .trim()
     .isLength({ min: 3, max: 50 })
-    .withMessage('Ime tima mora biti između 3-50 karaktera')
+    .withMessage('Team name must be between 3-50 characters')
     .escape(),
   
   body('sport')
     .trim()
     .notEmpty()
-    .withMessage('Sport je obavezan')
+    .withMessage('Sport is required')
     .escape(),
   
   body('city')
     .trim()
     .notEmpty()
-    .withMessage('Grad je obavezan')
+    .withMessage('City is required')
     .escape(),
   
   body('location')
     .trim()
     .notEmpty()
-    .withMessage('Lokacija je obavezna')
+    .withMessage('Location is required')
     .escape(),
   
   body('date')
     .isISO8601()
-    .withMessage('Nevažeći datum')
+    .withMessage('Invalid date')
     .toDate(),
   
   body('time')
     .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
-    .withMessage('Nevažeće vrijeme (format HH:MM)'),
+    .withMessage('Invalid time format (use HH:MM)'),
   
-  body('maxPlayers')
+  body('max_players')
     .isInt({ min: 2, max: 100 })
-    .withMessage('Broj igrača mora biti između 2-100'),
+    .withMessage('Number of players must be between 2-100'),
   
   body('description')
     .optional()
     .trim()
     .isLength({ max: 500 })
-    .withMessage('Opis može imati maksimalno 500 karaktera')
+    .withMessage('Description can be max 500 characters')
     .escape(),
   
   validate
 ];
 
-// Validatori za tournament
+// Tournament validators
 const createTournamentValidator = [
   body('name')
     .trim()
     .isLength({ min: 3, max: 100 })
-    .withMessage('Ime turnira mora biti između 3-100 karaktera')
+    .withMessage('Tournament name must be between 3-100 characters')
     .escape(),
   
   body('sport')
     .trim()
     .notEmpty()
-    .withMessage('Sport je obavezan')
+    .withMessage('Sport is required')
     .escape(),
   
   body('city')
     .trim()
     .notEmpty()
-    .withMessage('Grad je obavezan')
+    .withMessage('City is required')
     .escape(),
   
-  body('startDate')
+  body('start_date')
     .isISO8601()
-    .withMessage('Nevažeći datum početka')
+    .withMessage('Invalid start date')
     .toDate(),
   
-  body('endDate')
+  body('end_date')
     .isISO8601()
-    .withMessage('Nevažeći datum završetka')
+    .withMessage('Invalid end date')
     .toDate()
     .custom((endDate, { req }) => {
-      if (new Date(endDate) < new Date(req.body.startDate)) {
-        throw new Error('Datum završetka mora biti nakon datuma početka');
+      if (new Date(endDate) < new Date(req.body.start_date)) {
+        throw new Error('End date must be after start date');
       }
       return true;
     }),
   
-  body('maxTeams')
+  body('max_teams')
     .isInt({ min: 2, max: 128 })
-    .withMessage('Broj timova mora biti između 2-128'),
+    .withMessage('Number of teams must be between 2-128'),
   
-  body('teamSize')
-    .isInt({ min: 1, max: 50 })
-    .withMessage('Veličina tima mora biti između 1-50'),
-  
-  body('entryFee')
+  body('entry_fee')
     .optional()
     .isFloat({ min: 0, max: 10000 })
-    .withMessage('Cijena prijave mora biti između 0-10000€'),
+    .withMessage('Entry fee must be between 0-10000€'),
   
   body('description')
     .optional()
     .trim()
     .isLength({ max: 1000 })
-    .withMessage('Opis može imati maksimalno 1000 karaktera')
+    .withMessage('Description can be max 1000 characters')
     .escape(),
   
   validate
 ];
 
-// Validatori za field
+// Field validators
 const createFieldValidator = [
   body('name')
     .trim()
     .isLength({ min: 3, max: 100 })
-    .withMessage('Ime terena mora biti između 3-100 karaktera')
+    .withMessage('Field name must be between 3-100 characters')
     .escape(),
   
   body('sport')
     .trim()
     .notEmpty()
-    .withMessage('Sport je obavezan')
+    .withMessage('Sport is required')
     .escape(),
   
   body('city')
     .trim()
     .notEmpty()
-    .withMessage('Grad je obavezan')
+    .withMessage('City is required')
     .escape(),
   
   body('address')
     .trim()
     .isLength({ min: 5, max: 200 })
-    .withMessage('Adresa mora biti između 5-200 karaktera')
+    .withMessage('Address must be between 5-200 characters')
     .escape(),
   
   body('price')
     .optional()
     .isFloat({ min: 0, max: 1000 })
-    .withMessage('Cijena mora biti između 0-1000€'),
+    .withMessage('Price must be between 0-1000€'),
   
   body('description')
     .optional()
     .trim()
     .isLength({ max: 500 })
-    .withMessage('Opis može imati maksimalno 500 karaktera')
+    .withMessage('Description can be max 500 characters')
     .escape(),
   
   validate
 ];
 
-// Validatori za profile
+// Profile validators
+
 const updateProfileValidator = [
-  body('firstName')
+  body('first_name')
     .optional()
     .trim()
     .isLength({ max: 50 })
-    .withMessage('Ime može imati maksimalno 50 karaktera')
-    .escape(),
+    .withMessage('First name can be max 50 characters'),
   
-  body('lastName')
+  body('last_name')
     .optional()
     .trim()
     .isLength({ max: 50 })
-    .withMessage('Prezime može imati maksimalno 50 karaktera')
-    .escape(),
+    .withMessage('Last name can be max 50 characters'),
   
   body('bio')
     .optional()
     .trim()
     .isLength({ max: 500 })
-    .withMessage('Bio može imati maksimalno 500 karaktera')
-    .escape(),
+    .withMessage('Bio can be max 500 characters'),
   
   body('phone')
     .optional()
     .trim()
-    .matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/)
-    .withMessage('Nevažeći format telefona'),
+    .isLength({ max: 30 })
+    .withMessage('Invalid phone format'),
   
   body('instagram')
     .optional()
     .trim()
-    .matches(/^[A-Za-z0-9._]+$/)
-    .withMessage('Nevažeći Instagram username'),
+    .isLength({ max: 50 })
+    .withMessage('Invalid Instagram username'),
   
   body('twitter')
     .optional()
     .trim()
-    .matches(/^[A-Za-z0-9_]+$/)
-    .withMessage('Nevažeći Twitter username'),
+    .isLength({ max: 50 })
+    .withMessage('Invalid Twitter username'),
   
   validate
 ];
 
-// Validatori za stats
+// Stats validators
 const addMatchValidator = [
   body('sport')
     .trim()
     .notEmpty()
-    .withMessage('Sport je obavezan')
+    .withMessage('Sport is required')
     .escape(),
   
   body('matchData.opponent')
     .trim()
     .isLength({ min: 2, max: 100 })
-    .withMessage('Protivnik mora biti između 2-100 karaktera')
+    .withMessage('Opponent must be between 2-100 characters')
     .escape(),
   
   body('matchData.result')
     .isIn(['win', 'loss', 'draw'])
-    .withMessage('Rezultat mora biti: win, loss ili draw'),
+    .withMessage('Result must be: win, loss or draw'),
   
   body('matchData.goalsScored')
     .optional()
     .isInt({ min: 0, max: 50 })
-    .withMessage('Broj golova mora biti između 0-50'),
+    .withMessage('Goals scored must be between 0-50'),
   
   body('matchData.assists')
     .optional()
     .isInt({ min: 0, max: 50 })
-    .withMessage('Broj asistencija mora biti između 0-50'),
+    .withMessage('Assists must be between 0-50'),
   
   validate
 ];
 
-// ID validatori
-const mongoIdValidator = [
-  param('id').isMongoId().withMessage('Nevažeći ID'),
+// UUID validators (for Supabase)
+const uuidValidator = [
+  param('id')
+    .isUUID()
+    .withMessage('Invalid ID format'),
   validate
 ];
 
 const teamIdValidator = [
-  param('teamId').isMongoId().withMessage('Nevažeći team ID'),
+  param('teamId')
+    .isUUID()
+    .withMessage('Invalid team ID'),
   validate
 ];
 
 const tournamentIdValidator = [
-  param('tournamentId').isMongoId().withMessage('Nevažeći tournament ID'),
+  param('tournamentId')
+    .isUUID()
+    .withMessage('Invalid tournament ID'),
   validate
 ];
 
 const matchIdValidator = [
-  param('matchId').isMongoId().withMessage('Nevažeći match ID'),
+  param('matchId')
+    .isUUID()
+    .withMessage('Invalid match ID'),
+  validate
+];
+
+const fieldIdValidator = [
+  param('fieldId')
+    .isUUID()
+    .withMessage('Invalid field ID'),
+  validate
+];
+
+const videoIdValidator = [
+  param('videoId')
+    .isUUID()
+    .withMessage('Invalid video ID'),
+  validate
+];
+
+const userIdValidator = [
+  param('userId')
+    .isUUID()
+    .withMessage('Invalid user ID'),
   validate
 ];
 
@@ -313,8 +334,11 @@ module.exports = {
   createFieldValidator,
   updateProfileValidator,
   addMatchValidator,
-  mongoIdValidator,
+  uuidValidator,
   teamIdValidator,
   tournamentIdValidator,
-  matchIdValidator
+  matchIdValidator,
+  fieldIdValidator,
+  videoIdValidator,
+  userIdValidator
 };

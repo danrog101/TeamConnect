@@ -1,142 +1,225 @@
-const Notification = require('../models/Notification');
+const { supabase } = require('../config/supabase');
 
-// Helper funkcija za kreiranje notifikacije
+// ✅ Helper function to create notification (EXPORTED for other controllers)
 const createNotificationHelper = async (recipientId, type, title, message, link = null, data = {}, senderId = null) => {
   try {
-    const notification = new Notification({
-      recipient: recipientId,
-      sender: senderId,
-      type,
-      title,
-      message,
-      link,
-      data
-    });
-    await notification.save();
+    const { data: notification, error } = await supabase
+      .from('notifications')
+      .insert({
+        recipient_id: recipientId,
+        sender_id: senderId,
+        type,
+        title,
+        message,
+        link,
+        data,
+        read: false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Create notification helper error:', error);
+      throw error;
+    }
+
     return notification;
   } catch (error) {
-    console.error('Create notification helper error:', error);
-    throw error; // Baci grešku dalje
+    console.error('❌ Create notification helper error:', error);
+    throw error;
   }
 };
 
-// Dohvati sve notifikacije korisnika
+// Get user notifications
 exports.getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { unreadOnly, limit = 50 } = req.query;
+    const limit = parseInt(req.query.limit) || 50;
+    const unreadOnly = req.query.unreadOnly === 'true';
 
-    const query = { recipient: userId };
-    if (unreadOnly === 'true') {
-      query.read = false;
+    // Build query
+    let query = supabase
+      .from('notifications')
+      .select(`
+        *,
+        sender:users!notifications_sender_id_fkey(id, username, avatar)
+      `)
+      .eq('recipient_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    // Filter unread only if requested
+    if (unreadOnly) {
+      query = query.eq('read', false);
     }
 
-    const notifications = await Notification.find(query)
-      .populate('sender', 'username avatar')
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit));
+    const { data: notifications, error } = await query;
 
-    // Count unread
-    const unreadCount = await Notification.countDocuments({
-      recipient: userId,
-      read: false
-    });
+    if (error) {
+      console.error('❌ Get notifications error:', error);
+      throw error;
+    }
+
+    // Get unread count
+    const { count, error: countError } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', userId)
+      .eq('read', false);
+
+    if (countError) {
+      console.error('❌ Count unread error:', countError);
+      throw countError;
+    }
 
     res.json({
-      notifications,
-      unreadCount
+      notifications: notifications || [],
+      unreadCount: count || 0
     });
   } catch (error) {
-    console.error('Get notifications error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Get notifications error:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch notifications',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
-// Označi notifikaciju kao pročitanu
+// Mark notification as read
 exports.markAsRead = async (req, res) => {
   try {
     const { notificationId } = req.params;
     const userId = req.user.id;
 
-    const notification = await Notification.findOne({
-      _id: notificationId,
-      recipient: userId
-    });
+    // First verify this notification belongs to the user
+    const { data: notification, error: fetchError } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('id', notificationId)
+      .eq('recipient_id', userId)
+      .single();
 
-    if (!notification) {
-      return res.status(404).json({ message: 'Notifikacija ne postoji' });
+    if (fetchError || !notification) {
+      return res.status(404).json({ message: 'Notification not found' });
     }
 
-    notification.read = true;
-    notification.readAt = new Date();
-    await notification.save();
+    // Update to read
+    const { error } = await supabase
+      .from('notifications')
+      .update({ 
+        read: true, 
+        read_at: new Date().toISOString() 
+      })
+      .eq('id', notificationId)
+      .eq('recipient_id', userId);
 
-    res.json({ message: 'Notifikacija označena kao pročitana' });
+    if (error) {
+      console.error('❌ Mark as read error:', error);
+      throw error;
+    }
+
+    res.json({ message: 'Notification marked as read' });
   } catch (error) {
-    console.error('Mark as read error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Mark as read error:', error);
+    res.status(500).json({ 
+      message: 'Failed to mark notification as read',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
-// Označi sve notifikacije kao pročitane
+// Mark all notifications as read
 exports.markAllAsRead = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    await Notification.updateMany(
-      { recipient: userId, read: false },
-      { 
-        $set: { 
-          read: true, 
-          readAt: new Date() 
-        } 
-      }
-    );
+    const { error } = await supabase
+      .from('notifications')
+      .update({ 
+        read: true, 
+        read_at: new Date().toISOString() 
+      })
+      .eq('recipient_id', userId)
+      .eq('read', false);
 
-    res.json({ message: 'Sve notifikacije označene kao pročitane' });
+    if (error) {
+      console.error('❌ Mark all as read error:', error);
+      throw error;
+    }
+
+    res.json({ message: 'All notifications marked as read' });
   } catch (error) {
-    console.error('Mark all as read error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Mark all as read error:', error);
+    res.status(500).json({ 
+      message: 'Failed to mark all notifications as read',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
-// Obriši notifikaciju
+// Delete notification
 exports.deleteNotification = async (req, res) => {
   try {
     const { notificationId } = req.params;
     const userId = req.user.id;
 
-    const notification = await Notification.findOne({
-      _id: notificationId,
-      recipient: userId
-    });
+    // Verify ownership before deleting
+    const { data: notification, error: fetchError } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('id', notificationId)
+      .eq('recipient_id', userId)
+      .single();
 
-    if (!notification) {
-      return res.status(404).json({ message: 'Notifikacija ne postoji' });
+    if (fetchError || !notification) {
+      return res.status(404).json({ message: 'Notification not found' });
     }
 
-    await Notification.findByIdAndDelete(notificationId);
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', notificationId)
+      .eq('recipient_id', userId);
 
-    res.json({ message: 'Notifikacija obrisana' });
+    if (error) {
+      console.error('❌ Delete notification error:', error);
+      throw error;
+    }
+
+    res.json({ message: 'Notification deleted' });
   } catch (error) {
-    console.error('Delete notification error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Delete notification error:', error);
+    res.status(500).json({ 
+      message: 'Failed to delete notification',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
-// Obriši sve notifikacije
+// Delete all notifications
 exports.deleteAllNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    await Notification.deleteMany({ recipient: userId });
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('recipient_id', userId);
 
-    res.json({ message: 'Sve notifikacije obrisane' });
+    if (error) {
+      console.error('❌ Delete all notifications error:', error);
+      throw error;
+    }
+
+    res.json({ message: 'All notifications deleted' });
   } catch (error) {
-    console.error('Delete all notifications error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Delete all notifications error:', error);
+    res.status(500).json({ 
+      message: 'Failed to delete all notifications',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
-// ✅ ISPRAVLJENI EXPORT
+// ✅ EXPORT the helper function so other controllers can use it
 exports.createNotificationHelper = createNotificationHelper;

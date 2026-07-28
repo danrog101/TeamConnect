@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import { API_URL } from '../config';
 import './MatchTracker.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function MatchTracker() {
   const { matchId } = useParams();
+   const { t } = useLanguage();
   const navigate = useNavigate();
   
   // ============ STATE ============
@@ -50,19 +52,19 @@ function MatchTracker() {
     try {
       if (!silent) setLoading(true);
       
-      const response = await fetch(`http://localhost:5000/api/matches/${matchId}`);
+      const response = await fetch(`${API_URL}/matches/${matchId}`);
       
       if (response.ok) {
         const data = await response.json();
         setMatch(data);
       } else {
         const error = await response.json();
-        setToast({ message: error.message || 'Utakmica ne postoji', type: 'error' });
+        setToast({ message: error.message || t('match.notFound'), type: 'error' });
         setTimeout(() => navigate('/dashboard'), 2000);
       }
     } catch (error) {
       console.error('Fetch match error:', error);
-      setToast({ message: 'Greška pri učitavanju utakmice', type: 'error' });
+      setToast({ message: t('match.loadError'), type: 'error' });
     } finally {
       if (!silent) setLoading(false);
     }
@@ -72,7 +74,7 @@ function MatchTracker() {
   const handleStatusChange = async (newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/matches/${matchId}/status`, {
+      const response = await fetch(`${API_URL}/matches/${matchId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +105,7 @@ function MatchTracker() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/matches/${matchId}/event`, {
+      const response = await fetch(`${API_URL}/matches/${matchId}/event`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +144,7 @@ function MatchTracker() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/matches/${matchId}/commentary`, {
+      const response = await fetch(`${API_URL}/matches/${matchId}/commentary`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +177,7 @@ function MatchTracker() {
         team2Score: match.score.team2 + (team === 'team2' ? increment : 0)
       };
 
-      const response = await fetch(`http://localhost:5000/api/matches/${matchId}/score`, {
+      const response = await fetch(`${API_URL}/matches/${matchId}/score`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

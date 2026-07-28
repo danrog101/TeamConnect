@@ -1,50 +1,48 @@
-# TeamConnect - Đana Rogulj & Karolina Mihaljević
+# TeamConnects
 
-**Projekt:** TeamConnect – Povezivanje timova za sport  
-**Tim:** Đana Rogulj & Karolina Mihaljević  
-**Status:** U izradi  
+**Project:** TeamConnects – Connecting Teams for Sport  
 
-## 🎯 Pregled projekta
+**Status:** In Development
 
-**TeamConnect** je web aplikacija koja povezuje sportaše i rekreativce po **lokaciji i sportu**.  
-Rješavanje problema poput npr.Ljudi često žele igrati nogomet, ali ne mogu pronaći dovoljno suigrača.
-Cilj je omogućiti korisnicima da se jednostavno registriraju, odaberu sport te pronađu tim ili suigrače u **blizini svog kvarta (npr. Split, kvartovi)**.  
-Ako korisnici imaju mogućnost pretraživanja timova po sportu i lokaciji, lakše će pronaći suigrače i povećati broj sportskih aktivnosti.
+## 🎯 Project Overview
 
-**Logika aplikacije**: registracija → odabir sporta → prikaz timova → spajanje u tim
+**TeamConnects** is a web application that connects athletes and recreational players by **location and sport**.
 
-Aplikacija pomaže svima koji:
-- žele igrati, ali nemaju dovoljno ljudi za ekipu,  
-- traže sportske aktivnosti u svom području,  
-- žele se pridružiti postojećim timovima ili ligama.  
+It addresses a common problem: people often want to play football (or other sports) but can't find enough players to form a team.
 
-## 👥 Informacije o timu
+The goal is to allow users to easily register, choose a sport, and find a team or teammates **near their neighbourhood (e.g. Split, local districts)**.
 
-- **Đana Rogulj** – GitHub: [@danrog101](https://github.com/danrog101)   
-- **Karolina Mihaljević** – GitHub: [@Karoll47](https://github.com/Karoll47)   
-- **Ime tima:** TeamConnect  
+If users can search for teams by sport and location, they'll more easily find teammates and increase their sporting activity.
 
-## 🛠 Korištene tehnologije
+**App flow**: Register → Choose sport → Browse teams → Join a team
 
-- HTML, CSS, JavaScript  
-- Node.js (backend)  
-- Express.js (API)  
-- MongoDB ili JSON datoteke (pohrana korisnika i timova)  
-- Git & GitHub (verzioniranje koda)  
-- Visual Studio Code  
-
-## 📋 Funkcionalnosti
-
-- Registracija i login korisnika
-- Odabir sporta i lokacije
-- Pregled dostupnih timova
-- Automatsko spajanje u timove
-- Upravljanje korisničkim profilom
+The app is designed for anyone who:
+- wants to play but doesn't have enough people for a team,
+- is looking for sporting activities in their area,
+- wants to join existing teams or leagues.
 
 
-## 🚀 Dijagram
+
+## 🛠 Tech Stack
+
+- HTML, CSS, JavaScript
+- Node.js (backend)
+- Express.js (API)
+- Supabase or JSON files (user and team storage)
+- Git & GitHub (version control)
+- Visual Studio Code
+
+## 📋 Features
+
+- User registration and login
+- Sport and location selection
+- Browse available teams
+- Automatic team matching
+- User profile management
+
+## 🚀 Diagram
+
 ```mermaid
-
 graph TD
     A[User] --> B[Login/Register]
     B --> C[Choose Sport]
@@ -52,10 +50,20 @@ graph TD
     D --> E[Join Game]
 ```
 
-### Za članove tima
+## ⚙️ Getting Started
 
-1. **Kloniraj repozitorij**:
+1. **Clone the repository**:
    ```bash
-   git clone [URL-repozitorija]
-   cd 2025-intro-swe/projects/teamconnect-danrog101-Karoll47
+   git clone [repository-URL]
+   cd 2025-intro-swe/projects/teamconnect-danrog101
+   ```
 
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Run the app**:
+   ```bash
+   npm start
+   ```

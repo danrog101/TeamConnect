@@ -1,9 +1,6 @@
 .my-teams-page {
   min-height: 100vh;
-  background: 
-    linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%),
-    url('https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1920&q=80') center/cover no-repeat fixed;
-  background-blend-mode: overlay;
+  background: var(--bg-primary);
 }
 
 .my-teams-container {
@@ -14,9 +11,13 @@
 
 .my-teams-header {
   text-align: center;
-  color: white;
   margin-bottom: 40px;
   animation: fadeInDown 0.6s ease-out;
+  padding: 40px 24px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
 }
 
 @keyframes fadeInDown {
@@ -31,23 +32,37 @@
 }
 
 .my-teams-header h1 {
-  font-size: 3rem;
-  margin-bottom: 10px;
-  text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.4);
+  font-size: 2.5rem;
+  margin-bottom: 12px;
   font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .my-teams-header p {
-  font-size: 1.3rem;
-  opacity: 0.95;
-  text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+.teams-section {
+  margin-bottom: var(--space-xl);
+}
+
+.section-title {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--border-primary);
 }
 
 .teams-count {
   margin-bottom: 20px;
-  color: white;
+  color: var(--text-primary);
   font-size: 1.2rem;
-  text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
   animation: fadeIn 0.8s ease-out 0.2s both;
 }
 
@@ -64,7 +79,7 @@
 
 .teams-count strong {
   font-size: 1.4rem;
-  color: #ffd700;
+  color: var(--primary);
 }
 
 .teams-grid {
@@ -77,15 +92,15 @@
 .loading-state {
   text-align: center;
   padding: 80px 20px;
-  color: white;
+  color: var(--primary);
 }
 
 .spinner {
   width: 60px;
   height: 60px;
   margin: 0 auto 20px;
-  border: 5px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 5px solid var(--border-primary);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -96,27 +111,37 @@
 
 .loading-state p {
   font-size: 1.2rem;
-  text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+  color: var(--text-secondary);
 }
 
-.empty-state {
+.no-teams {
   text-align: center;
   padding: 60px 40px;
   max-width: 550px;
   margin: 40px auto;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
   animation: fadeIn 0.8s ease-out;
 }
 
-.empty-state h2 {
-  margin-bottom: 15px;
-  color: #333;
-  font-size: 2rem;
+.no-teams .empty-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 20px;
 }
 
-.empty-state p {
-  color: #666;
+.no-teams h2 {
+  margin-bottom: 15px;
+  color: var(--text-primary);
+  font-size: 1.75rem;
+}
+
+.no-teams p {
+  color: var(--text-secondary);
   margin-bottom: 30px;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
 }
 
 .empty-actions {
@@ -124,6 +149,30 @@
   gap: 15px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 20px;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid var(--border-primary);
+  border-top: 6px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-container p {
+  color: var(--primary);
+  font-size: 1.2rem;
+  font-weight: 700;
 }
 
 @media (max-width: 768px) {
@@ -142,32 +191,18 @@
   .empty-actions {
     flex-direction: column;
   }
+
+  .no-teams {
+    padding: 40px 20px;
+  }
 }
-.loading-container {
+.signup-person {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  gap: 20px;
+  gap: 6px;
+  padding: 4px 0;
 }
-
-.loading-spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid #f3f3f3;
-  border-top: 6px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-container p {
-  color: #667eea;
-  font-size: 1.2rem;
-  font-weight: 700;
+.signup-name {
+  font-size: 0.85rem;
+  color: var(--text-primary);
 }

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 import './NotificationBell.css';
-
+import { useLanguage } from '../i18n/LanguageContext'; 
 function NotificationBell() {
+   const { t } = useLanguage();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -11,11 +13,21 @@ function NotificationBell() {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
+    // ✅ Samo učitaj ako postoji token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('NotificationBell: No token, skipping initial load');
+      return;
+    }
+
     loadNotifications();
     
     // Auto-refresh svake 30 sekundi
     const interval = setInterval(() => {
-      loadNotifications(true);
+      const currentToken = localStorage.getItem('token');
+      if (currentToken) {
+        loadNotifications(true);
+      }
     }, 30000);
 
     return () => clearInterval(interval);
@@ -42,21 +54,22 @@ function NotificationBell() {
       // ✅ Check token exists
       if (!token) {
         console.log('NotificationBell: No token found');
-        // Don't redirect here - user might not be logged in yet
-        return;
+        return; // ✅ Samo return, ne redirect
       }
       
-      const response = await fetch('http://localhost:5000/api/notifications?limit=10', {
+      const response = await fetch(`${API_URL}/notifications?limit=10`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
-      // ✅ Handle 401 Unauthorized
+      // ✅ Handle 401 Unauthorized - ALI NE REDIRECT ODMAH
       if (response.status === 401) {
-        console.log('NotificationBell: Token expired, clearing localStorage...');
-        localStorage.clear();
-        navigate('/login');
+        console.log('NotificationBell: Token expired');
+        // ✅ NE briši localStorage ovdje - možda je samo privremena greška
+        // localStorage.clear();
+        // navigate('/login');
         return;
       }
 
@@ -84,10 +97,14 @@ function NotificationBell() {
         return;
       }
       
-      await fetch(`http://localhost:5000/api/notifications/${notification._id}/read`, {
+      // ✅ Provjeri je li _id ili id
+      const notificationId = notification._id || notification.id;
+      
+      await fetch(`${API_URL}/notifications/${notificationId}/read`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
@@ -111,10 +128,11 @@ function NotificationBell() {
         return;
       }
       
-      await fetch('http://localhost:5000/api/notifications/read-all', {
+      await fetch(`${API_URL}/notifications/read-all`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
@@ -135,10 +153,11 @@ function NotificationBell() {
         return;
       }
       
-      await fetch(`http://localhost:5000/api/notifications/${notificationId}`, {
+      await fetch(`${API_URL}/notifications/${notificationId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
@@ -226,7 +245,7 @@ function NotificationBell() {
             ) : (
               notifications.map(notification => (
                 <div
-                  key={notification._id}
+                  key={notification._id || notification.id}
                   className={`notification-item ${!notification.read ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
@@ -237,7 +256,7 @@ function NotificationBell() {
                   <div className="notification-content">
                     <div className="notification-title">{notification.title}</div>
                     <div className="notification-message">{notification.message}</div>
-                    <div className="notification-time">{formatTime(notification.createdAt)}</div>
+                    <div className="notification-time">{formatTime(notification.created_at || notification.createdAt)}</div>
                   </div>
 
                   {!notification.read && (
@@ -246,7 +265,7 @@ function NotificationBell() {
 
                   <button
                     className="notification-delete-btn"
-                    onClick={(e) => handleDeleteNotification(e, notification._id)}
+                    onClick={(e) => handleDeleteNotification(e, notification._id || notification.id)}
                   >
                     ✕
                   </button>

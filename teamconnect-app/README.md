@@ -1,70 +1,91 @@
-# Getting Started with Create React App
+# TeamConnects
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**Project:** TeamConnects – Connecting Teams for Sport  
 
-## Available Scripts
+**Status:** In Development
 
-In the project directory, you can run:
+## 🎯 Project Overview
 
-### `npm start`
+**TeamConnects** is a web application that connects athletes and recreational players by **location and sport**.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+It addresses a common problem: people often want to play football (or other sports) but can't find enough players to form a team.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+The goal is to allow users to easily register, choose a sport, and find a team or teammates **near their neighbourhood (e.g. Split, local districts)**.
 
-### `npm test`
+**App flow**: Register → Choose sport → Browse teams → Join a team
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The app is designed for anyone who:
+- wants to play but doesn't have enough people for a team,
+- is looking for sporting activities in their area,
+- wants to join existing teams or leagues.
 
-### `npm run build`
+## 🛠 Tech Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- React (frontend)
+- Node.js + Express.js (backend)
+- Supabase (database)
+- Socket.io (real-time chat)
+- Render (hosting)
+- Git & GitHub (version control)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📋 Features
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- User registration, login and email verification
+- Sport and location selection
+- Browse and filter available teams
+- Join teams with skill level requirements
+- Real-time team chat
+- Direct messages between friends
+- Tournament system
+- Rating system per sport
+- Trainer studio management
+- Field map
+- Notifications
+- Dark/light mode + HR/EN language support
 
-### `npm run eject`
+## 🚀 Diagram
+```mermaid
+graph TD
+    A[User] --> B[Login/Register]
+    B --> C[Choose Sport]
+    C --> D[Find Team]
+    D --> E[Join Game]
+    E --> F[Chat with Team]
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## ⚙️ Getting Started
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. **Clone the repository**:
+```bash
+   git clone [repository-URL]
+   cd teamconnects
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+2. **Install dependencies**:
+```bash
+   npm install
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+3. **Set up environment variables** — create `.env` in backend:
+```
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_KEY=your_supabase_key
+   JWT_SECRET=your_jwt_secret
+   EMAIL_USER=your_email
+   EMAIL_PASS=your_email_password
+   FRONTEND_URL=http://localhost:3000
+```
 
-## Learn More
+4. **Run the app**:
+```bash
+   # Backend
+   cd backend && npm start
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+   # Frontend
+   cd teamconnect-app && npm start
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🌐 Live Demo
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Frontend: https://teamconnect-frontendte.onrender.com
+- Backend: https://teamconnect-cd34.onrender.com

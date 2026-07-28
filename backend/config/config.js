@@ -5,7 +5,13 @@ const config = {
   env: process.env.NODE_ENV || 'development',
   port: process.env.PORT || 5000,
   
-  // Database
+  // Database - Supabase
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY
+  },
+  
+  // Legacy MongoDB (kept for reference during migration)
   mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/teamconnect',
   
   // JWT
@@ -42,7 +48,7 @@ const config = {
   
   // Validation
   validate: function() {
-    const required = ['jwtSecret', 'email.user', 'email.pass'];
+    const required = ['jwtSecret', 'email.user', 'email.pass', 'supabase.url', 'supabase.serviceRoleKey'];
     const missing = [];
     
     required.forEach(key => {

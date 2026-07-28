@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
 import Navbar from '../components/Navbar';
 import TeamCard from '../components/TeamCard';
 import Toast from '../components/Toast';
+import Modal from '../components/Modal';
+import { teamsAPI } from '../services/api';
 import './MyTeams.css';
 
 function MyTeams() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({ open: false, type: null, teamId: null });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -20,90 +26,55 @@ function MyTeams() {
   const fetchMyTeams = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/teams/my-teams', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTeams(data);
-      } else {
-        const error = await response.json();
-        setToast({ message: error.message || 'Greška pri učitavanju timova', type: 'error' });
-      }
+      const response = await teamsAPI.getMy();
+      setTeams(response.data || []);
     } catch (error) {
       console.error('Fetch teams error:', error);
-      setToast({ message: 'Greška pri učitavanju timova', type: 'error' });
+      setToast({ message: t('myTeams.loadError'), type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleLeaveTeam = async (teamId) => {
-    if (!window.confirm('Jesi li siguran da želiš napustiti ovaj tim?')) {
-      return;
-    }
+    setConfirmModal({ open: true, type: 'leave', teamId });
+  };
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/teams/${teamId}/leave`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+  const handleConfirmAction = async () => {
+    const { type, teamId } = confirmModal;
+    setConfirmModal({ open: false, type: null, teamId: null });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setToast({ message: 'Napustio si tim', type: 'info' });
-        fetchMyTeams(); // Refresh
-      } else {
-        setToast({ message: data.message, type: 'error' });
+    if (type === 'leave') {
+      try {
+        await teamsAPI.leave(teamId);
+        setToast({ message: t('myTeams.leftTeam'), type: 'info' });
+        fetchMyTeams();
+      } catch (error) {
+        console.error('Leave team error:', error);
+        setToast({ message: t('myTeams.leaveError'), type: 'error' });
       }
-    } catch (error) {
-      console.error('Leave team error:', error);
-      setToast({ message: 'Greška pri napuštanju tima', type: 'error' });
+    } else if (type === 'delete') {
+      try {
+        await teamsAPI.delete(teamId);
+        setToast({ message: t('myTeams.deleted'), type: 'success' });
+        fetchMyTeams();
+      } catch (error) {
+        console.error('Delete team error:', error);
+        setToast({ message: t('myTeams.deleteError'), type: 'error' });
+      }
     }
   };
 
   const handleDeleteTeam = async (teamId) => {
-    if (!window.confirm('Jesi li siguran da želiš obrisati ovaj tim? Ova akcija je nepovratna!')) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/teams/${teamId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setToast({ message: 'Tim obrisan', type: 'success' });
-        fetchMyTeams(); // Refresh
-      } else {
-        setToast({ message: data.message, type: 'error' });
-      }
-    } catch (error) {
-      console.error('Delete team error:', error);
-      setToast({ message: 'Greška pri brisanju tima', type: 'error' });
-    }
+    setConfirmModal({ open: true, type: 'delete', teamId });
   };
 
-  const myCreatedTeams = teams.filter(t => 
-    t.creator._id === currentUser._id || t.creator._id === currentUser.id
+  const myCreatedTeams = teams.filter(team =>
+    team.creator?.id === currentUser.id || team.creator_id === currentUser.id
   );
-  
-  const myJoinedTeams = teams.filter(t => 
-    t.creator._id !== currentUser._id && t.creator._id !== currentUser.id
+
+  const myJoinedTeams = teams.filter(team =>
+    team.creator?.id !== currentUser.id && team.creator_id !== currentUser.id
   );
 
   if (loading) {
@@ -112,7 +83,7 @@ function MyTeams() {
         <Navbar />
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Učitavanje timova...</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -121,59 +92,62 @@ function MyTeams() {
   return (
     <div className="my-teams-page">
       <Navbar />
-      
+
       <div className="my-teams-container">
         <div className="my-teams-header">
-          <h1>👥 Moji timovi</h1>
-          <p>Upravljaj svojim timovima</p>
+          <h1>{t('myTeams.title')}</h1>
+          <p>{t('myTeams.subtitle')}</p>
           <button className="btn btn-primary btn-large" onClick={() => navigate('/create-team')}>
-            + Kreiraj novi tim
+            {t('myTeams.createNew')}
           </button>
         </div>
 
         {teams.length === 0 ? (
           <div className="no-teams card">
             <span className="empty-icon">⚽</span>
-            <h2>Nemaš timova</h2>
-            <p>Kreiraj novi tim ili se pridruži postojećem na Dashboardu</p>
+            <h2>{t('myTeams.noTeams')}</h2>
+            <p>{t('myTeams.noTeamsDesc')}</p>
             <div className="empty-actions">
               <button className="btn btn-primary" onClick={() => navigate('/create-team')}>
-                Kreiraj tim
+                {t('nav.createTeam')}
               </button>
               <button className="btn btn-secondary" onClick={() => navigate('/dashboard')}>
-                Pregledaj timove
+                {t('myTeams.browseTeams')}
               </button>
             </div>
           </div>
         ) : (
           <>
-            {/* Kreirani timovi */}
             {myCreatedTeams.length > 0 && (
               <div className="teams-section">
-                <h2 className="section-title">🎯 Timovi koje sam kreirao ({myCreatedTeams.length})</h2>
+                <h2 className="section-title">{t('teams.createdTeams')} ({myCreatedTeams.length})</h2>
                 <div className="teams-grid">
                   {myCreatedTeams.map(team => (
-                    <TeamCard 
-                      key={team._id} 
+                    <TeamCard
+                      key={team.id}
                       team={team}
                       onDelete={handleDeleteTeam}
+                      onDetails={(teamId) => navigate(`/edit-team/${teamId}`)}
+                      onShowNotification={(msg, type) => setToast({ message: msg, type })}
                       showActions={true}
+                      autoExpandMembers={true}
                     />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Timovi kojima sam se pridružio */}
             {myJoinedTeams.length > 0 && (
               <div className="teams-section">
-                <h2 className="section-title">🤝 Timovi u kojima igram ({myJoinedTeams.length})</h2>
+                <h2 className="section-title">{t('teams.joinedTeams')} ({myJoinedTeams.length})</h2>
                 <div className="teams-grid">
                   {myJoinedTeams.map(team => (
-                    <TeamCard 
-                      key={team._id} 
+                    <TeamCard
+                      key={team.id}
                       team={team}
                       onLeave={handleLeaveTeam}
+                      
+                      onShowNotification={(msg, type) => setToast({ message: msg, type })}
                       showActions={true}
                     />
                   ))}
@@ -183,6 +157,14 @@ function MyTeams() {
           </>
         )}
       </div>
+
+      <Modal
+        isOpen={confirmModal.open}
+        onClose={() => setConfirmModal({ open: false, type: null, teamId: null })}
+        onConfirm={handleConfirmAction}
+        title={confirmModal.type === 'delete' ? t('teams.deleteTeam') : t('teams.leaveTeam')}
+        message={confirmModal.type === 'delete' ? t('myTeams.deleteConfirm') : t('myTeams.leaveConfirm')}
+      />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

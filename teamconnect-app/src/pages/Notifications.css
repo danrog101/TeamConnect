@@ -1,6 +1,6 @@
 .notifications-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
 }
 
 .notifications-container {
@@ -21,7 +21,7 @@
 .notifications-page-header h1 {
   margin: 0;
   font-size: 2.5rem;
-  color: #333;
+  color: #2e7d32;
 }
 
 .notifications-actions {
@@ -63,19 +63,19 @@
 
 .notification-card:hover {
   transform: translateX(5px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
 }
 
 .notification-card.unread {
-  border-left: 5px solid #667eea;
-  background: linear-gradient(to right, rgba(102, 126, 234, 0.05), white);
+  border-left: 5px solid var(--color-primary);
+  background: linear-gradient(to right, rgba(59, 130, 246, 0.05), white);
 }
 
 .notification-card-icon {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -90,7 +90,7 @@
 .notification-card-content h4 {
   margin: 0 0 10px 0;
   font-size: 1.2rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .notification-card-content p {
@@ -108,7 +108,7 @@
   position: absolute;
   top: 20px;
   right: 20px;
-  background: #667eea;
+  background: var(--color-primary);
   color: white;
   padding: 5px 12px;
   border-radius: 15px;
