@@ -33,6 +33,7 @@ const io = socketIo(server, {
   cors: {
     origin: [
       'https://teamconnect-frontendte.onrender.com',
+      'https://www.teamconnects.team',
       'http://localhost:3000'
     ],
     methods: ["GET", "POST"],
