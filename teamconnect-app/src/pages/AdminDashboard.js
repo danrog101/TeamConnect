@@ -36,7 +36,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!user.is_admin) {
+   if (user.email !== 'teamconnect0102@gmail.com')  {
       setToast({ message: 'Pristup odbijen. Samo administrator može pristupiti.', type: 'error' });
       setTimeout(() => navigate('/dashboard'), 2000);
       return;
